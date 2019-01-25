@@ -1,10 +1,10 @@
 # AQS
 
-![1544061666194.png](/Users/jack/Desktop/md/images/1544061666194-8345227.png)
+![1544061621591.png](https://github.com/JDawnF/learning_note/blob/master/images/1544061621591.png?raw=true)
 
 ### 1 AQS 简单介绍
 
-AQS的全称为（AbstractQueuedSynchronizer），这个类在java.util.concurrent.locks包下面。![1544061743209.png](/Users/jack/Desktop/md/images/1544061743209-8345158.png)
+AQS的全称为（AbstractQueuedSynchronizer），这个类在java.util.concurrent.locks包下面。![1544061743209](/Users/jack/Desktop/md/images/1544061743209.png)
 
 AQS是一个用来构建锁和同步器的框架，使用AQS能简单且高效地构造出应用广泛的大量的同步器，比如我们提到的ReentrantLock，Semaphore，其他的诸如ReentrantReadWriteLock，SynchronousQueue，FutureTask等等皆是基于AQS的。当然，我们自己也能利用AQS非常轻松容易地构造出符合我们自己需求的同步器。
 
@@ -16,7 +16,7 @@ AQS是一个用来构建锁和同步器的框架，使用AQS能简单且高效�
 
 > CLH(Craig,Landin,and Hagersten)队列是一个虚拟的双向队列（虚拟的双向队列即不存在队列实例，仅存在结点之间的关联关系）。AQS是将每条请求共享资源的线程封装成一个CLH锁队列的一个结点（Node）来实现锁的分配。
 
-看个AQS(AbstractQueuedSynchronizer)原理图：https://github.com/JDawnF/learning_note/tree/master/images/1544061850720.png
+看个AQS(AbstractQueuedSynchronizer)原理图：![1544061850720](/Users/jack/Desktop/md/images/1544061850720.png)
 
 **AQS使用一个int成员变量来表示同步状态**，通过内置的FIFO队列来完成获取资源线程的排队工作。AQS使用CAS对该同步状态进行原子操作实现对其值的修改。
 
