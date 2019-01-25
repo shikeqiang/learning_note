@@ -18,7 +18,7 @@
 
 ​	Java线程之间的通信由Java内存模型（本文简称为JMM）控制，**JMM决定一个线程对共享变量的写入何时对另一个线程可见。**从抽象的角度来看，JMM定义了线程和主内存之间的抽象关系：线程之间的共享变量存储在主内存（Main Memory）中，每个线程都有一个私有的本地内存（Local Memory），本地内存中存储了该线程以读/写共享变量的副本。**本地内存是JMM的一个抽象概念，并不真实存在。它涵盖了缓存、写缓冲区、寄存器。**
 
-![image-20190121173010844](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173010844.png)
+![image-20190121173010844](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173010844.png)
 
 从上图可见，如果线程A与线程B之间要通信的话，必须要经历下面2个步骤。
 
@@ -28,7 +28,7 @@
 
 下图是这两个步骤的实现过程：
 
-![image-20190121173102261](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173102261.png)
+![image-20190121173102261](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173102261.png)
 
 ​	如上图所示，**本地内存A和本地内存B有主内存中共享变量x的副本。**假设初始时，这3个内存中的x值都为0。线程A在执行时，把更新后的x值（假设值为1）临时存放在自己的本地内存A中。当线程A和线程B需要通信时，线程A首先会把自己本地内存中修改后的x值刷新到主内存中，此时主内存中的x值变为了1。随后，线程B到主内存中去读取线程A更新后的x值，此时线程B的本地内存的x值也变为了1。
 
@@ -46,7 +46,7 @@
 
 从Java源代码到最终实际执行的指令序列，会分别经历下面3种重排序，如图：
 
-![image-20190121173327935](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173327935.png)
+![image-20190121173327935](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173327935.png)
 
 ​	上述的**1属于编译器重排序，2和3属于处理器重排序。**这些重排序可能会导致多线程程序出现内存可见性问题。==对于编译器，JMM的编译器重排序规则会禁止特定类型的编译器重排序==（不是所有的编译器重排序都要禁止）。==对于处理器重排序，JMM的处理器重排序规则会要求Java编译器在生成指令序列时，插入特定类型的内存屏障（Memory Barriers，Intel称之为Memory Fence）指令，通过内存屏障指令来禁止特定类型的处理器重排序。==
 
@@ -58,9 +58,9 @@
 
 ​								**处理器操作内存的执行结果如下表：**
 
-![image-20190121173522842](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173522842.png)
+![image-20190121173522842](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173522842.png)
 
-​	假设处理器A和处理器B按程序的顺序并行执行内存访问，最终可能得到x=y=0的结果。具体的原因如图：![image-20190121173604121](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173604121.png)
+​	假设处理器A和处理器B按程序的顺序并行执行内存访问，最终可能得到x=y=0的结果。具体的原因如图：![image-20190121173604121](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173604121.png)
 
 ​	这里处理器A和处理器B可以同时把共享变量写入自己的写缓冲区（A1，B1），然后从内存中读取另一个共享变量（A2，B2），最后才把自己写缓存区中保存的脏数据刷新到内存中（A3，B3）。当以这种时序执行时，程序就可以得到x=y=0的结果。
 
@@ -68,13 +68,13 @@
 
 ​							**常见处理器允许的重排序类型的列表，处理器的重排序规则**
 
-![image-20190121173807026](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173807026.png)
+![image-20190121173807026](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173807026.png)
 
 ​	单元格中的“N”表示处理器不允许两个操作重排序，“Y”表示允许重排序。从上表可以看出：**常见的处理器都允许Store-Load重排序；**常见的处理器都不允许对存在数据依赖的操作做重排序。sparc-TSO和X86拥有相对较强的处理器内存模型，它们仅允许对写-读操作做重排序（因为它们都使用了写缓冲区）。
 
 ​	**为了保证内存可见性，Java编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。JMM把内存屏障指令分为4类**，如下表：
 
-![image-20190121173924601](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121173924601.png)
+![image-20190121173924601](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121173924601.png)
 
 ​	StoreLoad Barriers是一个“全能型”的屏障，它同时具有其他3个屏障的效果。现代的多处理器大多支持该屏障（其他类型的屏障不一定被所有处理器支持）。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内存中（Buffer Fully Flush）。
 
@@ -89,7 +89,7 @@
 
 ==注意==：两个操作之间具有happens-before关系，并不意味着前一个操作必须要在后一个操作之前执行！happens-before仅仅要求前一个操作（执行的结果）对后一个操作可见，且前一个操作按顺序排在第二个操作之前（the first is visible to and ordered before the second）。
 
-happens-before与JMM的关系如图：![image-20190121174144893](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121174144893.png)
+happens-before与JMM的关系如图：![image-20190121174144893](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121174144893.png)
 
 ​	如图，一个happens-before规则对应于一个或多个编译器和处理器重排序规则。对于Java程序员来说，happens-before规则简单易懂，它避免Java程序员为了理解JMM提供的内存可见性保证而去学习复杂的重排序规则以及这些规则的具体实现方法。
 
@@ -101,7 +101,7 @@ happens-before与JMM的关系如图：![image-20190121174144893](https://github.
 
 ​	如果两个操作访问同一个变量，且这两个操作中有一个为写操作，此时这两个操作之间就存在数据依赖性。数据依赖分为下列3种类型，如表：
 
-![image-20190121180927609](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121180927609.png)
+![image-20190121180927609](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121180927609.png)
 
 ​	上面3种情况，**只要重排序两个操作的执行顺序，程序的执行结果就会被改变。**编译器和处理器可能会对操作做重排序。**编译器和处理器在重排序时，会遵守数据依赖性，编译器和处理器不会改变存在数据依赖关系的两个操作的执行顺序。**
 
@@ -146,11 +146,11 @@ class ReorderExample {
 
 ​	由于操作1和操作2没有数据依赖关系，编译器和处理器可以对这两个操作重排序；同样，操作3和操作4没有数据依赖关系，编译器和处理器也可以对这两个操作重排序。当操作1和操作2重排序时，执行顺序可能如下图：
 
-![image-20190121181723386](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121181723386.png)
+![image-20190121181723386](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121181723386.png)
 
 ​	如上图所示，操作1和操作2做了重排序。程序执行时，线程A首先写标记变量flag，随后线程B读这个变量。由于条件判断为真，线程B将读取变量a。此时，变量a还没有被线程A写入，在这里多线程程序的语义被重排序破坏了！虚箭线标识错误的读操作，用实箭线标识正确的读操作。
 
-​	当操作3和操作4重排序时，执行顺序如下图：![image-20190121182042140](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121182042140.png)
+​	当操作3和操作4重排序时，执行顺序如下图：![image-20190121182042140](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121182042140.png)
 
 ​	在程序中，操作3和操作4存在控制依赖关系。当代码中存在控制依赖性时，会影响指令序列执行的并行度。为此，**编译器和处理器会采用猜测（Speculation）执行来克服控制相关性对并行度的影响。**以处理器的猜测执行为例，执行线程B的处理器可以提前读取并计算a*a，然后把计算结果临时保存到一个名为重排序缓冲（Reorder Buffer，ROB）的硬件缓存中。当操作3的条件判断为真时，就把该计算结果写入变量i中。
 
@@ -176,7 +176,7 @@ class ReorderExample {
 
 顺序一致性内存模型为程序员提供的视图如图：
 
-![image-20190122152028044](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122152028044.png)
+![image-20190122152028044](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122152028044.png)
 
 ​	在概念上，**顺序一致性模型有一个单一的全局内存**，这个内存通过一个左右摆动的开关可以连接到任意一个线程，同时每一个线程必须按照程序的顺序来执行内存读/写操作。从上面的示意图可以看出，在任意时间点最多只能有一个线程可以连接到内存。当多个线程并发执行时，图中的开关装置能把所有线程的所有内存读/写操作==串行化（即在顺序一致性模型中，所有操作之间具有全序关系）。==
 
@@ -204,11 +204,11 @@ class ReorderExample {
 
 ​	3）JMM不保证对64位的long型和double型变量的写操作具有原子性，而顺序一致性模型保证对所有的内存读/写操作都具有原子性。
 
-​	第3个差异与处理器总线的工作机制密切相关。在计算机中，数据通过总线在处理器和内存之间传递。每次处理器和内存之间的数据传递都是通过一系列步骤来完成的，**这一系列步骤称之为总线事务（Bus Transaction）。总线事务包括读事务（Read Transaction）和写事务（WriteTransaction）。读事务从内存传送数据到处理器，写事务从处理器传送数据到内存，每个事务会读/写内存中一个或多个物理上连续的字。**这里的关键是，==总线会同步试图并发使用总线的事务。在一个处理器执行总线事务期间，总线会禁止其他的处理器和I/O设备执行内存的读/写。==总线的工作机制示意图：![image-20190122152758632](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122152758632.png)
+​	第3个差异与处理器总线的工作机制密切相关。在计算机中，数据通过总线在处理器和内存之间传递。每次处理器和内存之间的数据传递都是通过一系列步骤来完成的，**这一系列步骤称之为总线事务（Bus Transaction）。总线事务包括读事务（Read Transaction）和写事务（WriteTransaction）。读事务从内存传送数据到处理器，写事务从处理器传送数据到内存，每个事务会读/写内存中一个或多个物理上连续的字。**这里的关键是，==总线会同步试图并发使用总线的事务。在一个处理器执行总线事务期间，总线会禁止其他的处理器和I/O设备执行内存的读/写。==总线的工作机制示意图：![image-20190122152758632](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122152758632.png)
 
 ​	由图可知，假设处理器A，B和C同时向总线发起总线事务，这时总线仲裁（Bus Arbitration）会对竞争做出裁决，这里假设总线在仲裁后判定处理器A在竞争中获胜（总线仲裁会确保所有处理器都能公平的访问内存）。此时处理器A继续它的总线事务，而其他两个处理器则要等待处理器A的总线事务完成后才能再次执行内存访问。假设在处理器A执行总线事务期间（不管这个总线事务是读事务还是写事务），处理器D向总线发起了总线事务，此时处理器D的请求会被总线禁止。**总线的这些工作机制可以把所有处理器对内存的访问以串行化的方式来执行。**在任意时间点，最多只能有一个处理器可以访问内存。==这个特性确保了单个总线事务之中的内存读/写操作具有原子性。==
 
-​	在一些32位的处理器上，如果要求对64位数据的写操作具有原子性，会有比较大的开销。为了照顾这种处理器，Java语言规范鼓励但不强求JVM对64位的long型变量和double型变量的写操作具有原子性。当JVM在这种处理器上运行时，可能会把一个64位long/double型变量的写操作拆分为两个32位的写操作来执行。这两个32位的写操作可能会被分配到不同的总线事务中执行，此时对这个64位变量的写操作将不具有原子性。当单个内存操作不具有原子性时，可能会产生意想不到后果。示意图:![image-20190122152931537](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122152931537.png)
+​	在一些32位的处理器上，如果要求对64位数据的写操作具有原子性，会有比较大的开销。为了照顾这种处理器，Java语言规范鼓励但不强求JVM对64位的long型变量和double型变量的写操作具有原子性。当JVM在这种处理器上运行时，可能会把一个64位long/double型变量的写操作拆分为两个32位的写操作来执行。这两个32位的写操作可能会被分配到不同的总线事务中执行，此时对这个64位变量的写操作将不具有原子性。当单个内存操作不具有原子性时，可能会产生意想不到后果。示意图:![image-20190122152931537](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122152931537.png)
 
 ​	如上图所示，假设处理器A写一个long型变量，同时处理器B要读这个long型变量。**处理器A中64位的写操作被拆分为两个32位的写操作，且这两个32位的写操作被分配到不同的写事务中执行。**同时，处理器B中64位的读操作被分配到单个的读事务中执行。当处理器A和B按上图的时序来执行时，处理器B将看到仅仅被处理器A“写了一半”的无效值。
 
@@ -285,7 +285,7 @@ class VolatileFeaturesExample {
 
 ​	下面来看看JMM如何实现volatile写/读的内存语义。**重排序分为编译器重排序和处理器重排序。为了实现volatile内存语义，JMM会分别限制这两种类型的重排序类型。**下表是JMM针对编译器制定的volatile重排序规则表。
 
-![image-20190122165208807](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122165208807.png)
+![image-20190122165208807](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122165208807.png)
 
 ​	第三行最后一个单元格的意思是：在程序中，当第一个操作为普通变量的读或写时，如果第二个操作为volatile写，则编译器不能重排序这两个操作。
 
@@ -304,13 +304,13 @@ class VolatileFeaturesExample {
 
 ​	这个要对应上面的屏障指令去看，比如第一个的话，就相当于：StoreStore这个屏障在volatile写操作前面，所以在volatile写之前的数据都会对其他处理器可见(即刷新到主内存)。
 
-​	上述内存屏障插入策略非常保守，但它可以保证在任意处理器平台，任意的程序中都能得到正确的volatile内存语义。下面是保守策略下，volatile写插入内存屏障后生成的指令序列示意图，如图：![image-20190122165826574](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122165826574.png)
+​	上述内存屏障插入策略非常保守，但它可以保证在任意处理器平台，任意的程序中都能得到正确的volatile内存语义。下面是保守策略下，volatile写插入内存屏障后生成的指令序列示意图，如图：![image-20190122165826574](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122165826574.png)
 
 ​	上图StoreStore屏障可以保证在volatile写之前，其前面的所有普通写操作已经对任意处理器可见了。这是因为StoreStore屏障将保障上面所有的普通写在volatile写之前刷新到主内存。
 
 ​	**volatile写后面的StoreLoad屏障的作用是避免volatile写与后面可能有的volatile读/写操作重排序。**因为编译器常常无法准确判断在一个volatile写的后面是否需要插入一个StoreLoad屏障（比如，一个volatile写之后方法立即return）。为了保证能正确实现volatile的内存语义，**==JMM在采取了保守策略：在每个volatile写的后面，或者在每个volatile读的前面插入一个StoreLoad屏障。==**从整体执行效率的角度考虑，JMM最终选择了在每个volatile写的后面插入一个StoreLoad屏障。**因为volatile写-读内存语义的常见使用模式是：一个写线程写volatile变量，多个读线程读同一个volatile变量。**当读线程的数量大大超过写线程时，选择在volatile写之后插入StoreLoad屏障将带来可观的执行效率的提升。从这里可以看到JMM在实现上的一个特点：首先确保正确性，然后再去追求执行效率。
 
-下面是在保守策略下，volatile读插入内存屏障后生成的指令序列示意图，如图：![image-20190122170008800](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122170008800.png)
+下面是在保守策略下，volatile读插入内存屏障后生成的指令序列示意图，如图：![image-20190122170008800](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122170008800.png)
 
 ​	上图中LoadLoad屏障用来禁止处理器把上面的volatile读与下面的普通读重排序。LoadStore屏障用来禁止处理器把上面的volatile读与下面的普通写重排序。
 
@@ -333,7 +333,7 @@ class VolatileBarrierExample {
     }
 ```
 
-针对readAndWrite()方法，编译器在生成字节码时可以做如下的优化。![image-20190122170308412](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122170308412.png)
+针对readAndWrite()方法，编译器在生成字节码时可以做如下的优化。![image-20190122170308412](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122170308412.png)
 
 ​	**注意，最后的StoreLoad屏障不能省略。因为第二个volatile写之后，方法立即return。此时编译器可能无法准确断定后面是否会有volatile读或写，为了安全起见，编译器通常会在这里插入一个StoreLoad屏障。**
 
@@ -363,7 +363,7 @@ class VolatileBarrierExample {
 
 ​	在ReentrantLock中，调用lock()方法获取锁；调用unlock()方法释放锁。**ReentrantLock的实现依赖于Java同步器框架AbstractQueuedSynchronizer（本文简称之为AQS）。AQS使用一个整型的volatile变量（命名为state）来维护同步状态，**==这个volatile变量是ReentrantLock内存语义实现的关键。==
 
-​	部分类图如下：![image-20190122174025886](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122174025886.png)
+​	部分类图如下：![image-20190122174025886](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122174025886.png)
 
 ​	ReentrantLock分为公平锁和非公平锁，我们首先分析公平锁。**使用公平锁时，加锁方法lock()调用轨迹如下。**
 
@@ -461,7 +461,7 @@ public final native boolean compareAndSwapInt(Object var1, long var2, int var4, 
 
 ​	可以看出这是一个本地方法，即由非Java语言实现的，对应的intel X86处理器的源代码片段如下：
 
-![image-20190122175201387](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122175201387.png)
+![image-20190122175201387](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122175201387.png)
 
 ​	如上面源代码所示，**程序会根据当前处理器的类型来决定是否为cmpxchg指令添加lock前缀。**==如果程序是在多处理器上运行，就为cmpxchg指令加上lock前缀（Lock Cmpxchg）。反之，如果程序是在单处理器上运行，就省略lock前缀（单处理器自身会维护单处理器内的顺序一致性，不需要lock前缀提供的内存屏障效果）。==
 
@@ -507,7 +507,7 @@ public final native boolean compareAndSwapInt(Object var1, long var2, int var4, 
 - 然后，使用CAS的原子条件更新来实现线程之间的同步。
 - 同时，配合以volatile的读/写和CAS所具有的volatile读和写的内存语义来实现线程之间的通信。
 
-​	AQS，非阻塞数据结构和原子变量类（java.util.concurrent.atomic包中的类），这些concurrent包中的基础类都是使用这种模式来实现的，而concurrent包中的高层类又是依赖于这些基础类来实现的。从整体来看，concurrent包的实现示意图：![image-20190122175907088](https://github.com/JDawnF/learning_note/blob/master/images/image-20190122175907088.png)
+​	AQS，非阻塞数据结构和原子变量类（java.util.concurrent.atomic包中的类），这些concurrent包中的基础类都是使用这种模式来实现的，而concurrent包中的高层类又是依赖于这些基础类来实现的。从整体来看，concurrent包的实现示意图：![image-20190122175907088](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122175907088.png)
 
 # 6 final域的内存语义
 
@@ -557,7 +557,7 @@ public class FinalExample {
 
 ​	假设线程B读对象引用与读对象的成员域之间没有重排序，下图是一种可能的执行时序。在图中，写普通域的操作被编译器重排序到了构造函数之外，读线程B错误地读取了普通变量i初始化之前的值。**而写final域的操作，被写final域的重排序规则“限定”在了构造函数之内，读线程B正确地读取了final变量初始化之后的值。**
 
-​	**写final域的重排序规则可以确保：在对象引用为任意线程可见之前，对象的final域已经被正确初始化过了，而普通域不具有这个保障。**如下图，在读线程B“看到”对象引用obj时，很可能obj对象还没有构造完成（对普通域i的写操作被重排序到构造函数外，此时初始值1还没有写入普通域i）。![image-20190123143937339](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123143937339.png)
+​	**写final域的重排序规则可以确保：在对象引用为任意线程可见之前，对象的final域已经被正确初始化过了，而普通域不具有这个保障。**如下图，在读线程B“看到”对象引用obj时，很可能obj对象还没有构造完成（对普通域i的写操作被重排序到构造函数外，此时初始值1还没有写入普通域i）。![image-20190123143937339](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123143937339.png)
 
 ## 6.3 读final域的重排序规则
 
@@ -571,7 +571,7 @@ public class FinalExample {
 - 初次读引用变量obj指向对象的普通域j。
 - 初次读引用变量obj指向对象的final域i。
 
-现在假设写线程A没有发生任何重排序，同时程序在不遵守间接依赖的处理器上执行，下图是一种可能的执行时序。![image-20190123144242291](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123144242291.png)
+现在假设写线程A没有发生任何重排序，同时程序在不遵守间接依赖的处理器上执行，下图是一种可能的执行时序。![image-20190123144242291](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123144242291.png)
 
 ​	在上图中，**读对象的普通域的操作被处理器重排序到读对象引用之前。**读普通域时，该域还没有被写线程A写入，这是一个错误的读取操作。而读final域的重排序规则会把读对象final域的操作“限定”在读对象引用之后，此时该final域已经被A线程初始化过了，这是一个正确的读取操作。
 
@@ -579,19 +579,19 @@ public class FinalExample {
 
 ## 6.4 final域为引用类型
 
-![image-20190123144420142](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123144420142.png)	
+![image-20190123144420142](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123144420142.png)	
 
 ​	本例final域为一个引用类型，它引用一个int型的数组对象。**对于引用类型，写final域的重排序规则对编译器和处理器增加了如下约束：在构造函数内对一个final引用的对象的成员域的写入，与随后在构造函数外把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序。**
 
-​	对上面的示例程序，假设首先线程A执行writerOne()方法，执行完后线程B执行writerTwo()方法，执行完后线程C执行reader()方法。下图是一种可能的线程执行时序。在图中，1是对final域的写入，2是对这个final域引用的对象的成员域的写入，3是把被构造的对象的引用赋值给某个引用变量。这里除了前面提到的1不能和3重排序外，2和3也不能重排序。![image-20190123144543246](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123144543246.png)
+​	对上面的示例程序，假设首先线程A执行writerOne()方法，执行完后线程B执行writerTwo()方法，执行完后线程C执行reader()方法。下图是一种可能的线程执行时序。在图中，1是对final域的写入，2是对这个final域引用的对象的成员域的写入，3是把被构造的对象的引用赋值给某个引用变量。这里除了前面提到的1不能和3重排序外，2和3也不能重排序。![image-20190123144543246](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123144543246.png)
 
 ​	**JMM可以确保读线程C至少能看到写线程A在构造函数中对final引用对象的成员域的写入。**即C至少能看到数组下标0的值为1。而写线程B对数组元素的写入，读线程C可能看得到，也可能看不到。JMM不保证线程B的写入对读线程C可见，因为写线程B和读线程C之间存在数据竞争，此时的执行结果不可预知。**如果想要确保读线程C看到写线程B对数组元素的写入，写线程B和读线程C之间需要使用同步原语（lock或volatile，防止指令重排）来确保内存可见性。**
 
 ## 6.5 为什么final引用不能从构造函数内“溢出”
 
-​	写final域的重排序规则可以确保：在引用变量为任意线程可见之前，该引用变量指向的对象的final域已经在构造函数中被正确初始化过了。其实，要得到这个效果，还需要一个保证：**在构造函数内部，不能让这个被构造对象的引用为其他线程所见，也就是对象引用不能在构造函数中“逸出”。**![image-20190123144826606](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123144826606.png)
+​	写final域的重排序规则可以确保：在引用变量为任意线程可见之前，该引用变量指向的对象的final域已经在构造函数中被正确初始化过了。其实，要得到这个效果，还需要一个保证：**在构造函数内部，不能让这个被构造对象的引用为其他线程所见，也就是对象引用不能在构造函数中“逸出”。**![image-20190123144826606](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123144826606.png)
 
-​	假设一个线程A执行writer()方法，另一个线程B执行reader()方法。**这里的操作2使得对象还未完成构造前就为线程B可见。**即使这里的操作2是构造函数的最后一步，且在程序中操作2排在操作1后面，执行read()方法的线程仍然可能无法看到final域被初始化后的值，因为这里的操作1和操作2之间可能被重排序。实际的执行时序可能如下图：![image-20190123145428052](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123145428052.png)
+​	假设一个线程A执行writer()方法，另一个线程B执行reader()方法。**这里的操作2使得对象还未完成构造前就为线程B可见。**即使这里的操作2是构造函数的最后一步，且在程序中操作2排在操作1后面，执行read()方法的线程仍然可能无法看到final域被初始化后的值，因为这里的操作1和操作2之间可能被重排序。实际的执行时序可能如下图：![image-20190123145428052](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123145428052.png)
 
 ​	从上图可以看出：**在构造函数返回前，被构造对象的引用不能为其他线程所见，因为此时的final域可能还没有被初始化。**在构造函数返回后，任意线程都将保证能看到final域正确初始化之后的值。
 
@@ -640,13 +640,13 @@ PS:线程的join方法的意思是使得放弃当前线程的执行，并返回�
 
 下面就来看看几个规则。
 
-### 1.volatile变量规则：![image-20190123154021830](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123154021830.png)
+### 1.volatile变量规则：![image-20190123154021830](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123154021830.png)
 
 ​	如上图，由于程序顺序规则，即一个线程里面语句的执行是按照程序的先后顺序执行的，所以1 happens-before 2和3 happens-before 4，然后又由于volatile变量规则，即一个volatile变量的写要在volatile变量的读之前，所以2 happens-before 3 ，又由于传递性，所以1 happens-before 4。**这里的传递性是由volatile的内存屏障插入策略和volatile的编译器重排序规则共同来保证的。**
 
 ### 2.start()规则
 
-​	假设线程A在执行的过程中，通过执行ThreadB.start()来启动线程B；同时，假设线程A在执行ThreadB.start()之前修改了一些共享变量，线程B在开始执行后会读这些共享变量。如下图：![image-20190123154517553](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123154517553.png)
+​	假设线程A在执行的过程中，通过执行ThreadB.start()来启动线程B；同时，假设线程A在执行ThreadB.start()之前修改了一些共享变量，线程B在开始执行后会读这些共享变量。如下图：![image-20190123154517553](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123154517553.png)
 
 ​	如上图，同理，1 happens-before 2和3 happens-before 4，2 happens-before 4由start()规则产生。根据传递性，将有1 happens-before 4。这实意味着，线程A在执行ThreadB.start()之前对共享变量所做的修改，接下来在线程B开始执行后都将确保对线程B可见。
 
@@ -654,7 +654,7 @@ PS:线程的join方法的意思是使得放弃当前线程的执行，并返回�
 
 ​	假设线程A在执行的过程中，通过执行ThreadB.join()来等待线程B终止；同时，假设线程B在终止之前修改了一些共享变量，线程A从ThreadB.join()返回后会读这些共享变量。
 
-![image-20190123154749210](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123154749210.png)
+![image-20190123154749210](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123154749210.png)
 
 ​	如上图，由于join原则，2 happens-before 4，4 happens-before 5，所以2 happens-before 5，即线程B的所有操作都会被线程A所见。
 
@@ -739,11 +739,11 @@ ctorInstance(memory); // 2：初始化对象
 
 ​	在Java语言规范中，**所有线程在执行Java程序时必须要遵守intra-thread semantics。intra-thread semantics保证重排序不会改变单线程内的程序执行结果。**换句话说，==intra-thread semantics允许那些在单线程内，不会改变单线程程序执行结果的重排序。==上面3行伪代码的2和3之间虽然被重排序了，但这个重排序并不会违反intra-thread semantics。**这个重排序在没有改变单线程程序执行结果的前提下，可以提高程序的执行性能。**
 
-​	接下来说一下什么是intra-thread semantics：![image-20190123171103150](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123171103150.png)
+​	接下来说一下什么是intra-thread semantics：![image-20190123171103150](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123171103150.png)
 
-只要保证2排在4的前面，即使2和3之间重排序了，也不会违反intra-threadsemantics。下面看看多线程访问的情况：![image-20190123171342058](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123171342058.png)
+只要保证2排在4的前面，即使2和3之间重排序了，也不会违反intra-threadsemantics。下面看看多线程访问的情况：![image-20190123171342058](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123171342058.png)
 
-​	由于单线程内要遵守intra-thread semantics，从而能保证A线程的执行结果不会被改变。但是，当线程A和B按上图的时序执行时，B线程将看到一个还没有被初始化的对象。下表是具体多线程执行时序表：![image-20190123171519877](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123171519877.png)
+​	由于单线程内要遵守intra-thread semantics，从而能保证A线程的执行结果不会被改变。但是，当线程A和B按上图的时序执行时，B线程将看到一个还没有被初始化的对象。下表是具体多线程执行时序表：![image-20190123171519877](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123171519877.png)
 
 ​	这里A2和A3虽然重排序了，但Java内存模型的intra-thread semantics将确保A2一定会排在A4前面执行。因此，线程A的intra-thread semantics没有改变，但A2和A3的重排序，将导致线程B在B1处判断出instance不为空，线程B接下来将访问instance引用的对象。此时，线程B将会访问到一个还未初始化的对象。
 
@@ -769,7 +769,7 @@ public static class SingleTon7 {
 }
 ```
 
-![image-20190123173102641](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123173102641.png)
+![image-20190123173102641](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123173102641.png)
 
 ## 8.3 基于类初始化的解决方案
 
@@ -787,7 +787,7 @@ public class InstanceFactory {
    }
 ```
 
-​	假设两个线程并发执行getInstance()方法，下面是执行的示意图:![image-20190123174012155](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174012155.png)
+​	假设两个线程并发执行getInstance()方法，下面是执行的示意图:![image-20190123174012155](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174012155.png)
 
 ​	其实在实例化对象的过程中还是发生了重排序，但是这个时候对于线程B是不可见的，而线程A内的重排序并没有什么影响。
 
@@ -811,31 +811,31 @@ Java初始化一个类或接口的处理过程如下：
 
 ##### ​	第1阶段：通过在Class对象上同步（即获取Class对象的初始化锁），来控制类或接口的初始化。这个获取锁的线程会一直等待，直到当前线程能够获取到这个初始化锁。
 
-假设Class对象当前还没有被初始化（初始化状态state，此时被标记为state=noInitialization），且有两个线程A和B试图同时初始化这个Class对象。图3-41是对应的示意图：![image-20190123174503040](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174503040.png)
+假设Class对象当前还没有被初始化（初始化状态state，此时被标记为state=noInitialization），且有两个线程A和B试图同时初始化这个Class对象。图3-41是对应的示意图：![image-20190123174503040](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174503040.png)
 
-![image-20190123174518016](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174518016.png)
+![image-20190123174518016](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174518016.png)
 
 ##### 第2阶段：线程A执行类的初始化，同时线程B在初始化锁对应的condition上等待。
 
-​							**类初始化第二阶段执行时序表**![image-20190123174650814](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174650814.png)
+​							**类初始化第二阶段执行时序表**![image-20190123174650814](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174650814.png)
 
-![image-20190123174727202](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174727202.png)
+![image-20190123174727202](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174727202.png)
 
 ​	**这里线程B得到的是正在初始化中，所以他会释放初始化锁，然后进行等待。**
 
 ##### 第3阶段：线程A设置state=initialized，然后唤醒在condition中等待的所有线程。
 
-![image-20190123174934525](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174934525.png)
+![image-20190123174934525](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174934525.png)
 
-![image-20190123174955756](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123174955756.png)
+![image-20190123174955756](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123174955756.png)
 
 ##### 第4阶段：线程B结束类的初始化处理。
 
-![image-20190123175023131](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123175023131.png)
+![image-20190123175023131](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123175023131.png)
 
-![image-20190123175043184](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123175043184.png)
+![image-20190123175043184](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123175043184.png)
 
-![image-20190123175127050](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123175127050.png)
+![image-20190123175127050](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123175127050.png)
 
 ​	**线程A在第2阶段的A1执行类的初始化，并在第3阶段的A4释放初始化锁；**线程B在第4阶段的B1获取同一个初始化锁，并在第4阶段的B4之后才开始访问这个类。
 
@@ -843,9 +843,9 @@ Java初始化一个类或接口的处理过程如下：
 
 ##### 第5阶段：线程C执行类的初始化的处理。
 
-![image-20190123175227311](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123175227311.png)
+![image-20190123175227311](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123175227311.png)
 
-![image-20190123175236046](https://github.com/JDawnF/learning_note/blob/master/images/image-20190123175236046.png)
+![image-20190123175236046](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190123175236046.png)
 
 ​	在第3阶段之后，类已经完成了初始化。因此线程C在第5阶段的类初始化处理过程相对简单一些（前面的线程A和B的类初始化处理过程都经历了两次锁获取-锁释放，而线程C的类初始化处理只需要经历一次锁获取-锁释放）。
 
@@ -863,7 +863,7 @@ Java初始化一个类或接口的处理过程如下：
 
 
 
-
+参照：《Java并发编程的艺术》
 
 
 
