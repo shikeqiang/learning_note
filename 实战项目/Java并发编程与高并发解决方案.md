@@ -1,0 +1,1469 @@
+# **Java并发编程与高并发解决方案**
+
+**J.U.C核心由5大块组成：atomic包、locks包、collections包、tools包（AQS）、executor包（线程池）。**
+
+![å¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5aab34060001193d19561164-8152326.jpg)
+
+![å¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5aab34100001a9cd19781256-8152326.jpg)
+
+# **1 基本概念**
+
+## **1.1 并发**
+
+​	同时拥有两个或者多个线程，如果程序在单核处理器上运行多个线程将交替地换入或者换出内存,这些线程是同时“存在"的，每个线程都处于执行过程中的某个状态，如果运行在多核处理器上,此时，程序中的每个线程都将分配到一个处理器核上，因此可以同时运行。
+
+## **1.2 高并发( High Concurrency)**
+
+互联网分布式系统架构设计中必须考虑的因素之一，通常是指，通过设计保证系统能够同时并行处理很多请求.
+
+## **1.3 区别与联系**
+
+- 并发: 多个线程操作相同的资源，保证线程安全，合理使用资源
+- 高并发:服务能同时处理很多请求，提高程序性能
+
+# **2 CPU**
+
+## **2.1 CPU 多级缓存**
+
+![image-20190120163526230](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120163526230-8152326.png)
+
+​	**因为CPU的频率太快了，快到主存跟不上，所以需要CPU cache。**因此，在处理器时钟周期内，CPU常常需要等待主存，浪费资源。**所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题(结构:cpu-> cache-> memory ).**
+
+### CPU cache的意义
+
+##### 1) 时间局部性：如果某个数据被访问，那么在不久的将来它很可能被再次访问
+
+##### 2) 空间局部性：如果某个数据被访问，那么与它相邻的数据很快也可能被访问
+
+## **2.2 缓存一致性(MESI)**
+
+​	**用于保证多个 CPU cache 之间缓存共享数据的一致**
+
+![image-20190120163957992](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120163957992-8152326.png)
+
+​	==MESI其实是这四种状态的缩写。==
+
+### M-modified被修改
+
+​	该缓存行只被缓存在该 CPU 的缓存中,并且是被修改过的,与主存中数据是不一致的,**需在未来某个时间点写回主存**,这个时间点是允许在其他CPU 读取主存中相应的内存之前**,当这里的值被写入主存之后,该缓存行状态变为E**
+
+### E-exclusive独享
+
+- 该缓存行只被缓存在该 CPU 的缓存中,未被修改过,与主存中数据一致
+- 可在任何时刻当被其他 CPU读取该内存时变成 S 态,被修改时变为 M态
+
+### S-shared共享
+
+​	该缓存行可能被多个 CPU 进行缓存,并且各缓存中的数据与主存数据是一致的。**当有一个CPU修改该缓存行的时候，其他CPU中该缓存行变成Invalid。**
+
+### I-invalid无效
+
+- 乱序执行优化
+- 处理器为提高运算速度而做出违背代码原有顺序的优化
+
+### 四种操作(如上图颜色)：
+
+- 本地读取 local read :读本地缓存
+- 本地写入 local write : 写本地缓存
+- 远端读取 remote rade : 将Memory中的数据读取过来
+- 远端写入 remote write : 将数据写回Memory中 
+
+# 3.JAVA 内存模型(JMM)
+
+​	一种规范，规范了java虚拟机与计算机内存如何协同工作的。它规定了**一个线程如何和何时可以看到其他线程修改过的共享变量的值，以及在必须时如何同步地访问共享变量**。 ![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-8152326.png)
+
+## 堆Heap
+
+​	运行时数据区，有垃圾回收，堆的优势可以动态分配内存大小，生存期也不必事先告诉编译器，因为他是**在运行时动态分配内存。**缺点是由于==运行时动态分配内存，所以存取速度慢一些。==
+
+## 栈Stack:
+
+​	优势存取速度快，速度仅次于计算机的寄存器。**栈的数据是可以共享的**，但是缺点是存在栈中数据的大小与生存期必须是确定的。主要存放基本类型变量，对象据点。要求调用栈和本地变量存放在线程栈上。
+​	**静态类型变量跟随类的定义存放在堆上。存放在堆上的对象可以被所持有对这个对象引用的线程访问。**
+
+**如果两个线程同时调用了同一个对象的同一个方法，他们都会访问这个对象的成员变量。但是这两个线程都拥有的是该对象的成员变量（局部变量）的私有拷贝**。—[线程封闭中的堆栈封闭]![image-20190120170418373](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120170418373-8152326.png)
+
+## CPU Registers(寄存器):
+
+​	==CPU内存的基础，CPU在寄存器上执行操作的速度远大于在主存上执行的速度。这是因为CPU访问寄存器速度远大于主存。==
+
+## CPU Cache Memory(高速缓存):
+
+​	由于计算机的存储设备与处理器的运算速度之间有着几个数量级的差距，所以现代计算机系统都不得不加入一层读写速度尽可能接近处理器运算速度的高级缓存，来作为内存与处理器之间的缓冲。将运算时所使用到的数据复制到缓存中,让运算能快速的进行。当运算结束后，再从缓存同步回内存之中，这样处理器就无需等待缓慢的内存读写了。
+
+## RAM-Main Memory(主存/内存):
+
+​	**运作原理**：当一个CPU需要读取主存的时候，他会将主存中的部分读取到CPU缓存中，甚至他可能将缓存中的部分内容读到他的内部寄存器里面，然后在寄存器中执行操作。当CPU需要将结果回写到主存的时候，他会将内部寄存器中的值刷新到缓存中，然后在某个时间点从缓存中刷回主存。
+
+## Java内存模型抽象结构：
+
+![image-20190120170743534](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120170743534-8152326.png)
+
+​	**每个线程都有一个私有的本地内存，**本地内存他是java内存模型的一个抽象的概念。它并不是真实存在的，它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器的优化。本地内存中它存储了该线程以读或写共享变量拷贝的一个副本。
+
+​	从更低的层次来说，主内存就是硬件的内存，是为了获取更高的运行速度，虚拟机及硬件系统可能会让工作内存优先存储于寄存器和高速缓存中，java内存模型中的线程的工作内存是CPU的寄存器和高速缓存的一个抽象的描述。而JVM的静态内存存储模型它只是对内存的一种物理划分而已。**它只局限在内存，而且只局限在JVM的内存。**
+
+## Java内存模型-同步八种操作
+
+​	**按顺序执行，但不一定要连续执行，顺序之间可以插入不同的指令。**
+
+![image-20190120171054550](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120171054550-8152326.png)
+
+- lock(锁定) ：作用于主内存变量，把一个变量标识为一条线程独占状态
+- unlock(解锁) ： 作用于主内存的变量，把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定
+- read(读取) ： 作用于主内存的变量，把一个变量值从主内存传输到线程的工作内存中，以便随后的load动作使用
+- load(载入) ：作用于工作内存的变量，它把read操作从主内存中得到的变量值放入工作内存的变量副本中
+- use(使用) ：作用于工作内存的变量，把工作内存中的一个变量值传递给执行引擎
+- assign(赋值) ： 作用于工作内存的变量，它把一个从执行引擎接收到的值赋值给工作内存的变量
+- store(存储) ： 作用于工作内存的变量，把工作内存中的一个变量的值传送到主内存中，以便随后的write操作
+- write(写入) ：作用于主内存的变量中，它把store操作从工作内存中一个变量的值传送到主内存的变量中
+
+## Java内存模型-同步规则
+
+- 如果要把一个变量从主内存中复制到工作内存，就需要按顺序的执行read和load操作，如果把变量从工作内存中同步回主内存中，就要按顺序的执行store和write操作。但java内存模型只要求上述操作必须按顺序执行，而没有保证必须是连续执行
+- 不允许read和load、store和write操作之一单独出现
+- 不允许一个线程丢弃它的最近assign的操作，即变量在工作内存中改变了之后必须同步到主内存中
+- 不允许一个线程无原因的（没有发生过任何assign操作）把数据从工作内存同步回主内存中
+- 一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（load或assign）的变量。即就是对一个变量实施use和store操作之前，必须先执行过了assign和load操作。
+- 一个变量早同一时刻只允许一条线程对其进行lock操作，但lock操作可以被同一条线程重复执行多次，多次执行lock后，只有执行相同次数的unlock操作，变量才会被解锁。lock和unlock必须是成对出现。
+- 如果对一个变量执行lock操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量前需要重新执行load或assign操作初始化变量的值。
+- 如果一个变量事先没有被lock锁定，则不允许对它执行unlock操作，也不允许去unlock一个被其他线程锁定的变量
+- 对一个变量执行unlock操作之前，必须先把此变量同步到主内存中（执行store和write操作）
+
+## 并发的优势与风险![10](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/10-8152326.jpg)
+
+### 风险：
+
+安全性：多个线程共享数据时可能会产生于期望不相符的结果
+活跃性：某个操作无法继续进行下去时，就会发生活跃性问题。比如死锁、饥饿问题
+性能：线程过多时会使得CPU频繁切换，调度时间增多；同步机制；消耗过多内存。
+
+### 优势：
+
+速度：同时处理多个请求，响应更快；复杂的操作可以分成多个进程同时进行。
+设计：程序设计在某些情况下更简单，也可以有更多选择
+
+资源利用：CPU能够在等待IO的时候做一些其他的事情
+
+# 4.线程安全性
+
+​	**线程安全性主要体现在三个方面：原子性、可见性、有序性**
+
+- 原子性:提供了互斥访问，同一时刻只能有一个线程来对它进行操作
+- 可见性:一个线程对主内存的修改可以及时的被其他线程观察到
+- 有序性:一个线程观察其他线程中的指令执行顺序，由于指令重排序的存在，该观察结果一般杂乱无序。
+
+## 4.1 原子性
+
+​	说到原子性，一共有两个方面需要学习一下，一个是JDK中已经提供好的Atomic包，他们均使用了CAS完成线程的原子性操作，另一个是使用锁的机制来处理线程之间的原子性。锁包括：synchronized、Lock。
+
+```Java
+public class AtomicIntegerExample {
+    //请求总数
+    public static int clientTotal = 5000;
+    //同时并发执行的线程数
+    public static int threadTotal = 200;
+    public static AtomicInteger count = new AtomicInteger(0);
+
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        final Semaphore semaphore = new Semaphore(threadTotal);
+        final CountDownLatch countDownLatch = new CountDownLatch(clientTotal);
+        for (int i = 0; i < clientTotal; i++) {
+            executorService.execute(() -> {
+                try {
+                    semaphore.acquire();    //判断当前线程是否允许被执行
+                    add();
+                    semaphore.release();
+                } catch (Exception e) {
+                    log.error("exception", e);
+                }
+                countDownLatch.countDown();
+            });
+        }
+        countDownLatch.await();
+        executorService.shutdown();
+        log.info("count:{}", count.get());
+    }
+
+    private static void add() {
+        count.incrementAndGet();
+    }
+}
+```
+
+### atomic包相关的类：
+
+![image-20190121210844397](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121210844397-8152326.png)
+
+### AtomicInteger
+
+​	示例中，对count变量的+1操作，采用的是incrementAndGet方法，此方法的源码中调用了一个名为unsafe.getAndAddInt的方法：
+
+```Java
+public final int incrementAndGet() {
+     return unsafe.getAndAddInt(this, valueOffset, 1) + 1;
+}
+```
+
+而getAndAddInt是Unsafe这个类里面的方法，具体实现为：
+
+```Java
+public final int getAndAddInt(Object var1, long var2, int var4) {
+    int var5;
+    do {
+        var5 = this.getIntVolatile(var1, var2);
+    } while(!this.compareAndSwapInt(var1, var2, var5, var5 + var4));
+    return var5;
+}
+```
+
+​	在此方法中，**方法参数为要操作的对象Object var1、期望底层当前的数值为var2、要修改的数值var4。**定义的**var5为真正从底层取出来的值**。采用do..while循环的方式去获取底层数值并与期望值进行比较，比较成功才将值进行修改。而这个比较再进行修改的方法就是compareAndSwapInt就是我们所说的CAS，它是一系列的接口，比如下面罗列的几个接口。使用native修饰，是底层的方法。CAS取的是compareAndSwap三个单词的首字母。
+
+​	另外，示例代码中的count可以理解为JMM中的工作内存，而这里的底层数值即为主内存。
+
+```java
+public final native boolean compareAndSwapObject(Object var1, long var2, Object var4, Object var5);
+public final native boolean compareAndSwapInt(Object var1, long var2, int var4, int var5);
+public final native boolean compareAndSwapLong(Object var1, long var2, long var4, long var6);
+```
+
+### AtomicLong 与 LongAdder
+
+LongAdder是java8为我们提供的新的类，跟AtomicLong有相同的效果。首先看一下代码实现：
+
+```Java
+//AtomicLong的实现：
+//变量声明
+public static AtomicLong count = new AtomicLong(0);
+//变量操作
+count.incrementAndGet();
+//变量取值
+count.get();
+
+//LongAdder的实现：
+//变量声明
+public static LongAdder count = new LongAdder();
+//变量操作
+count.increment();
+//变量取值
+count
+```
+
+​	CAS底层实现是在一个死循环中不断地尝试修改目标值，直到修改成功。如果竞争不激烈的时候，修改成功率很高，否则失败率很高。在失败的时候，这些重复的原子性操作会耗费性能。
+
+**注意： 对于普通类型的long、double变量，JVM允许将64位的读操作或写操作拆成两个32位的操作。**
+
+​	**LongAdder类的实现核心是将热点数据分离，**比如说它可以将AtomicLong内部的内部核心数据value分离成一个数组，每个线程访问时，通过hash等算法映射到其中一个数字进行计数，而最终的计数结果则为这个数组的求和累加，**其中热点数据value会被分离成多个单元的cell，每个cell独自维护内部的值。**当前对象的实际值由所有的cell累计合成，这样热点就进行了有效地分离，并提高了并行度。**这相当于将AtomicLong的单点的更新压力分担到各个节点上。在低并发的时候通过对base的直接更新，可以保障和AtomicLong的性能基本一致。而在高并发的时候通过分散提高了性能。**
+
+源码：
+
+```Java
+/**
+ * Adds the given value.
+ *
+ * @param x the value to add
+ */
+public void add(long x) {
+    Cell[] as; long b, v; int m; Cell a;
+    if ((as = cells) != null || !casBase(b = base, b + x)) {
+        boolean uncontended = true;
+        if (as == null || (m = as.length - 1) < 0 ||
+            (a = as[getProbe() & m]) == null ||
+            !(uncontended = a.cas(v = a.value, v + x)))
+            longAccumulate(x, null, uncontended);
+    }
+}
+
+/**
+ * Equivalent to {@code add(1)}.
+ */
+public void increment() {
+    add(1L);
+}
+```
+
+#### LongAdder缺点：
+
+​	如果在统计的时候，如果有并发更新，可能会有统计数据有误差。实际使用中在处理高并发计数的时候，优先使用LongAdder，而不是使用AtomicLong。在线程竞争很低的时候进行计数，使用AtomicLong会简单效率更高一些。比如序列号生成（准确性），全局唯一的，使用AtomicLong。
+
+### AtomicBoolean
+
+​	这个类中值得一提的是它包含了一个名为compareAndSet的方法，这个方法可以做到的是控制一个boolean变量在一件事情执行之前为false，事情执行之后变为true。或者也可以理解为可以控制某一件事只让一个线程执行，并仅能执行一次。 
+
+```Java
+public final boolean compareAndSet(boolean expect, boolean update) {
+        int e = expect ? 1 : 0;
+        int u = update ? 1 : 0;
+        return unsafe.compareAndSwapInt(this, valueOffset, e, u);
+    }
+```
+
+### AtomicIntegerFieldUpdater
+
+​	这个类的核心作用是要更新一个指定的类的某一个字段的值。并且这个字段一定要用volatile修饰同时还不能是static的。
+
+```java
+@Slf4j
+@ThreadSafe
+public class AtomicIntegerFieldUpdaterExample {
+    private static AtomicIntegerFieldUpdater<AtomicIntegerFieldUpdaterExample> updater=AtomicIntegerFieldUpdater.newUpdater(AtomicIntegerFieldUpdaterExample.class,"count");
+    @Getter
+    public volatile int count=100;
+    public static void main(String[] args) {
+        AtomicIntegerFieldUpdaterExample example=new AtomicIntegerFieldUpdaterExample();
+        if (updater.compareAndSet(example,100,120)){
+            log.info("update success 1,{}",example.getCount());		//执行
+        }
+        if(updater.compareAndSet(example,100,120)){
+            log.info("update success 2,{}",example.getCount());		//不执行
+        }else{
+            log.info("update failed,{}",example.getCount());	//执行
+        }
+    }
+}
+```
+
+### AtomicStampedReference与CAS的ABA问题
+
+​	CAS操作的时候，其他线程将变量的值A改成了B，但是随后又改成了A，本线程在CAS方法中使用期望值A与当前变量进行比较的时候，发现变量的值未发生改变，于是CAS就将变量的值进行了交换操作。但是实际上变量的值已经被其他的变量改变过，这与设计思想是不符合的。所以就有了AtomicStampedReference。
+
+```Java
+private static class Pair<T> {
+        final T reference;
+        final int stamp;
+        private Pair(T reference, int stamp) {
+            this.reference = reference;
+            this.stamp = stamp;
+        }
+        static <T> Pair<T> of(T reference, int stamp) {
+            return new Pair<T>(reference, stamp);
+        }
+    }
+
+private volatile Pair<V> pair;
+
+private boolean casPair(Pair<V> cmp, Pair<V> val) {
+        return UNSAFE.compareAndSwapObject(this, pairOffset, cmp, val);
+    }
+
+public boolean compareAndSet(V   expectedReference,
+                                 V   newReference,
+                                 int expectedStamp,
+                                 int newStamp) {
+        Pair<V> current = pair;
+        return
+            expectedReference == current.reference &&
+            expectedStamp == current.stamp &&
+            ((newReference == current.reference &&   //排除新的引用和新的版本号与底层的值相同的情况
+              newStamp == current.stamp) ||
+             casPair(current, Pair.of(newReference, newStamp)));
+}
+```
+
+​	AtomicStampedReference的处理思想是，**每次变量更新的时候，将变量的版本号+1**，之前的ABA问题中，变量经过两次操作以后，变量的版本号就会由1变成3，也就是说只要线程对变量进行过操作，变量的版本号就会发生更改。从而解决了ABA问题。
+
+### AtomicLongArray
+
+​	这个类实际上维护了一个Array数组，我们在对数值进行更新的时候，会多一个索引值让我们更新。
+
+​	原子性，提供了互斥访问，同一时刻只能有一个线程来对它进行操作。那么在java里，保证同一时刻只有一个线程对它进行操作的，除了Atomic包之外，还有锁的机制。**JDK提供锁主要分为两种：synchronized和Lock。**
+
+### synchronized:
+
+​	依赖于JVM去实现锁，因此在这个关键字作用对象的作用范围内，都是同一时刻只能有一个线程对其进行操作的。 synchronized是java中的一个关键字，是一种同步锁。它可以修饰的对象主要有四种：
+
+- **修饰代码块:大括号括起来的代码，作用于调用的对象**
+- **修饰方法：整个方法，作用于调用的对象**
+- **修饰静态方法：整个静态方法，作用于所有对象**
+- **修饰类：==括号括起来的部分，作用于所有对象==**
+
+#### synchronized 修饰一个代码块:
+
+​	被修饰的代码称为同步语句块，作用的范围是大括号括起来的部分。作用的对象是**调用这段代码的对象**。 不同对象之间的操作互不影响 。如果代码块里面都被synchronized修饰的话，那么跟synchronized修饰一个方法一样。
+
+#### synchronized 修饰一个方法:
+
+​	被修饰的方法称为同步方法，作用的范围是大括号括起来的部分，作用的对象是**调用这段代码的对象**。 不同对象之间的操作互不影响 。
+
+​	==如果当前类是一个父类，子类调用父类的被synchronized修饰的方法，不会携带synchronized属性，因为synchronized不属于方法声明的一部分。==
+
+#### synchronized 修饰一个静态方法:
+
+​	作用的范围是synchronized 大括号括起来的部分，作用的对象是**这个类的所有对象**。 同一时间只有一个线程可以执行 。
+
+#### synchronized 修饰一个类:
+
+​	同一时间只有一个线程可以执行 
+
+```Java
+public void test(int j){
+        synchronized (this){
+            for (int i = 0; i < 10; i++) {
+                log.info("test - {} - {}",j,i);
+            }
+        }
+    }
+public synchronized void test(int j){
+        for (int i = 0; i < 10; i++) {
+            log.info("test - {} - {}",j,i);
+        }
+    }
+    public static synchronized void test(int j){
+        for (int i = 0; i < 10; i++) {
+            log.info("test - {} - {}",j,i);
+        }
+    }
+public static void test(int j){
+        synchronized (SynchronizedExample.class){
+            for (int i = 0; i < 10; i++) {
+                log.info("test - {}-{}",j,i);
+            }
+        }
+    }
+```
+
+### 原子性操作各方法间的对比
+
+- synchronized:不可中断锁，适合竞争不激烈，可读性好
+- Lock：可中断锁，多样化同步，竞争激烈时能维持常态
+- Atomic:竞争激烈时能维持常态，比Lock性能好，每次只能同步一个值
+
+## 4.2 可见性
+
+> **可见性即一个线程对主内存的修改可以及时的被其他线程观察到**
+
+### 导致共享变量在线程间不可见的原因
+
+- 线程交叉执行
+- 重排序结合线程交叉执行
+- 共享变量更新后的值没有在工作内存与主存间及时更新
+
+### JVM处理可见性
+
+​	**JVM对于可见性，提供了synchronized和volatile**
+
+#### JMM关于synchronized的两条规定：
+
+- 线程解锁前，必须把共享变量的最新值刷新到主内存
+- **线程加锁时，将清空工作内存中共享变量的值，从而使用共享变量时需要从主内存中重新读取最新的值（注意：加锁与解锁是同一把锁）**
+
+### Volatile:通过加入内存屏障和禁止重排序优化来实现
+
+- ==对volatile变量**写操作**时，会在写操作后加入一条store屏障指令，将本地内存中的共享变量值刷新到主内存。==![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-8082672-8152326.png)
+
+- ==对volatile变量**读操作**时，会在读操作前加入一条load屏障指令，从主内存中读取共享变量。==![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190121225759365-8152326.png)
+
+- volatile的屏障操作都是cpu级别的。
+- 适合状态验证，不适合累加值，volatile关键字不具有原子性 
+
+```java
+public class CountExample4 {
+    // 请求总数
+    public static int clientTotal = 5000;
+
+    // 同时并发执行的线程数
+    public static int threadTotal = 200;
+
+    public static volatile int count = 0;
+
+    public static void main(String[] args) throws Exception {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        final Semaphore semaphore = new Semaphore(threadTotal);
+        final CountDownLatch countDownLatch = new CountDownLatch(clientTotal);
+        for (int i = 0; i < clientTotal ; i++) {
+            executorService.execute(() -> {
+                try {
+                    semaphore.acquire();
+                    add();
+                    semaphore.release();
+                } catch (Exception e) {
+                    log.error("exception", e);
+                }
+                countDownLatch.countDown();
+            });
+        }
+        countDownLatch.await();
+        executorService.shutdown();
+        log.info("count:{}", count);
+    }
+
+    private static void add() {
+        count++;
+    }
+}
+```
+
+​	多次运行代码我们发现：count的最终结果并不是预期的5000，而是有时为5000，但是大多数时间比5000小，因为在对count++的操作中，jvm对count做了三步操作：
+
+> **1、从主存中取出count的值放入工作变量 count** 
+> **2、对工作变量中的count进行+1** 
+> **3、将工作变量中的count刷新回主存中**
+
+​	在单线程执行此操作绝对没有问题，但是在多线程环境中，假设有两个线程A、B同时执行count++操作，某一刻A与B同时读取主存中count的值，然后在自己线程对应的工作空间中对count+1，最后又同时将count+1的值写回主存。到此，count+1的值被写回主存两遍，所以导致最终的count值小了1。在整体程序执行过程中，该事件发生一次或多次，自然结果就不正确。 
+volatile比较适合做状态标记量（不会涉及到多线程同时读写的操作），而且要保证两点： 
+（**1）对变量的写操作不依赖于当前值(数据依赖性)** 
+
+**（2）该变量没有包含在具有其他变量的不变的式子中** 
+
+## 4.3 有序性(happens-before原则)
+
+​	有序性即在Java内存模型中，允许编译器和处理器对指令进行**重排序**，但是重排序过程不会影响到**单线程**程序的执行，却会影响到多线程并发执行的正确性。
+
+### java中保证有序性
+
+​	**java提供了 volatile、synchronized、Lock可以用来保证有序性** 
+
+​	另外，java内存模型具备一些先天的有序性，即不需要任何手段就能得到保证的有序性。通常被我们成为happens-before原则（先行发生原则）。如果两个线程的执行顺序无法从happens-before原则推导出来，那么就不能保证它们的有序性，虚拟机就可以对它们进行重排序。
+
+- 程序次序规则：一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作
+- 锁定规则：一个unlock操作先行发生于后面对同一个锁的lock操作
+- volatile变量规则：对一个变量的写操作先行发生于后面对这个变量的读操作（重要）
+- 传递规则：如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C
+- 线程启动规则：Thread对象的start()方法先行发生于此线程的每一个动作
+- 线程中断规则：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生
+- 线程终结规则：线程中所有的操作都先行发生于线程的终止检测，我们可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行
+- 对象终结规则：一个对象的初始化完成先行发生于他的finalize()方法的开始
+
+# 3.安全发布对象与多种单例模式
+
+## 发布对象
+
+​	使一个对象能够被当前范围之外的代码所使用。 **在我们的日常开发中，我们经常要发布一些对象，比如通过类的非私有方法返回对象的引用，或者通过公有静态变量发布对象。**
+
+## 对象逸出
+
+​	**一种错误的发布。当一个对象还没有构造完成时，就使它被其他线程所见。**
+
+##### 不安全发布对象代码如下：
+
+```Java
+public class UnsafePublish {
+
+    private String[] states = {"a", "b", "c"};
+
+    //类的非私有方法，返回私有对象的引用
+    public String[] getStates() {
+        return states;
+    }
+    public static void main(String[] args) {
+        UnsafePublish unsafePublish = new UnsafePublish();
+        log.info("{}", Arrays.toString(unsafePublish.getStates()));
+
+        unsafePublish.getStates()[0] = "d";
+        log.info("{}", Arrays.toString(unsafePublish.getStates()));
+    }
+}
+```
+
+​	上面的代码表示通过public访问级别发布了类的域，在类的任何外部的线程都可以访问这些域。我们无法保证其他线程会不会修改这个域，从而使私有域内的值错误（上述代码中就对私有域进行了修改）。
+
+##### 对象逸出代码如下：
+
+```Java
+public class Escape {
+
+    private Integer thisCanBeEscape = 0;
+
+    public Escape () {
+        new InnerClass();
+        thisCanBeEscape = null;
+    }
+
+    //内部类构造方法调用外部类的私有域
+    private class InnerClass {
+
+        public InnerClass() {
+            //this逃逸
+            log.info("{}", Escape.this.thisCanBeEscape);
+        }
+    }
+
+    public static void main(String[] args) {
+        new Escape();
+    }
+}
+```
+
+​	上面代码表示：**这个内部类的实例里面==包含了对封装实例的私有域对象的引用，在对象没有被正确构造完成之前就会被发布==，有可能有不安全的因素在里面，会导致this引用在构造期间溢出的错误。**
+​	上述代码在函数构造过程中启动了一个线程。无论是隐式的启动还是显式的启动，都会造成这个this引用的溢出。新线程总会在所属对象构造完毕之前就已经看到它了。==因此要在构造函数中创建线程，那么不要启动它，而是应该采用一个专有的start或者初始化的方法统一启动线程。==
+​	**这里其实我们可以采用工厂方法和私有构造函数来完成对象创建和监听器的注册等等，这样才可以避免错误。**如果不正确的发布对象会导致两种错误： 
+（1）发布线程意外的任何线程都可以看到被发布对象的过期的值 
+
+（2）线程看到的被发布线程的引用是最新的，然而被发布对象的状态却是过期的	
+
+#### 安全发布对象示例（多种单例模式演示）
+
+##### 安全发布对象共有四种方法：
+
+- 1、在静态初始化函数中初始化一个对象引用
+- 2、将对象的引用保存到volatile类型域或者AtomicReference对象中
+- 3、将对象的引用保存到某个正确构造对象的final类型域中
+- 4、将对象的引用保存到一个由锁保护的域中
+
+通过各种单例模式来演示其中的几种方法
+
+##### 1、懒汉式（最简式,线程不安全）
+
+```java
+public class SingletonExample {
+    //私有构造函数
+    private SingletonExample(){
+    }
+
+    //单例对象
+    private static SingletonExample instance = null;
+
+    //静态工厂方法
+    public static SingletonExample getInstance(){
+        if(instance==null){
+            return new SingletonExample();
+        }
+        return instance;
+    }
+}
+```
+
+​	在多线程环境下，当两个线程同时访问这个方法，同时制定到instance==null的判断。都判断为null，接下来同时执行new操作。这样类的构造函数被执行了两次。一旦构造函数中涉及到某些资源的处理，那么就会发生错误。所以说最简式是**线程不安全的**
+
+##### 2、懒汉式（synchronized）
+
+```java
+public static class SingleTon3 {
+    public static SingleTon3 instance = null;
+
+    private SingleTon3() {
+    }
+
+    public static synchronized SingleTon3 getInstance() {
+        if (instance == null) {
+            instance = new SingleTon3();
+        }
+        return instance;
+    }
+}
+```
+
+​	使用synchronized修饰静态方法后，保证了方法的线程安全性，同一时间只有一个线程访问该方法，会造成性能损耗	。
+
+##### 3、双重同步锁模式
+
+```java
+public class SingletonExample {
+    // 私有构造函数
+    private SingletonExample() {
+    }
+    // 单例对象
+    private static SingletonExample instance = null;
+    // 静态的工厂方法
+    public static SingletonExample getInstance() {
+        if (instance == null) { // 双重检测机制
+            synchronized (SingletonExample.class) { // 同步锁
+                if (instance == null) {
+                    instance = new SingletonExample();
+                }
+            }
+        }
+        return instance;
+    }
+}
+```
+
+​	对第二个例子(懒汉式（synchronized))进行了改进，由synchronized修饰方法改为先判断后，再锁定整个类，再加上**双重的检测机制**，保证了最大程度上的避免耗损性能。 但其实**这个方法是线程不安全的**，可能大家会想在多线程情况下，只要有一个线程对类进行了上锁，那么无论如何其他线程也不会执行到new的操作上。接下来我们分析一下线程不安全的原因：
+
+> 这里有一个知识点：CPU指令相关。在上述代码中，执行new操作的时候，CPU一共进行了三次指令 
+> **（1）memory = allocate() 分配对象的内存空间** 
+>
+> **（2）ctorInstance() 初始化对象** 
+>
+> **（3）instance = memory 设置instance==指向==刚分配的内存**
+
+​	在程序运行过程中，CPU为提高运算速度会做出违背代码原有顺序的优化。我们称之为乱序执行优化或者说是**指令重排序**。 
+
+​	那么上面知识点中的三步指令极有可能被优化为（1）（3）（2）的顺序。当我们有两个线程A与B，A线程遵从132的顺序，经过了两次instance的空值判断后，执行了new操作，**并且cpu在某一瞬间刚结束指令（3），并且还没有执行指令（2）。**而在此时线程B恰巧在进行第一次的instance空值判断，**由于线程A执行完（3）指令，为instance分配了内存，线程B判断instance不为空，直接执行return，返回了instance，这样就出现了错误。** 
+
+![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122181758169-8152326.png)
+
+可以在**对象声明时使用volatile关键字修饰，阻止CPU的指令重排。**如：
+
+```java
+public static class SingleTon7 {
+    private volatile static SingleTon7 instance = null;
+
+    private SingleTon7() {
+    }
+
+    public static SingleTon7 getInstance() {
+        if (instance == null) {
+            synchronized (SingleTon7.class) {
+                instance = new SingleTon7();
+            }
+        }
+        return instance;
+    }
+}
+```
+
+##### 4、饿汉式（最简式）
+
+```java
+public class SingletonExample {
+    // 私有构造函数
+    private SingletonExample() {
+
+    }
+    // 单例对象
+    private static SingletonExample instance = new SingletonExample();
+
+    // 静态的工厂方法
+    public static SingletonExample getInstance() {
+        return instance;
+    }
+}
+```
+
+​1、饿汉模式由于单例实例是在类装载的时候进行创建，**因此只会被执行一次，所以它是线程安全的。** 
+2、该方法存在缺陷：如果构造函数中有着大量的事情操作要做，那么类的装载时间会很长，影响性能。如果只是做的类的构造，却没有引用，那么会造成资源浪费 
+3、**饿汉模式适用场景为：（1）私有构造函数在实现的时候没有太多的处理（2）这个类在实例化后肯定会被使用！**	
+
+##### 5、饿汉式（静态块初始化）
+
+```java
+public static class SingleTon4 {
+    public static SingleTon4 instance = null;
+
+    static {
+        instance = new SingleTon4();
+    }
+
+    private SingleTon4() {
+    }
+
+    public static synchronized SingleTon4 getInstance() {
+        return instance;
+    }
+}
+```
+
+1、除了使用静态域直接初始化单例对象，还可以用静态块初始化单例对象。 
+2、值得注意的一点是，**静态域与静态块的顺序一定不要反**，在写静态域和静态方法的时候，==一定要注意顺序，不同的静态代码块是按照顺序执行的，它跟我们正常定义的静态方法和普通方法是不一样的。==因为静态代码块和静态域是根据其顺序先后执行的。
+
+##### 6、枚举式
+
+```java
+public class SingletonExample {
+
+    private SingletonExample() {
+    }
+
+    public static SingletonExample getInstance() {
+        return Singleton.INSTANCE.getInstance();
+    }
+
+    private enum Singleton {
+        INSTANCE;
+        private SingletonExample singleton;
+		//JVM保证这个方法绝对只调用一次
+        Singleton() {
+            singleton = new SingletonExample();
+        }
+
+        public SingletonExample getInstance() {
+            return singleton;
+        }
+    }
+}
+```
+
+- 由于枚举类的特殊性，枚举类的构造函数Singleton方法只会被实例化一次，且是这个类被调用之前。这个是JVM保证的。
+- 对比懒汉与饿汉模式，它的优势很明显。
+
+# 4.不可变对象
+
+## 1、不可变对象
+
+有一种对象只要它发布了就是安全的，它就是不可变对象。一个不可变对象需要满足的条件：
+
+- 对象创建一个其状态不能修改
+- 对象所有域都是final类型
+- 对象是正确创建的(在对象创建期间，this引用没有逸出)
+
+## 2、创建一个不可变对象的方法
+
+#### （1）自己定义 
+
+这里可以采用的方式包括： 
+1、将类声明为final，这样这个类就不能被继承。 
+2、**将所有的成员声明为私有的，这样就不允许直接访问这些成员。** 
+3、对变量不提供set方法，将所有可变的成员声明为final，这样就只能赋值一次。通过构造器初始化所有成员进行深度拷贝。 
+4、在get方法中不直接返回对象的本身，而是克隆对象，返回对象的拷贝。
+
+#### （2）使用Java中提供的Collection类中的各种unmodifiable开头的方法 
+
+#### （3）使用Guava中的Immutable开头的类
+
+## 3、final关键字
+
+==final关键字可以修饰类、修饰方法、修饰变量==
+
+### 修饰类：类不能被集成。 
+
+​	基础类型的包装类都是final类型的类。final类中的成员变量可以根据需要设置为final，但是要注意的是，final类中的所有成员方法都会被隐式的指定为final方法
+
+### 修饰方法： 
+
+(1)把方法锁定，以防任何继承类修改它的含义 
+(2)效率：在早期的java实现版本中，会将final方法转为内嵌调用。但是如果方法过于庞大，可能看不见效果。一个private方法会被隐式的指定为final方法
+
+### 修饰变量： 
+
+​	基本数据类型变量，在初始化之后，它的值就不能被修改了。如果是引用类型变量，在它初始化之后便不能再指向另外的对象。 当final修饰方法的参数时：同样也是不允许在方法内部对其修改的。 
+
+##### **被final修饰的引用类型变量，虽然不能重新指向，但是可以修改**。
+
+## 4、Java:unmodifiable相关方法
+
+​	使用Java的Collection类的unmodifiable相关方法，可以创建不可变对象。unmodifiable相关方法包含：Collection、List、Map、Set…. 
+
+![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122232548029.png)
+
+
+
+```Java
+public static <K,V> Map<K,V> unmodifiableMap(Map<? extends K, ? extends V> m) {
+        return new UnmodifiableMap<>(m);
+}
+private static class UnmodifiableMap<K,V> implements Map<K,V>, Serializable {
+    ...
+    public V put(K key, V value) {
+        throw new UnsupportedOperationException();
+    }
+    ...
+}
+```
+
+​	Collections.unmodifiableMap在执行时，将参数中的map对象进行了转换，转换为Collection类中的内部类 UnmodifiableMap对象。而 UnmodifiableMap对map的更新方法（比如put、remove等）进行了重写，均返回UnsupportedOperationException异常，这样就做到了map对象的不可变！	
+
+## 5、Guava:Immutable相关类
+
+​	使用Guava的Immutable相关类也可以创建不可变对象。同样包含很多类型：Collection、List、Map、Set…. 
+
+![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122233621875.png)
+
+### （1）ImmutableList
+
+​	**对于ImmutableList.of方法，如果传多个参数，需要这样一直写下去，以逗号分隔每个参数。其源码中是这样实现的：**
+
+```java
+//单个或少于12个参数时
+public static <E> ImmutableList<E> of() {
+    return RegularImmutableList.EMPTY;
+}
+
+public static <E> ImmutableList<E> of(E element) {
+    return new SingletonImmutableList(element);
+}
+
+public static <E> ImmutableList<E> of(E e1, E e2) {
+    return construct(e1, e2);
+}
+
+public static <E> ImmutableList<E> of(E e1, E e2, E e3) {
+    return construct(e1, e2, e3);
+}
+....
+
+//多于12个参数时，参数列表中最后的E...other会以数组形式接收参数
+@SafeVarargs
+public static <E> ImmutableList<E> of(E e1, E e2, E e3, E e4, E e5,
+ E e6, E e7, E e8, E e9, E e10, E e11, E e12, E... others) {
+    Object[] array = new Object[12 + others.length];
+    array[0] = e1;
+    array[1] = e2;
+    array[2] = e3;
+    array[3] = e4;
+    array[4] = e5;
+    array[5] = e6;
+    array[6] = e7;
+    array[7] = e8;
+    array[8] = e9;
+    array[9] = e10;
+    array[10] = e11;
+    array[11] = e12;
+    System.arraycopy(others, 0, array, 12, others.length);
+    return construct(array);
+}
+```
+### （2）ImmutableSet 
+
+​	ImmutableSet除了使用of的方法进行初始化，还可以使用copyof方法，将Collection类型、Iterator类型作为参数。
+
+```java
+private final static ImmutableSet set = ImmutableSet.copyOf(list);
+private final static ImmutableSet set = ImmutableSet.copyOf(list.iterator());
+```
+
+### （3）ImmutableMap 
+
+ImmutableMap有特殊的builder写法：
+
+```java
+//参数里面是一对对k-v
+private final static ImmutableMap<Integer, Integer> map = ImmutableMap.of(1, 2, 3, 4);
+//通过put方法放进去然后调用build方法
+private final static ImmutableMap<Integer, Integer> map2 = ImmutableMap.<Integer, Integer>builder()
+        .put(1, 2).put(3, 4).put(5, 6).build();
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
