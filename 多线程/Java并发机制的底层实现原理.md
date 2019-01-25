@@ -8,7 +8,9 @@
 
 ​	Java编程语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排他锁单独获得这个变量。Java语言提供了volatile，在某些情况下比锁要更加方便。如果一个字段被声明成volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。
 
-​	在了解volatile实现原理之前，先看下与其实现原理相关的CPU术语与说明。![image-20190121110341914](/Users/jack/Desktop/md/images/image-20190121110341914.png)
+​	在了解volatile实现原理之前，先看下与其实现原理相关的CPU术语与说明。![image-20190121110341914](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121110341914.png?raw=true)
+
+
 
 接下来看看volatile怎么实现可见性：
 
@@ -38,7 +40,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ​	著名的Java并发编程大师Doug lea在JDK 7的并发包里新增一个队列集合类LinkedTransferQueue，它在使用volatile变量时，用一种==追加字节==的方式来优化队列出队和入队的性能。
 
-![image-20190121111239783](/Users/jack/Desktop/md/images/image-20190121111239783.png)
+![image-20190121111239783](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121111239783.png?raw=true)
 
 ### 追加字节能优化性能
 
@@ -66,13 +68,13 @@ instance = new Singleton(); // instance是volatile变量
 
 ## 2.1 Java对象头
 
-​	synchronized用的锁是存在Java对象头里的。如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即32bit，如下表。![image-20190121112109330](/Users/jack/Desktop/md/images/image-20190121112109330.png)
+​	synchronized用的锁是存在Java对象头里的。如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即32bit，如下表。![image-20190121112109330](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112109330.png?raw=true)
 
-​	Java对象头里的Mark Word里默认存储对象的HashCode、分代年龄和锁标记位。32位JVM的Mark Word的默认存储结构如下表：![image-20190121112154725](/Users/jack/Desktop/md/images/image-20190121112154725.png)
+​	Java对象头里的Mark Word里默认存储对象的HashCode、分代年龄和锁标记位。32位JVM的Mark Word的默认存储结构如下表：![image-20190121112154725](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112154725.png?raw=true)
 
-​	在运行期间，Mark Word里存储的数据会随着锁标志位的变化而变化。Mark Word可能变化为存储以下4种数据，如下表：![image-20190121112221067](/Users/jack/Desktop/md/images/image-20190121112221067.png)
+​	在运行期间，Mark Word里存储的数据会随着锁标志位的变化而变化。Mark Word可能变化为存储以下4种数据，如下表：![image-20190121112221067](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112221067.png?raw=true)
 
-在64位虚拟机下，Mark Word是64bit大小的，其存储结构如下表：![image-20190121112242072](/Users/jack/Desktop/md/images/image-20190121112242072.png)
+在64位虚拟机下，Mark Word是64bit大小的，其存储结构如下表：![image-20190121112242072](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112242072.png?raw=true)
 
 ## 2.2 锁的升级与对比
 
@@ -84,7 +86,7 @@ instance = new Singleton(); // instance是volatile变量
 
 #### (1)偏向锁的撤销
 
-​	**偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。**偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。下图中的线程1演示了偏向锁初始化的流程，线程2演示了偏向锁撤销的流程。![image-20190121112607342](/Users/jack/Desktop/md/images/image-20190121112607342.png)
+​	**偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。**偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。下图中的线程1演示了偏向锁初始化的流程，线程2演示了偏向锁撤销的流程。![image-20190121112607342](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112607342.png?raw=true)
 
 #### (2)关闭偏向锁
 
@@ -98,17 +100,17 @@ instance = new Singleton(); // instance是volatile变量
 
 #### (2)轻量级锁解锁
 
-​	轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。下图是两个线程同时争夺锁，导致锁膨胀的流程图。![image-20190121112839832](/Users/jack/Desktop/md/images/image-20190121112839832.png)
+​	轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。下图是两个线程同时争夺锁，导致锁膨胀的流程图。![image-20190121112839832](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112839832.png?raw=true)
 
 ​	因为自旋会消耗CPU，为了避免无用的自旋（比如获得锁的线程被阻塞住了），一旦锁升级成重量级锁，就不会再恢复到轻量级锁状态。当锁处于这个状态下，其他线程试图获取锁时，都会被阻塞住，当持有锁的线程释放锁之后会唤醒这些线程，被唤醒的线程就会进行新一轮的夺锁之争。
 
-### 3.锁的优缺点对比![image-20190121113029916](/Users/jack/Desktop/md/images/image-20190121113029916.png)
+### 3.锁的优缺点对比![image-20190121113029916](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121113029916.png?raw=true)
 
 # 3 原子操作的实现原理
 
 ## 1.术语定义
 
-![image-20190121115102622](/Users/jack/Desktop/md/images/image-20190121115102622.png)
+![image-20190121115102622](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121115102622.png?raw=true)
 
 ## 2.处理器如何实现原子操作
 
@@ -116,7 +118,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ### （1）使用总线锁保证原子性
 
-​	第一个机制是通过总线锁保证原子性。如果多个处理器同时对共享变量进行读改写操作（i++就是经典的读改写操作），那么共享变量就会被多个处理器同时进行操作，这样读改写操作就不是原子的，操作完之后共享变量的值会和期望的不一致。举个例子，如果i=1，我们进行两次i++操作，我们期望的结果是3，但是有可能结果是2，如图:![image-20190121115250152](/Users/jack/Desktop/md/images/image-20190121115250152.png)
+​	第一个机制是通过总线锁保证原子性。如果多个处理器同时对共享变量进行读改写操作（i++就是经典的读改写操作），那么共享变量就会被多个处理器同时进行操作，这样读改写操作就不是原子的，操作完之后共享变量的值会和期望的不一致。举个例子，如果i=1，我们进行两次i++操作，我们期望的结果是3，但是有可能结果是2，如图:![image-20190121115250152](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121115250152.png?raw=true)
 
 ​	原因可能是多个处理器同时从各自的缓存中读取变量i，分别进行加1操作，然后分别写入系统内存中。那么，想要保证读改写共享变量的操作是原子的，就必须保证CPU1读改写共享变量的时候，CPU2不能操作缓存了该共享变量内存地址的缓存。处理器使用总线锁就是来解决这个问题的。
 
