@@ -782,11 +782,11 @@ public class SingletonExample {
 
 ## 1、不可变对象
 
-有一种对象只要它发布了就是安全的，它就是不可变对象。一个不可变对象需要满足的条件：
+有一种对象只要它发布了就是安全的，它就是不可变对象。**一个不可变对象需要满足的条件：**
 
 - 对象创建一个其状态不能修改
 - 对象所有域都是final类型
-- 对象是正确创建的(在对象创建期间，this引用没有逸出)
+- 对象是正确创建的(在对象创建期间，==this引用没有逸出==)
 
 ## 2、创建一个不可变对象的方法
 
@@ -806,20 +806,25 @@ public class SingletonExample {
 
 ==final关键字可以修饰类、修饰方法、修饰变量==
 
-### 修饰类：类不能被集成。 
+### 修饰类：类不能被继承。 
 
 ​	基础类型的包装类都是final类型的类。final类中的成员变量可以根据需要设置为final，但是要注意的是，final类中的所有成员方法都会被隐式的指定为final方法
 
 ### 修饰方法： 
 
 (1)把方法锁定，以防任何继承类修改它的含义 
+
 (2)效率：在早期的java实现版本中，会将final方法转为内嵌调用。但是如果方法过于庞大，可能看不见效果。一个private方法会被隐式的指定为final方法
 
 ### 修饰变量： 
 
-​	基本数据类型变量，在初始化之后，它的值就不能被修改了。如果是引用类型变量，在它初始化之后便不能再指向另外的对象。 当final修饰方法的参数时：同样也是不允许在方法内部对其修改的。 
+​	基本数据类型变量，在初始化之后，它的值就不能被修改了。
 
-##### **被final修饰的引用类型变量，虽然不能重新指向，但是可以修改**。
+​	**如果是引用类型变量，在它初始化之后便不能再指向另外的对象。** 
+
+当final修饰方法的参数时：同样也是不允许在方法内部对其修改的。 
+
+##### **==被final修饰的引用类型变量，虽然不能重新指向，但是可以修改==**。
 
 ## 4、Java:unmodifiable相关方法
 
@@ -842,7 +847,7 @@ private static class UnmodifiableMap<K,V> implements Map<K,V>, Serializable {
 }
 ```
 
-​	Collections.unmodifiableMap在执行时，将参数中的map对象进行了转换，转换为Collection类中的内部类 UnmodifiableMap对象。而 UnmodifiableMap对map的更新方法（比如put、remove等）进行了重写，均返回UnsupportedOperationException异常，这样就做到了map对象的不可变！	
+​	**Collections.unmodifiableMap在执行时，将参数中的map对象进行了转换，转换为Collection类中的内部类 UnmodifiableMap对象。**而 UnmodifiableMap对map的更新方法（比如put、remove等）进行了重写，均返回UnsupportedOperationException异常，这样就做到了map对象的不可变！	
 
 ## 5、Guava:Immutable相关类
 
@@ -915,65 +920,304 @@ private final static ImmutableMap<Integer, Integer> map2 = ImmutableMap.<Integer
         .put(1, 2).put(3, 4).put(5, 6).build();
 ```
 
+# 5.线程封闭 - ThreadLocal
 
+## 1、线程封闭
 
+​	**它其实就是把对象封装到一个线程里，只有一个线程能看到这个对象，那么这个对象就算不是线程安全的，也不会出现任何线程安全方面的问题。**
 
+线程封闭技术有一个常见的应用：
 
+​	数据库连接对应jdbc的Connection对象，Connection对象在实现的时候并没有对线程安全做太多的处理，jdbc的规范里也没有要求Connection对象必须是线程安全的。 
+​	实际在服务器应用程序中，**线程从连接池获取了一个Connection对象，使用完再把Connection对象返回给连接池，由于大多数请求都是由单线程采用同步的方式来处理的，并且在Connection对象返回之前，连接池不会将它分配给其他线程。**因此这种连接管理模式处理请求时隐含的将Connection对象封闭在线程里面，这样我们使用的connection对象虽然本身不是线程安全的，但是它通过线程封闭也做到了线程安全。
 
+![image-20190127214746197](/Users/jack/Desktop/md/images/image-20190127214746197.png)
 
+## 2、线程封闭的种类：
 
+（1）Ad-hoc 线程封闭：
 
+Ad-hoc线程封闭是指，维护线程封闭性的职责完全由程序实现来承担。Ad-hoc线程封闭是非常脆弱的，因为没有任何一种语言特性，例如可见性修饰符或局部变量，能将对象封闭到目标线程上。事实上，对线程封闭对象（例如，GUI应用程序中的可视化组件或数据模型等）的引用通常保存在公有变量中。
 
+（2）堆栈封闭： 
+堆栈封闭其实就是方法中定义局部变量。不存在并发问题。多个线程访问一个方法的时候，方法中的局部变量都会被拷贝一份到线程的栈中（Java内存模型），所以局部变量是不会被多个线程所共享的。
 
+（3）ThreadLocal线程封闭： 
 
+它是一个特别好的封闭方法，其实ThreadLocal内部维护了一个map,map的key是每个线程的名称，而map的value就是我们要封闭的对象。ThreadLocal提供了get、set、remove方法，每个操作都是基于当前线程的，所以它是线程安全的。 
 
+![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190127200849231.png)
 
+```java
+//ThreadLocal的get方法源码
+    public T get() {
+        Thread t = Thread.currentThread();//当前线程对象
+        ThreadLocalMap map = getMap(t);//get操作基于当前线程
+        if (map != null) {
+            ThreadLocalMap.Entry e = map.getEntry(this);
+            if (e != null) {
+                @SuppressWarnings("unchecked")
+                T result = (T)e.value;
+                return result;
+            }
+        }
+        return setInitialValue();
+    }
+```
 
+## 3、Springboot框架中使用ThreadLocal
 
+#### （1）创建一个包含ThreadLocal对象的类，并提供基础的添加、删除、获取操作。
 
+```java
+public class RequestHolder {
 
+    private final static ThreadLocal<Long> requestHolder = new ThreadLocal<>();
+	//后面会存入线程的id
+    public static void add(Long id) {
+        requestHolder.set(id);
+    }
 
+    public static Long getId() {
+        return requestHolder.get();
+    }
 
+    public static void remove() {
+        requestHolder.remove();
+    }
+}
+```
 
+#### （2）创建Filter，在Filter中对ThreadLocal做**添加操作**。
 
+```java
+public class HttpFilter implements Filter {
 
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
 
+    }
 
+    @Override
+    public void doFilter(ServletRequest servletRequest,
+                         ServletResponse servletResponse,
+                         FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        //打印当前线程的ID与请求路径
+        log.info("do filter, {}, {}", Thread.currentThread().getId(), request.getServletPath());
+        //将当前线程ID添加到ThreadLocal中
+        RequestHolder.add(Thread.currentThread().getId());
+        filterChain.doFilter(servletRequest, servletResponse);
+    }
 
+    @Override
+    public void destroy() {
 
+    }
+}
+```
 
+#### （3)创建controller，在controller中**获取到filter中存入的值**
 
+```java
+@Controller
+@RequestMapping("/threadLocal")
+public class ThreadLocalController {
 
+    @RequestMapping("/test")
+    @ResponseBody
+    public Long test() {
+        return RequestHolder.getId();
+    }
+}
+```
 
+#### （4）创建拦截器Interceptor，在拦截器中**删除刚才添加的值**
 
+```java
+public class HttpInterceptor extends HandlerInterceptorAdapter {
 
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
+                             Object handler) throws Exception {
+        log.info("preHandle");
+        return true;
+    }
 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, 
+                            Object handler, Exception ex) throws Exception {
+        RequestHolder.remove();
+        log.info("afterCompletion");
+        return;
+    }
+}
+```
 
+#### （5）在springboot的启动类Application中注册filter与Interceptor。配置Interceptor的话，要继承WebMvcConfigurerAdapter.	
 
+```java
+@SpringBootApplication
+public class ConcurrencyApplication extends WebMvcConfigurerAdapter {
 
+    public static void main(String[] args) {
+        SpringApplication.run(ConcurrencyApplication.class, args);
+    }
 
+    //注册过滤器
+    @Bean
+    public FilterRegistrationBean httpFilter() {
+        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        registrationBean.setFilter(new HttpFilter());
+        //设置要过滤的url
+        registrationBean.addUrlPatterns("/threadLocal/*");
+        return registrationBean;
+    }
 
+    //注册拦截器
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new HttpInterceptor()).addPathPatterns("/**");
+    }
+}
+```
 
+​	![image-20190127214717040](/Users/jack/Desktop/md/images/image-20190127214717040.png)
 
+​	从控制台的打印日志我们可以看出，首先filter过滤器先获取到我们当前的线程ID为40、我们当前的请求路径为/threadLocal/test ，紧接着进入了我们的Interceptor的preHandle方法中，打印了preHandle字样。最后进入了我们的Interceptor的afterCompletion方法，删除了我们之前存入的值，并打印了afterCompletion字样。
 
+# 6.线程不安全类、同步容器
 
+## 1、线程不安全的类
 
+如果一个类的对象同时可以被多个线程访问，并且你不做特殊的同步或并发处理，那么它就很容易表现出线程不安全的现象。比如抛出异常、逻辑处理错误… 
+下面列举一下常见的线程不安全的类及对应的线程安全类：
 
+### （1）StringBuilder 与 StringBuffer
 
+StringBuilder是线程不安全的，而StringBuffer是线程安全的。分析源码：StringBuffer的方法使用了synchronized关键字修饰。
 
+```java
+	@Override
+    public synchronized StringBuffer append(String str) {
+        toStringCache = null;
+        super.append(str);
+        return this;
+    }
+```
 
+### （2）SimpleDateFormat(日期转换的类) 与 jodatime包
 
+SimpleDateFormat 类在处理时间的时候，如下写法是线程不安全的：
 
+```java
+private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
+//线程调用方法
+private static void update() {
+    try {
+        simpleDateFormat.parse("20180208");
+    } catch (Exception e) {
+        log.error("parse exception", e);
+    }
+}
+```
 
+但是我们可以变换其为线程安全的写法：在每次转换的时候使用线程封闭，新建变量
 
+```java
+private static void update() {
+    try {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+        simpleDateFormat.parse("20180208");
+    } catch (Exception e) {
+        log.error("parse exception", e);
+    }
+}
+```
 
+另外我们也可以使用jodatime插件来转换时间：其可以保证线程安全性 
+Joda 类具有不可变性，因此它们的实例无法被修改。（不可变类的一个优点就是它们是线程安全的）
 
+```java
+private static DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
 
+private static void update(int i) {
+    log.info("{}, {}", i, DateTime.parse("20180208", dateTimeFormatter).toDate());
+}
+```
 
+### （3）ArrayList,HashSet,HashMap 等Collection类
 
+​	ArrayList,HashSet,HashMap 等Collection类均是线程不安全的，我们以ArrayList举例分析一下源码： 
 
+#### 1、ArrayList的基本属性： 
 
+​	在声明时使用了**transient** 关键字，**此关键字意为在采用Java默认的序列化机制的时候，被该关键字修饰的属性不会被序列化。**而ArrayList实现了序列化接口，自己定义了序列化方法。
+
+```Java
+//对象数组：ArrayList的底层数据结构
+private transient Object[] elementData;
+//elementData中已存放的元素的个数
+private int size;
+//默认数组容量
+private static final int DEFAULT_CAPACITY = 10;
+```
+
+#### 2、初始化
+
+```java
+/**
+ * 创建一个容量为initialCapacity的空的（size==0）对象数组
+ */
+ public ArrayList(int initialCapacity) {
+    super();//即父类protected AbstractList() {}
+    if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity:" + initialCapacity);
+    this.elementData = new Object[initialCapacity];
+}
+
+/**
+ * 默认初始化一个容量为10的对象数组
+ */
+ public ArrayList() {
+    this(10);
+ }
+```
+
+#### 3、添加方法（重点）
+
+```java
+//每次添加时将数组扩容1，然后再赋值
+public boolean add(E e) {
+    ensureCapacityInternal(size + 1);  // Increments modCount!!
+    elementData[size++] = e;
+    return true;
+}
+private void ensureCapacityInternal(int minCapacity) {
+    if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+        minCapacity = Math.max(DEFAULT_CAPACITY, minCapacity);
+    }
+    ensureExplicitCapacity(minCapacity);
+}
+private void ensureExplicitCapacity(int minCapacity) {
+    modCount++;
+    // overflow-conscious code
+    if (minCapacity - elementData.length > 0)
+        grow(minCapacity);
+}
+```
+
+#### 4、总结：
+
+​	**ArrayList每次对内容进行插入操作的时候，都会做扩容处理，这是ArrayList的优点（无容量的限制）**，同时也是缺点，线程不安全。
+一个 ArrayList ，在添加一个元素的时候，它可能会有两步来完成：
+
+- 在 Items[Size] 的位置存放此元素；
+- 增大 Size 的值。
+
+​	在单线程运行的情况下，如果 Size = 0，添加一个元素后，此元素在位置 0，而且 Size=1； 
+而如果是在多线程情况下，比如有两个线程，线程 A 先将元素存放在位置 0。但是此时 CPU 调度线程A暂停，线程 B 得到运行的机会。线程B也向此 ArrayList 添加元素，因为此时 Size 仍然等于 0 （注意，我们假设的是添加一个元素是要两个步骤哦，而线程A仅仅完成了步骤1），所以线程B也将元素存放在位置0。然后线程A和线程B都继续运行，都增加 Size 的值。 那好，现在我们来看看 ArrayList 的情况，元素实际上只有一个，存放在位置 0，而 Size 却等于 2。这就是“线程不安全”了。
 
 
 
