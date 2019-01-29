@@ -58,6 +58,8 @@ public final void method1() {
 
 # 5.线程
 
+**在java中线程是有分优先等级的所以优先级不能相同。**
+
 ![image-20181226080723036](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080723036-5782843-7514330.png)
 
 ![image-20181226080749306](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080749306-5782869-7514330.png)
@@ -73,7 +75,7 @@ public final void method1() {
 
 ##### 前台线程和后台线程
 
-​	main()函数即主函数，是一个前台线程，**前台进程是程序中必须执行完成的**，而后台线程则是java中所有前台结束后结束，不管有没有完成，后台线程主要用于内存分配等方面。                                                                                         
+​	==main()函数即主函数，是一个前台线程==，**前台进程是程序中必须执行完成的**，而后台线程则是java中所有前台结束后结束，不管有没有完成，后台线程主要用于内存分配等方面。                                                                                        
 前台线程和后台线程的区别和联系：
 
 1、后台线程不会阻止进程的终止。属于某个进程的所有前台线程都终止后，该进程就会被终止。所有剩余的后台线程都会停止且不会完成。
@@ -377,7 +379,7 @@ ASCII码包含一些特殊空字符，所以ASCII码不都是可打印字符
 
 **6. spring3 mvc的验证也是一个亮点，支持JSR303， 处理ajax的请求更是方便 ，只需一个注解 @ResponseBody  ，然后直接返回响应文本即可**。 代码：
 
-```
+```java
 @RequestMapping (value= "/whitelists" )  
 public  String index(ModelMap map) {  
     Account account = accountManager.getByDigitId(SecurityContextHolder.get().getDigitId());  
@@ -1256,7 +1258,15 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 
 ​	**创建泛型对象时请指明类型，让编译器尽早的做参数检查**
 
+# 50.redirect和forward差别：
 
+转发过程：
+
+​	客户浏览器发送http请求----》web服务器接受此请求--》调用内部的一个方法在容器内部完成请求处理和转发动作----》将目标资源 发送给客户；在这里，转发的路径必须是同一个web容器下的url，其不能转向到其他的web路径上去，中间传递的是自己的容器内的request。在客 户浏览器路径栏显示的仍然是其第一次访问的路径，也就是说客户是感觉不到服务器做了转发的。转发行为是浏览器只做了一次访问请求。 
+
+重定向过程：
+
+​	客户浏览器发送http请求----》web服务器接受后发送**302**状态码响应及对应新的location给客户浏览器--》**客户浏览器发现 是302响应**，则自动再发送一个新的http请求，请求url是新的location地址----》服务器根据此请求寻找资源并发送给客户。在这里 location可以重定向到任意URL，既然是浏览器重新发出了请求，则就没有什么request传递的概念了。在客户浏览器路径栏显示的是其重定向的 路径，客户可以观察到地址的变化的。重定向行为是浏览器做了至少两次的访问请求的。 
 
 
 
