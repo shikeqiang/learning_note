@@ -1219,6 +1219,248 @@ private void ensureExplicitCapacity(int minCapacity) {
 ​	在单线程运行的情况下，如果 Size = 0，添加一个元素后，此元素在位置 0，而且 Size=1； 
 而如果是在多线程情况下，比如有两个线程，线程 A 先将元素存放在位置 0。但是此时 CPU 调度线程A暂停，线程 B 得到运行的机会。线程B也向此 ArrayList 添加元素，因为此时 Size 仍然等于 0 （注意，我们假设的是添加一个元素是要两个步骤哦，而线程A仅仅完成了步骤1），所以线程B也将元素存放在位置0。然后线程A和线程B都继续运行，都增加 Size 的值。 那好，现在我们来看看 ArrayList 的情况，元素实际上只有一个，存放在位置 0，而 Size 却等于 2。这就是“线程不安全”了。
 
+## 2、同步容器
+
+​	**同步容器分两类，一种是Java提供好的类，另一类是Collections类中的相关同步方法。**
+
+### （1）ArrayList的线程安全类：Vector,Stack
+
+​	Vector实现了List接口，Vector实际上就是一个数组，和ArrayList非常的类似，**但是内部的方法是使用synchronized修饰过的方法。** 
+
+​	Stack它的方法也是使用synchronized修饰了，继承了Vector，实际上就是栈 。
+
+但是==Vector也不是完全的线程安全的==，比如： 
+
+#### **错误[1]：**删除与获取并发操作
+
+
+
+运行结果：报错java.lang.ArrayIndexOutOfBoundsException: Array index out of range 
+原因分析：
+
+​	同时发生获取与删除的操作。当两个线程在同一时间都判断了vector的size，假设都判断为9，而下一刻线程1执行了remove操作，随后线程2才去get，所以就出现了错误。synchronized关键字可以保证同一时间只有一个线程执行该方法，但是多个线程同时分别执行remove、add、get操作的时候就无法控制了。
+
+#### 错误[2]：使用foreach\iterator遍历Vector的时候进行增删操作
+
+解决办法：在使用iteratir进行增删操作的时候，加上Lock或者synchronized同步措施或者并发容器
+
+### （2）HashMap的线程安全类：HashTable
+
+​源码分析：
+
+- 保证安全性：使用了synchronized修饰
+- 不允许空值（在代码中特殊做了判断）
+- HashMap和HashTable都使用哈希表来存储键值对。在数据结构上是基本相同的，都创建了一个继承自Map.Entry的私有的内部类Entry，每一个Entry对象表示存储在哈希表中的一个键值对。	
+
+> ==Entry对象唯一表示一个键值对==，有四个属性： 
+> -K key 键对象 
+> -V value 值对象 
+> -int hash 键对象的hash值 
+> -Entry entry 指向链表中下一个Entry对象，可为null，表示当前Entry对象在链表尾部
+
+```java
+public synchronized V put(K key, V value) {
+    // Make sure the value is not null
+    if (value == null) {
+        throw new NullPointerException();
+    }
+
+    // Makes sure the key is not already in the hashtable.
+    Entry<?,?> tab[] = table;
+    int hash = key.hashCode();
+    int index = (hash & 0x7FFFFFFF) % tab.length;
+    @SuppressWarnings("unchecked")
+    Entry<K,V> entry = (Entry<K,V>)tab[index];
+    for(; entry != null ; entry = entry.next) {
+        if ((entry.hash == hash) && entry.key.equals(key)) {
+            V old = entry.value;
+            entry.value = value;
+            return old;
+        }
+    }
+
+    addEntry(hash, key, value, index);
+    return null;
+}
+```
+
+### （3）Collections类中的相关同步方法
+
+​	==Collections类中提供了一系列的线程安全方法用于处理ArrayList等线程不安全的Collection类:==
+
+![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190128185337900.png)
+
+使用方法：
+
+```java
+//定义
+private static List<Integer> list = Collections.synchronizedList(Lists.newArrayList());
+//多线程调用方法
+private static void update(int i) {
+    list.add(i);
+}
+```
+
+源码分析： 
+内部类。内部操作的方法使用了synchronized修饰符
+
+```java
+static class SynchronizedList<E>
+        extends SynchronizedCollection<E>
+        implements List<E> {
+        ...
+        public E get(int index) {
+            synchronized (mutex) {return list.get(index);}
+        }
+        public E set(int index, E element) {
+            synchronized (mutex) {return list.set(index, element);}
+        }
+        public void add(int index, E element) {
+            synchronized (mutex) {list.add(index, element);}
+        }
+        public E remove(int index) {
+            synchronized (mutex) {return list.remove(index);}
+        }
+        ...
+ }
+```
+
+# 7.并发容器 J.U.C 
+
+## 7.1 线程安全的集合与Map
+
+### 1、概述
+
+​	Java并发容器JUC是三个单词的缩写。是JDK下面的一个包名。即Java.util.concurrency。 
+上面描述了ArrayList、HashMap、HashSet对应的同步容器保证其线程安全，这节我们介绍一下其对应的并发容器。
+
+### 2、ArrayList –> CopyOnWriteArrayList
+
+​	**CopyOnWriteArrayList 写操作时复制，当有新元素添加到集合中时，从原有的数组中拷贝一份出来，然后在新的数组上作写操作，将原来的数组指向新的数组。**==整个数组的add操作都是在锁的保护下进行的，防止并发时复制多份副本。读操作是在原数组中进行，不需要加锁。==
+
+缺点： 
+
+1.写操作时复制消耗内存，**如果元素比较多时候，容易导致young gc 和full gc。** 
+2.不能用于实时读的场景。由于复制和add操作等需要时间，故读取时可能读到旧值。 能做到最终一致性，但无法满足实时性的要求，==更适合读多写少的场景。== 
+**如果无法知道数组有多大，或者add,set操作有多少，慎用此类,在大量的复制副本的过程中很容易出错。**
+
+设计思想： 
+
+**1.读写分离    2.最终一致性     3.使用时另外开辟空间，防止并发冲突**
+
+源码分析：
+
+```java
+//构造方法
+public CopyOnWriteArrayList(Collection<? extends E> c) {
+    Object[] elements;//使用对象数组来承载数据
+    if (c.getClass() == CopyOnWriteArrayList.class)
+        elements = ((CopyOnWriteArrayList<?>)c).getArray();
+    else {
+        elements = c.toArray();
+        // c.toArray might (incorrectly) not return Object[] (see 6260652)
+        if (elements.getClass() != Object[].class)
+            elements = Arrays.copyOf(elements, elements.length, Object[].class);
+    }
+    setArray(elements);
+}
+
+//添加数据方法
+public boolean add(E e) {
+    final ReentrantLock lock = this.lock;//使用重入锁，保证线程安全
+    lock.lock();
+    try {
+        Object[] elements = getArray();//获取当前数组数据
+        int len = elements.length;
+        Object[] newElements = Arrays.copyOf(elements, len + 1);//复制当前数组并且扩容+1
+        newElements[len] = e;//将要添加的数据放入新数组
+        setArray(newElements);//将原来的数组指向新的数组
+        return true;
+    } finally {
+        lock.unlock();
+    }
+}
+
+//获取数据方法，与普通的get没什么差别
+private E get(Object[] a, int index) {
+    return (E) a[index];
+}
+```
+
+### 3、HashSet –> CopyOnWriteArraySet
+
+​	它是线程安全的，**底层实现使用的是CopyOnWriteArrayList，因此它也适用于大小很小的set集合，只读操作远大于可变操作。**==因为他需要copy整个数组，所以包括add、remove、set它的开销相对于大一些。==
+
+迭代器不支持可变的remove操作。使用迭代器遍历的时候速度很快，而且不会与其他线程发生冲突。
+
+源码分析：
+
+```java
+//构造方法
+public CopyOnWriteArraySet() {
+    al = new CopyOnWriteArrayList<E>();//底层使用CopyOnWriteArrayList
+}
+
+//添加元素方法，基本实现原理与CopyOnWriteArrayList相同
+private boolean addIfAbsent(E e, Object[] snapshot) {
+    final ReentrantLock lock = this.lock;
+    lock.lock();
+    try {
+        Object[] current = getArray();
+        int len = current.length;
+        if (snapshot != current) {//添加了元素去重操作
+            // Optimize for lost race to another addXXX operation
+            int common = Math.min(snapshot.length, len);
+            for (int i = 0; i < common; i++)
+                if (current[i] != snapshot[i] && eq(e, current[i]))
+                    return false;
+            if (indexOf(e, current, common, len) >= 0)
+                    return false;
+        }
+        Object[] newElements = Arrays.copyOf(current, len + 1);
+        newElements[len] = e;
+        setArray(newElements);
+        return true;
+    } finally {
+        lock.unlock();
+    }
+}
+```
+
+### 4、TreeSet –> ConcurrentSkipListSet
+
+​	它是JDK6新增的类，同TreeSet一样支持自然排序，并且可以在构造的时候自己定义比较器。**同其他set集合，是基于map集合的（基于ConcurrentSkipListMap）**，在多线程环境下，里面的contains、add、remove操作都是线程安全的。
+​	**多个线程可以安全的并发的执行插入、移除、和访问操作。但是对于批量操作addAll、removeAll、retainAll和containsAll并不能保证以原子方式执行，**原因是addAll、removeAll、retainAll底层调用的还是contains、add、remove方法，只能保证每一次的执行是原子性的，代表在单一执行操纵时不会被打断，但是不能保证每一次批量操作都不会被打断。在使用批量操作时，还是需要手动加上同步操作的。**不允许使用null元素的，它无法可靠的将参数及返回值与不存在的元素区分开来。**
+
+源码分析：
+
+```java
+//构造方法
+public ConcurrentSkipListSet() {
+    m = new ConcurrentSkipListMap<E,Object>();//使用ConcurrentSkipListMap实现
+}
+```
+
+### 5、HashMap –> ConcurrentHashMap
+
+​	不允许空值，在实际的应用中除了少数的插入操作和删除操作外，绝大多数我们使用map都是读取操作。而且读操作大多数都是成功的。基于这个前提，**它针对读操作做了大量的优化。因此这个类在高并发环境下有特别好的表现。**
+​	ConcurrentHashMap作为Concurrent一族，其有着高效地并发操作，相比Hashtable的笨重，ConcurrentHashMap则更胜一筹了。
+​	在1.8版本以前，ConcurrentHashMap采用分段锁的概念，使锁更加细化，但是1.8已经改变了这种思路，而是利用CAS+Synchronized来保证并发更新的安全，当然底层采用数组+链表+红黑树的存储结构。
+
+源码分析：https://blog.csdn.net/striveb/article/details/84106768
+
+### 6、TreeMap –> ConcurrentSkipListMap
+
+​	底层实现采用SkipList跳表。曾经有人用ConcurrentHashMap与ConcurrentSkipListMap做性能测试，在4个线程1.6W的数据条件下，前者的数据存取速度是后者的4倍左右。但是后者有几个前者不能比拟的优点： 
+1、Key是有序的 
+2、支持更高的并发，存储时间与线程数无关
+
+### 7、安全共享对象策略
+
+- 线程限制：一个被线程限制的对象，由线程独占，并且只能被占有它的线程修改
+- 共享只读：一个共享只读的U帝乡，在没有额外同步的情况下，可以被多个线程并发访问，但是任何线程都不能修改它
+- 线程安全对象：一个线程安全的对象或者容器，在内部通过同步机制来保障线程安全，多以其他线程无需额外的同步就可以通过公共接口随意访问他
+- 被守护对象：被守护对象只能通过获取特定的锁来访问。
 
 
 
@@ -1230,38 +1472,9 @@ private void ensureExplicitCapacity(int minCapacity) {
 
 
 
+参照：https://blog.csdn.net/jesonjoke/column/info/21011
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[慕课网](https://www.baidu.com/s?wd=%E6%85%95%E8%AF%BE%E7%BD%91&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd)jimin老师的[《Java并发编程与高并发解决方案》](https://www.baidu.com/s?wd=%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B8%8E%E9%AB%98%E5%B9%B6%E5%8F%91%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E3%80%8B&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd)课程
 
 
 
