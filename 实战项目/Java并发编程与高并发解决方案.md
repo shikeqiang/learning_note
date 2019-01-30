@@ -1090,7 +1090,7 @@ public class ConcurrencyApplication extends WebMvcConfigurerAdapter {
 
 ## 1、线程不安全的类
 
-如果一个类的对象同时可以被多个线程访问，并且你不做特殊的同步或并发处理，那么它就很容易表现出线程不安全的现象。比如抛出异常、逻辑处理错误… 
+​	如果一个类的对象同时可以被多个线程访问，并且你不做特殊的同步或并发处理，那么它就很容易表现出线程不安全的现象。比如抛出异常、逻辑处理错误… 
 下面列举一下常见的线程不安全的类及对应的线程安全类：
 
 ### （1）StringBuilder 与 StringBuffer
@@ -1185,12 +1185,12 @@ private static final int DEFAULT_CAPACITY = 10;
  }
 ```
 
-#### 3、添加方法（重点）
+#### 3、添加元素方法（重点）
 
 ```java
 //每次添加时将数组扩容1，然后再赋值
 public boolean add(E e) {
-    ensureCapacityInternal(size + 1);  // Increments modCount!!
+    ensureCapacityInternal(size + 1);  // Increments modCount!!扩容
     elementData[size++] = e;
     return true;
 }
@@ -1210,14 +1210,13 @@ private void ensureExplicitCapacity(int minCapacity) {
 
 #### 4、总结：
 
-​	**ArrayList每次对内容进行插入操作的时候，都会做扩容处理，这是ArrayList的优点（无容量的限制）**，同时也是缺点，线程不安全。
+​	**==ArrayList每次对内容进行插入操作的时候，都会做扩容处理==，这是ArrayList的优点（无容量的限制）**，同时也是缺点，线程不安全。
 一个 ArrayList ，在添加一个元素的时候，它可能会有两步来完成：
 
 - 在 Items[Size] 的位置存放此元素；
 - 增大 Size 的值。
 
-​	在单线程运行的情况下，如果 Size = 0，添加一个元素后，此元素在位置 0，而且 Size=1； 
-而如果是在多线程情况下，比如有两个线程，线程 A 先将元素存放在位置 0。但是此时 CPU 调度线程A暂停，线程 B 得到运行的机会。线程B也向此 ArrayList 添加元素，因为此时 Size 仍然等于 0 （注意，我们假设的是添加一个元素是要两个步骤哦，而线程A仅仅完成了步骤1），所以线程B也将元素存放在位置0。然后线程A和线程B都继续运行，都增加 Size 的值。 那好，现在我们来看看 ArrayList 的情况，元素实际上只有一个，存放在位置 0，而 Size 却等于 2。这就是“线程不安全”了。
+​	在单线程运行的情况下，如果 Size = 0，添加一个元素后，此元素在位置 0，而且 Size=1； 而如果是在多线程情况下，比如有两个线程，线**程 A 先将元素存放在位置 0。但是此时 CPU 调度线程A暂停，线程 B 得到运行的机会。线程B也向此 ArrayList 添加元素，因为此时 Size 仍然等于 0 （注意，我们假设的是添加一个元素是要两个步骤哦，而线程A仅仅完成了步骤1）**，所以线程B也将元素存放在位置0。然后线程A和线程B都继续运行，都增加 Size 的值。 那好，现在我们来看看 ArrayList 的情况，**元素实际上只有一个，存放在位置 0，而 Size 却等于 2。这就是“线程不安全”了。**
 
 ## 2、同步容器
 
@@ -1233,16 +1232,86 @@ private void ensureExplicitCapacity(int minCapacity) {
 
 #### **错误[1]：**删除与获取并发操作
 
+```java
+public class VectorExample2 {
+    private static Vector<Integer> vector = new Vector<>();
 
+    public static void main(String[] args) {
+        while (true) {
+            for (int i = 0; i < 10; i++) {
+                vector.add(i);
+            }
+            Thread thread1 = new Thread() {
+                public void run() {
+                    for (int i = 0; i < vector.size(); i++) {
+                        vector.remove(i);
+                    }
+                }
+            };
+            Thread thread2 = new Thread() {
+                public void run() {
+                    for (int i = 0; i < vector.size(); i++) {
+                        vector.get(i);
+                    }
+                }
+            };
+            thread1.start();
+            thread2.start();
+        }
+    }
+}
+```
 
-运行结果：报错java.lang.ArrayIndexOutOfBoundsException: Array index out of range 
+运行结果：报错java.lang.ArrayIndexOutOfBoundsException: Array index out of range 	(数组越界)
 原因分析：
 
-​	同时发生获取与删除的操作。当两个线程在同一时间都判断了vector的size，假设都判断为9，而下一刻线程1执行了remove操作，随后线程2才去get，所以就出现了错误。synchronized关键字可以保证同一时间只有一个线程执行该方法，但是多个线程同时分别执行remove、add、get操作的时候就无法控制了。
+​	**同时发生获取与删除的操作。**当两个线程在同一时间都判断了vector的size，假设都判断为9，而下一刻线程1执行了remove操作，随后线程2才去get，所以就出现了错误。**synchronized关键字可以保证同一时间只有一个线程执行该方法，但是多个线程同时分别执行remove、add、get操作的时候就无法控制了。**
 
-#### 错误[2]：使用foreach\iterator遍历Vector的时候进行增删操作
+#### 错误[2]：使用foreach/iterator遍历Vector的时候进行增删操作
 
-解决办法：在使用iteratir进行增删操作的时候，加上Lock或者synchronized同步措施或者并发容器
+```java
+public class VectorExample3 {
+    // 报错java.util.ConcurrentModificationException，只要不是第一个和最后一个就不会报错
+    private static void test1(Vector<Integer> v1) { // foreach
+        for (Integer i : v1) {
+            if (i.equals(3)) {
+                v1.remove(i);
+            }
+        }
+    }
+
+    // 报错java.util.ConcurrentModificationException
+    private static void test2(Vector<Integer> v1) { // iterator
+        Iterator<Integer> iterator = v1.iterator();
+        while (iterator.hasNext()) {
+            Integer i = iterator.next();
+            if (i.equals(3)) {
+                v1.remove(i);
+            }
+        }
+    }
+
+    // success
+    private static void test3(Vector<Integer> v1) { // for
+        for (int i = 0; i < v1.size(); i++) {
+            if (v1.get(i).equals(3)) {
+                v1.remove(i);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Vector<Integer> vector = new Vector<>();
+        vector.add(1);
+        vector.add(2);
+        vector.add(3);
+       // vector.add(4);
+        test1(vector);
+    }
+}
+```
+
+解决办法：在使用iterator进行增删操作的时候，加上Lock或者synchronized同步措施或者并发容器，或者先对要修改的值，在迭代器中先用一个值存起来，在循环外在做修改。
 
 ### （2）HashMap的线程安全类：HashTable
 
@@ -1293,7 +1362,7 @@ public synchronized V put(K key, V value) {
 使用方法：
 
 ```java
-//定义
+//定义,通过Collections的同步方法传入不同的数据类型
 private static List<Integer> list = Collections.synchronizedList(Lists.newArrayList());
 //多线程调用方法
 private static void update(int i) {
@@ -1331,8 +1400,7 @@ static class SynchronizedList<E>
 
 ### 1、概述
 
-​	Java并发容器JUC是三个单词的缩写。是JDK下面的一个包名。即Java.util.concurrency。 
-上面描述了ArrayList、HashMap、HashSet对应的同步容器保证其线程安全，这节我们介绍一下其对应的并发容器。
+​	Java并发容器JUC是三个单词的缩写。是JDK下面的一个包名。即Java.util.concurrency。 上面描述了ArrayList、HashMap、HashSet对应的同步容器保证其线程安全。
 
 ### 2、ArrayList –> CopyOnWriteArrayList
 
@@ -1340,11 +1408,11 @@ static class SynchronizedList<E>
 
 缺点： 
 
-1.写操作时复制消耗内存，**如果元素比较多时候，容易导致young gc 和full gc。** 
+1.写操作时复制数组消耗内存，**如果元素比较多时候，容易导致young gc 和full gc。** 
 2.不能用于实时读的场景。由于复制和add操作等需要时间，故读取时可能读到旧值。 能做到最终一致性，但无法满足实时性的要求，==更适合读多写少的场景。== 
 **如果无法知道数组有多大，或者add,set操作有多少，慎用此类,在大量的复制副本的过程中很容易出错。**
 
-设计思想： 
+CopyOnWriteArrayList设计思想： 
 
 **1.读写分离    2.最终一致性     3.使用时另外开辟空间，防止并发冲突**
 
@@ -1365,7 +1433,7 @@ public CopyOnWriteArrayList(Collection<? extends E> c) {
     setArray(elements);
 }
 
-//添加数据方法
+//添加元素方法
 public boolean add(E e) {
     final ReentrantLock lock = this.lock;//使用重入锁，保证线程安全
     lock.lock();
@@ -1381,11 +1449,18 @@ public boolean add(E e) {
     }
 }
 
+//将原来的数组指向新的数组
+final void setArray(Object[] a) {
+        array = a;
+    }
+
 //获取数据方法，与普通的get没什么差别
 private E get(Object[] a, int index) {
     return (E) a[index];
 }
 ```
+
+​	==读的时候在原数组读，不用加锁，写的时候需要加锁。==
 
 ### 3、HashSet –> CopyOnWriteArraySet
 
@@ -1429,8 +1504,8 @@ private boolean addIfAbsent(E e, Object[] snapshot) {
 
 ### 4、TreeSet –> ConcurrentSkipListSet
 
-​	它是JDK6新增的类，同TreeSet一样支持自然排序，并且可以在构造的时候自己定义比较器。**同其他set集合，是基于map集合的（基于ConcurrentSkipListMap）**，在多线程环境下，里面的contains、add、remove操作都是线程安全的。
-​	**多个线程可以安全的并发的执行插入、移除、和访问操作。但是对于批量操作addAll、removeAll、retainAll和containsAll并不能保证以原子方式执行，**原因是addAll、removeAll、retainAll底层调用的还是contains、add、remove方法，只能保证每一次的执行是原子性的，代表在单一执行操纵时不会被打断，但是不能保证每一次批量操作都不会被打断。在使用批量操作时，还是需要手动加上同步操作的。**不允许使用null元素的，它无法可靠的将参数及返回值与不存在的元素区分开来。**
+​	它是JDK6新增的类，同TreeSet一样支持自然排序，并且可以在构造的时候自己定义比较器。**同其他set集合，是基于map集合的（基于ConcurrentSkipListMap）**，==在多线程环境下，里面的contains、add、remove操作都是线程安全的。==
+​	**多个线程可以安全的并发的执行插入、移除、和访问操作。但是对于批量操作addAll、removeAll、retainAll和containsAll并不能保证以原子方式执行，**==原因是addAll、removeAll、retainAll底层调用的还是contains、add、remove方法，只能保证每一次的执行是原子性的，代表在单一执行操纵时不会被打断，但是不能保证每一次批量操作都不会被打断==。在使用批量操作时，还是需要手动加上同步操作的。**不允许使用null元素的，它无法可靠的将参数及返回值与不存在的元素区分开来。**
 
 源码分析：
 
@@ -1443,24 +1518,64 @@ public ConcurrentSkipListSet() {
 
 ### 5、HashMap –> ConcurrentHashMap
 
-​	不允许空值，在实际的应用中除了少数的插入操作和删除操作外，绝大多数我们使用map都是读取操作。而且读操作大多数都是成功的。基于这个前提，**它针对读操作做了大量的优化。因此这个类在高并发环境下有特别好的表现。**
+​	**不允许空值，在实际的应用中除了少数的插入操作和删除操作外，绝大多数我们使用map都是读取操作。**而且读操作大多数都是成功的。基于这个前提，**它针对读操作做了大量的优化。因此这个类在高并发环境下有特别好的表现。**
 ​	ConcurrentHashMap作为Concurrent一族，其有着高效地并发操作，相比Hashtable的笨重，ConcurrentHashMap则更胜一筹了。
 ​	在1.8版本以前，ConcurrentHashMap采用分段锁的概念，使锁更加细化，但是1.8已经改变了这种思路，而是利用CAS+Synchronized来保证并发更新的安全，当然底层采用数组+链表+红黑树的存储结构。
 
 源码分析：https://blog.csdn.net/striveb/article/details/84106768
 
-### 6、TreeMap –> ConcurrentSkipListMap
+### 6、TreeMap –> ConcurrentSkipListMap(可对key进行排序)
 
-​	底层实现采用SkipList跳表。曾经有人用ConcurrentHashMap与ConcurrentSkipListMap做性能测试，在4个线程1.6W的数据条件下，前者的数据存取速度是后者的4倍左右。但是后者有几个前者不能比拟的优点： 
+​	底层实现采用SkipList跳表。曾经有人用ConcurrentHashMap与ConcurrentSkipListMap做性能测试，在4个线程1.6W的数据条件下，前者的数据存取速度是后者的4倍左右。但是ConcurrentSkipListMap有几个前者不能比拟的优点： 
 1、Key是有序的 
 2、支持更高的并发，存储时间与线程数无关
 
 ### 7、安全共享对象策略
 
-- 线程限制：一个被线程限制的对象，由线程独占，并且只能被占有它的线程修改
-- 共享只读：一个共享只读的U帝乡，在没有额外同步的情况下，可以被多个线程并发访问，但是任何线程都不能修改它
-- 线程安全对象：一个线程安全的对象或者容器，在内部通过同步机制来保障线程安全，多以其他线程无需额外的同步就可以通过公共接口随意访问他
-- 被守护对象：被守护对象只能通过获取特定的锁来访问。
+- 线程限制：一个被线程限制的对象，由**线程独占**，并且只能被占有它的线程修改
+- 共享只读：一个共享只读的对象，在没有额外同步的情况下，**可以被多个线程并发访问，但是任何线程都不能修改它**
+- 线程安全对象：一个线程安全的对象或者容器，在内部通过==同步机制来保障线程安全==，多以其他线程无需额外的同步就可以通过公共接口随意访问他
+- 被守护对象：**被守护对象只能通过获取特定的锁来访问。**
+
+## 7.2 并发容器J.U.C -- AQS组件CountDownLatch、Semaphore、CyclicBarrier
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
