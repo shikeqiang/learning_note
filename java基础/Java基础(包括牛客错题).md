@@ -4,7 +4,7 @@
 
 **==PS：方法没有继承一说，只有重载和重写==**
 
-![image-20181226080624787](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080624787-5782784-7514330.png)
+![image-20181226080624787](/Users/jack/Desktop/md/images/image-20181226080624787-5782784-7514330-8895518.png)
 
 ​	==编译看左边，运行看右边，编译的时候看等号左边定义的是什么类型，运行的时候动态绑定到哪个对象上==,如：Base b = new Sub();**它为多态的一种表现形式，声明是Base,实现是Sub类，** **理解为** **b** **编译时表现为Base类特性，运行时表现为Sub类特性。**
 
@@ -15,6 +15,8 @@
 ​	**接口继承的时候只能继承接口不能继承类**，因为如果类可以存在非抽象的成员，如果接口继承了该类，那么接口必定从类中也继承了这些非抽象成员，这就和接口的定义相互矛盾。
 
 ​	**接口只能继承接口，但是可以多继承。类都是单继承，但是继承有传递性。**
+
+​	==java8在接口中引入了默认方法，通过在方法前加上default关键字就可以在接口中写方法的默认实现。==即接口实现类可以不用重写默认方法，可以直接调用。
 
 # 2.函数
 
@@ -291,9 +293,11 @@ ASCII码包含一些特殊空字符，所以ASCII码不都是可打印字符
 
 **子类的构造器第一行默认都是super()，默认调用直接父类的无参构造，一旦直接父类没有无参构造，那么子类必须显式的声明要调用父类或者自己的哪一个构造器。**
 
+​	==如果子类的方法重写了父类的方法，那么子类中该方法的访问级别不允许低于父类的访问级别。==这是为了确保可以使用父类实例的地方都可以使用子类实例，也就是确保满足里氏替换原则。
+
 # 9.Spring的事务管理
 
-![image-20181226081100232](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081100232-5783060-7514330.png) 
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081100232-5783060-7514330-8860046.png)
 
 ![image-20181226081118993](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081118993-5783079-7514330.png)
 
@@ -434,7 +438,7 @@ public  String delete( @PathVariable  Integer whiteListId) {
 
 ![image-20181226081429859](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081429859-5783269-7514330.png)
 
-### 2.<< : 左移运算符，num << 1,相当于num乘以2
+### 2.<< : 左移运算符，num << 1,相当于num乘以2，即2的一次方
 
 \>\>: 右移运算符，num >> 1,相当于num除以2
 
@@ -468,6 +472,10 @@ count = count++  原理是 temp = count； count = count+1 ； count = temp；
 
 "||"是逻辑或：先判断条件1，如果条件1为true，那么就不会执行条件2；若为false，则会执行条件2
 
+### 6.参数传递
+
+​	在将一个参数传入一个方法时，**本质上是将对象的地址以值的方式传递到形参中。**因此在方法中使指针引用其它对象，那么==这两个指针此时指向的是完全不同的对象，在一方改变其所指向对象的内容时对另一方没有影响。==
+
 # 14.抽象类与接口
 
 ​	含有abstract修饰符的class即为抽象类，abstract类不能创建的实例对象。**含有abstract方法的类必须定义为abstract class，abstract class类中的方法不必是抽象的。**abstract class类中定义抽象方法必须在具体(Concrete)子类中实现，所以，不能有抽象构造方法或抽象静态方法。**如果的子类没有实现抽象父类中的所有抽象方法，那么子类也必须定义为abstract类型。**  子类不一定要全部实现父类的所有abstract方法，子类可以定义为abstract，然后交由它的子类实现。
@@ -491,6 +499,8 @@ count = count++  原理是 temp = count； count = count+1 ； count = temp；
 7.一个类可以实现多个接口，但只能继承一个抽象类。  
 
 8.接口可以有default、static方法。
+
+9.接口的字段只能是 static 和 final 类型的，而抽象类的字段没有这种限制。
 
 ##### 抽象类和接口在应用上的区别：  
 
@@ -601,6 +611,8 @@ HTTP是一种无状态协议，每当用户发出请求时，服务器就会做�
 ![image-20181226081748225](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081748225-5783468-7514330.png)
 
 ##### 	基本类型又被称为原始数据类型。
+
+基本类型都有对应的包装类型，基本类型与其对应的包装类型之间的赋值使用自动装箱与拆箱完成。
 
 # 20.Unicode编码
 
@@ -801,7 +813,7 @@ selete与match()和against()一起使用：match()：指定被搜素的列；aga
 selecte * from product where match(detail) against('rabbit');
 ```
 
-# 24.字符串
+# 24.String字符串
 
 ![image-20181226081859339](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081859339-5783539.png)
 
@@ -810,6 +822,51 @@ selecte * from product where match(detail) against('rabbit');
 ##### 串中任意个连续的字符组成的子序列称为该串的子串。
 
 ==一个字符常量表示为一个字符或一个转义序列，被一对ASCII**单引号**关闭。==
+
+在 Java 8 中，String 内部使用 char 数组存储数据。
+
+```java
+public final class String
+    implements java.io.Serializable, Comparable<String>, CharSequence {
+    /** The value is used for character storage. */
+    private final char value[];
+}
+```
+
+**在 Java 9 之后，String 类的实现改用 byte 数组存储字符串，同时使用 `coder` 来标识使用了哪种编码。**
+
+```java
+public final class String
+    implements java.io.Serializable, Comparable<String>, CharSequence {
+    /** The value is used for character storage. */
+    private final byte[] value;
+
+    /** The identifier of the encoding used to encode the bytes in {@code value}. */
+    private final byte coder;
+}
+```
+
+value 数组被声明为 final，这意味着 value 数组初始化之后就不能再引用其它数组。并且 String 内部没有改变 value 数组的方法，因此可以保证 String 不可变。
+
+## 不可变的好处
+
+**1. 可以缓存 hash 值**
+
+​	因为 String 的 hash 值经常被使用，例如 String 用做 HashMap 的 key。不可变的特性可以使得 hash 值也不可变，因此只需要进行一次计算。
+
+**2. String Pool 的需要**
+
+​	如果一个 String 对象已经被创建过了，那么就会从 String Pool 中取得引用。只有 String 是不可变的，才可能使用 String Pool。
+
+![img](/Users/jack/Desktop/md/images/f76067a5-7d5f-4135-9549-8199c77d8f1c.jpg)
+
+**3. 安全性**
+
+​	String 经常作为参数，String 不可变性可以保证参数不可变。例如在作为网络连接参数的情况下如果 String 是可变的，那么在网络连接过程中，String 被改变，改变 String 对象的那一方以为现在连接的是其它主机，而实际情况却不一定是。
+
+**4. 线程安全**
+
+​	==String 不可变性天生具备线程安全==，可以在多个线程中安全地使用。
 
 # 25.文件
 
@@ -830,6 +887,8 @@ selecte * from product where match(detail) against('rabbit');
 ##### 	非静态变量不能够被静态方法引用
 
 ##### 	被static修饰的变量称为静态变量，静态变量属于整个类，而局部变量属于方法，只在该方法内有效，所以static不能修饰局部变量
+
+==只能访问所属类的静态字段和静态方法，方法中不能有 this 和 super 关键字。==
 
 # 28.jsp
 
@@ -854,6 +913,8 @@ selecte * from product where match(detail) against('rabbit');
 **1. 静态内部类：**
 
 ​    **1. 静态内部类本身可以访问外部的静态资源，包括静态私有资源。但是不能访问非静态资源，可以不依赖外部类实例而实例化。**
+
+​	==静态内部类不能访问外部类的非静态的变量和方法。==
 
 **2. 成员内部类：**
 
@@ -1219,8 +1280,10 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 
 ## 1.Servlet过滤器的配置
 
-第一部分是过滤器在Web应用中的定义，由<filter>元素表示，包括<filter-name>和<filter-class>两个必需的子元素
-第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
+​	第一部分是过滤器在Web应用中的定义，由<filter>元素表示，包括<filter-name>和<filter-class>两个必需的子元素
+​	第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
+
+![img](/Users/jack/Desktop/md/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
 
 # 45.数组
 
@@ -1268,31 +1331,100 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 
 ​	客户浏览器发送http请求----》web服务器接受后发送**302**状态码响应及对应新的location给客户浏览器--》**客户浏览器发现 是302响应**，则自动再发送一个新的http请求，请求url是新的location地址----》服务器根据此请求寻找资源并发送给客户。在这里 location可以重定向到任意URL，既然是浏览器重新发出了请求，则就没有什么request传递的概念了。在客户浏览器路径栏显示的是其重定向的 路径，客户可以观察到地址的变化的。重定向行为是浏览器做了至少两次的访问请求的。 
 
+# 51.缓存池
 
+new Integer(123) 与 Integer.valueOf(123) 的区别在于：
 
+- new Integer(123) 每次都会新建一个对象；
+- Integer.valueOf(123) 会使用缓存池中的对象，多次调用会取得同一个对象的引用。
 
+valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中，如果在的话就直接返回缓存池的内容。
 
+```java
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
 
+在 Java 8 中，Integer 缓存池的大小默认为 -128~127。
 
+```java
+static final int low = -128;
+static final int high;
+static final Integer cache[];
 
+static {
+    // high value may be configured by property
+    int h = 127;
+    String integerCacheHighPropValue =
+        sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+    if (integerCacheHighPropValue != null) {
+        try {
+            int i = parseInt(integerCacheHighPropValue);
+            i = Math.max(i, 127);
+            // Maximum array size is Integer.MAX_VALUE
+            h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+        } catch( NumberFormatException nfe) {
+            // If the property cannot be parsed into an int, ignore it.
+        }
+    }
+    high = h;
 
+    cache = new Integer[(high - low) + 1];
+    int j = low;
+    for(int k = 0; k < cache.length; k++)
+        cache[k] = new Integer(j++);
 
+    // range [-128, 127] must be interned (JLS7 5.1.7)
+    assert IntegerCache.high >= 127;
+}
+```
 
+编译器会在自动装箱过程调用 valueOf() 方法，因此多个 Integer 实例使用自动装箱来创建并且值相同，那么就会引用相同的对象。
 
+基本类型对应的缓冲池如下：
 
+- boolean values true and false
+- all byte values
+- short values between -128 and 127
+- int values between -128 and 127
+- char in the range \u0000 to \u007F
 
+在使用这些基本类型对应的包装类型时，就可以直接使用缓冲池中的对象。
 
+# 52.字符串常量池
 
+​	字符串常量池（String Pool）保存着所有字符串字面量（literal strings），**这些字面量在编译时期就确定。**不仅如此，还可以==使用 String 的 intern() 方法在运行过程中将字符串添加到 String Pool 中。==
 
+​	当一个字符串调用 intern() 方法时，**如果 String Pool 中已经存在一个字符串和该字符串值相等（使用 equals() 方法进行确定），那么就会返回 String Pool 中字符串的引用；**否则，就会在 String Pool 中添加一个新的字符串，并返回这个新字符串的引用。
 
+例子：
 
+```java
+//创建两个字符串对象s1,s2
+String s1 = new String("aaa");			
+String s2 = new String("aaa");
+System.out.println(s1 == s2);           // false
+//s3,s4通过 s1.intern() 方法取得一个字符串引用
+String s3 = s1.intern();
+String s4 = s1.intern();
+System.out.println(s3 == s4);           // true
+```
 
+​	**intern() 首先把 s1 引用的字符串放到 String Pool 中，然后返回这个字符串引用。因此 s3 和 s4 引用的是同一个字符串。**
 
+​	在 Java 7 之前，**String Pool 被放在运行时常量池中，它属于永久代。而在 Java 7，String Pool 被移到堆中。**这是因为永久代的空间有限，在大量使用字符串的场景下会导致 OutOfMemoryError 错误。
 
+以下是String 构造函数的源码，可以看到，**在将一个字符串对象作为另一个字符串对象的构造函数参数时，并不会完全复制 value 数组内容，而是都会指向同一个 value 数组。**
 
-
-
-
+```java
+public String(String original) {
+    this.value = original.value;
+    this.hash = original.hash;
+}
+```
 
 
 
