@@ -432,6 +432,18 @@ public  String delete( @PathVariable  Integer whiteListId) {
 
 ​	Spring中的[MVC](http://www.mianwww.com/html/2014/03/19750.html#mvc-introduction)封装包提供了Web应用的Model-View-Controller（MVC）实现。Spring的MVC框架并不是仅仅提供一种传统的实现，它提供了一种清晰的分离模型，在领域模型代码和Web Form之间。并且，还可以借助Spring框架的其他特性。
 
+## 3.struts1和Struts2的区别
+
+  1.Struts1要求Action类继承一个抽象基类。Struts1的一个普遍问题是使用抽象类编程而不是接口。 
+2. Struts 2 Action类可以实现一个Action接口，也可实现其他接口，使可选和定制的服务成为可能。Struts2提供一个ActionSupport基类去实现常用的接口。Action接口不是必须的，任何有execute标识的POJO对象都可以用作Struts2的Action对象。
+  从Servlet 依赖分析: 
+3. Struts1 Action 依赖于Servlet API ,因为当一个Action被调用时HttpServletRequest 和 HttpServletResponse 被传递给execute方法。 
+4. Struts 2 Action不依赖于容器，允许Action脱离容器单独被测试。如果需要，Struts2 Action仍然可以访问初始的request和response。但是，其他的元素减少或者消除了直接访问HttpServetRequest 和 HttpServletResponse的必要性。
+  从action线程模式分析: 
+5. Struts1 Action是单例模式并且必须是线程安全的，因为仅有Action的一个实例来处理所有的请求。单例策略限制了Struts1 Action能作的事，并且要在开发时特别小心。Action资源必须是线程安全的或同步的。 
+6. Struts2 Action对象为每一个请求产生一个实例，因此没有线程安全问题。（实际上，servlet容器给每个请求产生许多可丢弃的对象，并且不会导致性能和垃圾回收问题）
+7. ![img](/Users/jack/Desktop/md/images/6740262_1502892230619_8AA0BB8C0EEED931C8EE12011A5E8E1B.png)
+
 # 13.运算及运算符
 
 ### 1.==当字符型与整型运算时会自动转换成整型==，所以'a' % 3会变成97%3。而’a’ = 1/3是错误的，因为常量不能被赋值
@@ -1284,6 +1296,26 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 ​	第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
 
 ![img](/Users/jack/Desktop/md/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
+
+## 2.servlet是什么
+
+​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
+ 容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。
+
+![image-20190201104605382](/Users/jack/Desktop/md/images/image-20190201104605382.png)
+
+## 3、servlet的生命周期
+
+加载和实例化：Servlet容器负责加载和实例化Servlet。当Servlet容器启动时，或者在容器检测到需要这个Servlet来响应第一个请求时，创建Servlet实例。
+初始化：init方法是在servlet实例创建时调用的方法，用于创建或打开任何与servlet相的资源和初始 化servlet的状态，Servlet规范保证调用init方法前不会处理任何请求 
+
+请求处理：service方法是servlet真正处理客户端传过来的请求的方法，由web容器调用， 根据HTTP请求方法（GET、POST等），将请求分发到doGet、doPost等方法 
+
+服务终止：destory方法是在servlet实例被销毁时由web容器调用。Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态
+
+https://www.cnblogs.com/lgk8023/p/6427977.html
+
+==servlet在多线程下其本身并不是线程安全的。==
 
 # 45.数组
 
