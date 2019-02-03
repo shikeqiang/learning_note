@@ -452,7 +452,7 @@ public  String delete( @PathVariable  Integer whiteListId) {
 
 ### 2.<< : 左移运算符，num << 1,相当于num乘以2，即2的一次方
 
-\>\>: 右移运算符，num >> 1,相当于num除以2
+\>\>: 右移运算符，num >> 1,相当于num除以2，2的一次方
 
 \>\>\>: 无符号右移，忽略符号位，空位都以0补齐。
 
