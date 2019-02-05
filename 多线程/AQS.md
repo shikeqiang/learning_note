@@ -30,7 +30,7 @@ private volatile int state;//共享变量，使用volatile修饰保证线程可�
 
 状态信息通过procted类型的getState，setState，compareAndSetState进行操作
 
-```
+```Java
 //返回同步状态的当前值
 protected final int getState() {  
         return state;
@@ -100,15 +100,13 @@ tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true�
 
 ### 3 Semaphore(信号量)-允许多个线程同时访问
 
-**synchronized 和 ReentrantLock 都是一次只允许一个线程访问某个资源，Semaphore(信号量)可以指定多个线程同时访问某个资源。**示例代码如下：
+**synchronized 和 ReentrantLock 都是一次只允许一个线程访问某个资源，Semaphore(信号量)可以指定多个线程同时访问某个资源。**
+
+​	==用于保证同一时间并发访问线程的数目==。**信号量在操作系统中是很重要的概念，Java并发库里的Semaphore就可以很轻松的完成类似操作系统信号量的控制。**Semaphore可以很容易控制系统中某个资源被同时访问的线程个数。**在前面的链表中，链表正常是可以保存无限个节点的，而Semaphore可以实现有限大小的列表。
+
+示例代码如下：
 
 ```java
-/**
- * 
- * @author Snailclimb
- * @date 2018年9月30日
- * @Description: 需要一次性拿一个许可的情况
- */
 public class SemaphoreExample1 {
 	// 请求的数量
 	private static final int threadCount = 550;
@@ -176,13 +174,11 @@ Semaphore 有两种模式，公平模式和非公平模式。
 
 **这两个构造方法，都必须提供许可的数量，第二个构造方法可以指定是公平模式还是非公平模式，默认非公平模式。**
 
-由于篇幅问题，如果对 Semaphore 源码感兴趣的朋友可以看下面这篇文章：
-
-- <https://blog.csdn.net/qq_19431333/article/details/70212663>
+具体可看：<https://blog.csdn.net/qq_19431333/article/details/70212663>
 
 ### 4 CountDownLatch （倒计时器）
 
-CountDownLatch是一个同步工具类，用来协调多个线程之间的同步。这个工具通常用来控制线程等待，它可以让某一个线程等待直到倒计时结束，再开始执行。
+​	CountDownLatch是一个同步工具类，用来协调多个线程之间的同步。这个工具通常用来控制线程等待，它可以让某一个线程等待直到倒计时结束，再开始执行。
 
 #### 4.1 CountDownLatch 的两种典型用法
 
@@ -190,15 +186,35 @@ CountDownLatch是一个同步工具类，用来协调多个线程之间的同步
 
 ②实现多个线程开始执行任务的最大并行性。注意是并行性，不是并发，强调的是多个线程在某一时刻同时开始执行。类似于赛跑，将多个线程放到起点，等待发令枪响，然后同时开跑。做法是初始化一个共享的 `CountDownLatch` 对象，将其计数器初始化为 1 ：`new CountDownLatch(1) `，多个线程在开始执行任务前首先 `coundownlatch.await()`，当主线程调用 countDown() 时，计数器变为0，多个线程同时被唤醒。
 
-#### 4.2 CountDownLatch 的使用示例
+#### 4.2 源码分析：
 
 ```Java
-/**
- * 
- * @author SnailClimb
- * @date 2018年10月1日
- * @Description: CountDownLatch 使用方法示例
- */
+public CountDownLatch(int count) {
+    if (count < 0) throw new IllegalArgumentException("count < 0");
+    this.sync = new Sync(count);
+}
+```
+
+​	**构造器中的计数值(count)实际上就是闭锁需要等待的线程数量。这个值只能被设置一次，而且CountDownLatch没有提供任何机制去重新设置这个计数值。** 
+
+​	与CountDownLatch的第一次交互是主线程等待其他线程。主线程必须在启动其他线 程后立即调用CountDownLatch.await()方法。这样主线程的操作就会在这个方法上阻 塞，直到其他线程完成各自的任务。 
+
+​	其他N 个线程必须引用闭锁对象，因为他们需要通知CountDownLatch对象，他们已经完成了各自的任务。这种通知机制是通过 CountDownLatch.countDown()方法来完成的;每调用一次这个方法，在构造函数中初始化的count值就减1。所以当N个线程都调用了这个方法，count的值等于0，然后主线程就能通过await()方法，恢复执行自己的任务。
+
+注意：
+
+(1)CountDownLatch的构造函数
+ CountDownLatch countDownLatch = new CountDownLatch(7); 	//7表示需要等待执行完毕的线程数量。
+
+(2)在每一个线程执行完毕之后，都需要执行 countDownLatch.countDown() 方法，不然计数器就不会准确;
+
+**(3)只有所有的线程执行完毕之后，才会执行 countDownLatch.await() 之后的 代码;** 
+
+==(4)CountDownLatch 阻塞的是主线程;== 
+
+#### 4.3 CountDownLatch 的使用示例
+
+```Java
 public class CountDownLatchExample1 {
 	// 请求的数量
 	private static final int threadCount = 550;
@@ -236,9 +252,9 @@ public class CountDownLatchExample1 {
 
 上面的代码中，我们定义了请求的数量为550，当这550个请求被处理完成之后，才会执行`System.out.println("finish");`。
 
-#### 4.3 CountDownLatch 的不足
+#### 4.4 CountDownLatch 的不足
 
-CountDownLatch是一次性的，**计数器的值只能在构造方法中初始化一次**，之后没有任何机制再次对其设置值，当CountDownLatch使用完毕后，它不能再次被使用。
+​	CountDownLatch是一次性的，**计数器的值只能在构造方法中初始化一次**，之后没有任何机制再次对其设置值，当CountDownLatch使用完毕后，它不能再次被使用。
 
 ### 5 CyclicBarrier(循环栅栏)
 

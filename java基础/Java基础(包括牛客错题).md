@@ -4,7 +4,7 @@
 
 **==PS：方法没有继承一说，只有重载和重写==**
 
-![image-20181226080624787](/Users/jack/Desktop/md/images/image-20181226080624787-5782784-7514330-8895518.png)
+![image-20181226080624787](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080624787-5782784-7514330-8895518.png)
 
 ​	==编译看左边，运行看右边，编译的时候看等号左边定义的是什么类型，运行的时候动态绑定到哪个对象上==,如：Base b = new Sub();**它为多态的一种表现形式，声明是Base,实现是Sub类，** **理解为** **b** **编译时表现为Base类特性，运行时表现为Sub类特性。**
 
@@ -442,7 +442,7 @@ public  String delete( @PathVariable  Integer whiteListId) {
   从action线程模式分析: 
 5. Struts1 Action是单例模式并且必须是线程安全的，因为仅有Action的一个实例来处理所有的请求。单例策略限制了Struts1 Action能作的事，并且要在开发时特别小心。Action资源必须是线程安全的或同步的。 
 6. Struts2 Action对象为每一个请求产生一个实例，因此没有线程安全问题。（实际上，servlet容器给每个请求产生许多可丢弃的对象，并且不会导致性能和垃圾回收问题）
-7. ![img](/Users/jack/Desktop/md/images/6740262_1502892230619_8AA0BB8C0EEED931C8EE12011A5E8E1B.png)
+7. ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6740262_1502892230619_8AA0BB8C0EEED931C8EE12011A5E8E1B.png)
 
 # 13.运算及运算符
 
@@ -487,6 +487,24 @@ count = count++  原理是 temp = count； count = count+1 ； count = temp；
 ### 6.参数传递
 
 ​	在将一个参数传入一个方法时，**本质上是将对象的地址以值的方式传递到形参中。**因此在方法中使指针引用其它对象，那么==这两个指针此时指向的是完全不同的对象，在一方改变其所指向对象的内容时对另一方没有影响。==
+
+### 7.多进制运算
+
+​	7.1变量a是一个64位有符号的整数，初始值用16进制表示为：0Xf000000000000000； 变量b是一个64位有符号的整数，初始值用16进制表示为：0x7FFFFFFFFFFFFFFF。 则a-b的结果用10进制表示为多少？
+
+​	0x7FFFFFFFFFFFFFFF+1=0X8000000000000000，那么
+
+a-b=0Xf000000000000000-0X8000000000000000+1
+
+=0X7000000000000001
+
+=16^15*7+16^0*1
+
+=2^60*7+1
+
+=2^60*(2^2+2^1+2^0)+1
+
+=2^62+2^61+2^60+1
 
 # 14.抽象类与接口
 
@@ -582,7 +600,7 @@ HTTP是一种无状态协议，每当用户发出请求时，服务器就会做�
 
 4）.Session：使用 setAttribute(String str,Object obj)方法将对象捆绑到一个会话
 
-# 16.Java相关命名软件
+# 16.Java相关命令软件
 
 **javac.exe是编译.java文件**
 
@@ -597,6 +615,8 @@ HTTP是一种无状态协议，每当用户发出请求时，服务器就会做�
 命令javac-d参数的用途是：
 
 ![image-20181226081617169](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081617169-5783377-7514330.png)
+
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/4550868_1517736571041_FB5C81ED3A220004B71069645F112867.png)
 
 # 17.Socket
 
@@ -688,7 +708,7 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 -Xms初始堆大小即最小内存值为10240m
 
-![img](/Users/jack/Desktop/md/images/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6.png)
 
 # 23.数据库管理系统
 
@@ -870,7 +890,7 @@ value 数组被声明为 final，这意味着 value 数组初始化之后就不�
 
 ​	如果一个 String 对象已经被创建过了，那么就会从 String Pool 中取得引用。只有 String 是不可变的，才可能使用 String Pool。
 
-![img](/Users/jack/Desktop/md/images/f76067a5-7d5f-4135-9549-8199c77d8f1c.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f76067a5-7d5f-4135-9549-8199c77d8f1c.jpg)
 
 **3. 安全性**
 
@@ -986,7 +1006,7 @@ java.util：　 包含一些实用性的类
 
 （1）对于外部类而言，它也可以使用访问控制符修饰，但**外部类只能有两种访问控制级别： public 和默认。**因为外部类没有处于任何类的内部，也就没有其所在类的内部、所在类的子类两个范围，因此 private 和 protected 访问控制符对外部类没有意义。
 
-（2）内部类的上一级程序单元是外部类，它具有 4 个作用域：同一个类（ private ）、同一个包（ protected ）和任何位置（ public）。
+**（2）内部类的上一级程序单元是外部类，它具有 4 个作用域：同一个类（ private ）、同一个包（ protected ）默认(default)和任何位置（ public）。**
 
 （3）因为局部成员的作用域是所在方法，其他程序单元永远不可能访问另一个方法中的局部变量，所以所有的局部成员都不能使用访问控制修饰符修饰。局部内部类就相当于局部成员。
 
@@ -1295,14 +1315,14 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 ​	第一部分是过滤器在Web应用中的定义，由<filter>元素表示，包括<filter-name>和<filter-class>两个必需的子元素
 ​	第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
 
-![img](/Users/jack/Desktop/md/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
 
 ## 2.servlet是什么
 
 ​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
  容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。
 
-![image-20190201104605382](/Users/jack/Desktop/md/images/image-20190201104605382.png)
+![image-20190201104605382](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190201104605382.png)
 
 ## 3、servlet的生命周期
 
@@ -1321,6 +1341,10 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 
 1.在java 中，声明一个数组时，不能直接限定数组长度，只有在创建实例化对象时，才能对给定数组长度。因为数组是**一个引用类型变量** ，因此**使用它定义一个变量时，仅仅定义了一个变量** **，这个引用变量还未指向任何有效的内存** **，因此定义数组不能指定数组的长度**。只有在实例化时才可以指定长度，如：String[] arr=new String[50];
 
+2.在定义 int a\[3]\[4][2]; 后，第 20 个元素是
+
+​	首先，总共有三层(0~2)，然后每层都是一个二维数组\[4\][2]，所以总共有3*4\*2=24个元素，所以20个元素就是第三层开始，然后2--16=4，差4个元素，所以是a[2]\[1][1]，后面二维数组是[1]\[1]表示2\*2=4
+
 # 46.成员变量与局部变量
 
 ​	成员变量有初始值，而局部变量(方法里面)没有初始值得。所以如果方法里面声明的变量没有赋值的话会报错，编译通不过。
@@ -1331,7 +1355,7 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 
 # 48.数据结构
 
-​	线性表的顺序存储结构是一种随机存取的存储结构。每一个数据元素的存储位置都和线性表的起始位置相差一个和数据元素在线性表中的位序成正比的常数。由此，只要确定了存储线性表的起始位置，线性表中任一元素都可随机存取，所以线性表的顺序存储结构是一种随机存取的存储结构。
+​	**线性表的顺序存储结构是一种随机存取的存储结构。**每一个数据元素的存储位置都和线性表的起始位置相差一个和数据元素在线性表中的位序成正比的常数。由此，只要确定了存储线性表的起始位置，线性表中任一元素都可随机存取，所以线性表的顺序存储结构是一种随机存取的存储结构。
 
 ​	**假设线性表的每个数据元素需占用K个存储单元，并以元素所占的第一个存储单元的地址作为数据元素的存储地址。**则线性表中序号为i的数据元素的存储地址LOC(ai)与序号为i+1的数据元素的存储地址LOC(ai+1)之间的关系为： 
 　　LOC(ai+1)=LOC(ai)+K 
@@ -1342,6 +1366,27 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 　　**线性表的这种机内表示称作线性表的顺序存储。**它的特点是，以数据元素在机内存储地址相邻来表示线性表中数据元素之间的逻辑关机。每一个数据元素的存储地址都和线性表的起始地址相差一个与数据据元素在线性表中的序号成正比的常数。由此，只要确定了线性表的起始地址，线性表中的任何一个数据元素都可以随机存取，因此线性表的顺序存储结构时一种随机的存储结构。
 
 ![çº¿æ§è¡¨çé¡ºåºå­å¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/SouthEast.png)
+
+## 48.1 数组与链表
+
+1：数组内存空间比链表少
+
+2：数组支持随机访问，链表不具有随机访问的特性
+
+3：插入和删除是链表优于数组，数组需要移动被删除或者插入位置之后的元素
+
+​	静态链表是用数组存储节点数据，模拟链表的实现，但是没有用到指针。每个数组节点包括两部分：data域和cursor（游标）域。data存储数据，cursor指明下个元素在数组中的下标。
+
+（1）存取第i个元素时，需要从头遍历到i-1和元素，由第i-1个节点的cursor，才能知道第i个元素存储的位置，因此和i是相关的。
+
+（2）使用数组对元素进行存储，在定义时大小已经确定。
+
+（3）插入和删除操作无需移动元素，只需要修改cursor游标的值即可，就像修改动态链表中的指针一样。
+
+4.广义表有如下三个特性：
+1.层次性：广义表的元素可以是子表，而子表的元素还可以是子表，由此，广义表是一个多层次的结构；
+2.共享性：广义表可为其他表所共享。
+3.递归表：广义表可以是其自身的一个子表。
 
 # 49.泛型与JVM
 
