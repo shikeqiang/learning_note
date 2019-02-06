@@ -1,4 +1,4 @@
-# *Java并发编程与高并发解决方案**
+# Java并发编程与高并发解决方案
 
 **J.U.C核心由5大块组成：atomic包、locks包、collections包、tools包（AQS）、executor包（线程池）。**
 

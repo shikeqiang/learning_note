@@ -102,7 +102,7 @@ tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true�
 
 **synchronized 和 ReentrantLock 都是一次只允许一个线程访问某个资源，Semaphore(信号量)可以指定多个线程同时访问某个资源。**
 
-​	==用于保证同一时间并发访问线程的数目==。**信号量在操作系统中是很重要的概念，Java并发库里的Semaphore就可以很轻松的完成类似操作系统信号量的控制。**Semaphore可以很容易控制系统中某个资源被同时访问的线程个数。**在前面的链表中，链表正常是可以保存无限个节点的，而Semaphore可以实现有限大小的列表。
+​	==用于保证同一时间并发访问线程的数目==。**信号量在操作系统中是很重要的概念，Java并发库里的Semaphore就可以很轻松的完成类似操作系统信号量的控制。**Semaphore可以很容易控制系统中某个资源被同时访问的线程个数。在前面的链表中，链表正常是可以保存无限个节点的，而Semaphore可以实现有限大小的列表。
 
 示例代码如下：
 
@@ -258,9 +258,17 @@ public class CountDownLatchExample1 {
 
 ### 5 CyclicBarrier(循环栅栏)
 
-CyclicBarrier 和 CountDownLatch 非常类似，它也可以实现线程间的技术等待，但是它的功能比 CountDownLatch 更加复杂和强大。主要应用场景和 CountDownLatch 类似。
+​	CyclicBarrier是另一种多线程并发控制使用工具，和CountDownLatch非常类似，他也 可以实现线程间的计数等待，但他的功能要比CountDownLatch更加强大一些。 
 
-CyclicBarrier 的字面意思是可循环使用（Cyclic）的屏障（Barrier）。它要做的事情是，**让一组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。**CyclicBarrier默认的构造方法是 `CyclicBarrier(int parties)`，**其参数表示屏障拦截的线程数量**，每个线程调用`await`方法告诉 CyclicBarrier 我已经到达了屏障，然后当前线程被阻塞。
+​	CyclicBarrier 的字面意思是可循环使用(Cyclic)的屏障(Barrier)。它要做的事情 是，让一组线程到达一个屏障(也可以叫同步点)时被阻塞，直到最后一个线程到达 屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。 
+
+​	CyclicBarrier默认的构造方法是CyclicBarrier(int parties)，其参数表示屏障拦截的线程 数量，每个线程调用await方法告诉CyclicBarrier我已经到达了屏障，然后当前线程被 阻塞。 
+
+​	CyclicBarrier 和 CountDownLatch 非常类似，它也可以实现线程间的计数等待，但是它的功能比 CountDownLatch 更加复杂和强大。主要应用场景和 CountDownLatch 类似。
+
+CyclicBarrier强调的是n个线程，大家相互等待，只要有一个没完成，所有人都得等着。
+
+​	CyclicBarrier 的字面意思是可循环使用（Cyclic）的屏障（Barrier）。它要做的事情是，**让一组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。**CyclicBarrier默认的构造方法是 `CyclicBarrier(int parties)`，**其参数表示屏障拦截的线程数量**，每个线程调用`await`方法告诉 CyclicBarrier 我已经到达了屏障，然后当前线程被阻塞。
 
 #### 5.1 CyclicBarrier 的应用场景
 
@@ -271,12 +279,6 @@ CyclicBarrier 的字面意思是可循环使用（Cyclic）的屏障（Barrier�
 示例1：
 
 ```Java
-/**
- * 
- * @author Snailclimb
- * @date 2018年10月1日
- * @Description: 测试 CyclicBarrier 类中带参数的 await() 方法
- */
 public class CyclicBarrierExample2 {
 	// 请求的数量
 	private static final int threadCount = 550;
@@ -349,12 +351,6 @@ threadnum:6is finish
 另外，CyclicBarrier还提供一个更高级的构造函数`CyclicBarrier(int parties, Runnable barrierAction)`，用于在线程到达屏障时，优先执行`barrierAction`线程，方便处理更复杂的业务场景。示例代码如下：
 
 ```
-/**
- * 
- * @author SnailClimb
- * @date 2018年10月1日
- * @Description: 新建 CyclicBarrier 的时候指定一个 Runnable
- */
 public class CyclicBarrierExample3 {
 	// 请求的数量
 	private static final int threadCount = 550;
@@ -437,7 +433,7 @@ CountDownLatch是计数器，只能使用一次，而CyclicBarrier的计数器�
 
 CountDownLatch是计数器，线程完成一个记录一个，只不过计数不是递增而是递减，而CyclicBarrier更像是一个阀门，需要所有线程都到达，阀门才能打开，然后继续执行。
 
-[![CyclicBarrier和CountDownLatch的区别](https://camo.githubusercontent.com/5c19d9e66ffaf3d7193b01948279db9b9b3b98d3/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f4a6176612532302545372541382538422545352542412538462545352539312539382545352542462538352545352541342538372545462542432539412545352542392542362545352538462539312545372539462541352545382541462538362545372542332542422545372542422539462545362538302542422545372542422539332f4151533333332e706e67)](https://camo.githubusercontent.com/5c19d9e66ffaf3d7193b01948279db9b9b3b98d3/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f4a6176612532302545372541382538422545352542412538462545352539312539382545352542462538352545352541342538372545462542432539412545352542392542362545352538462539312545372539462541352545382541462538362545372542332542422545372542422539462545362538302542422545372542422539332f4151533333332e706e67)
+[F![CyclicBarrier和CountDownLatch的区别](https://camo.githubusercontent.com/5c19d9e66ffaf3d7193b01948279db9b9b3b98d3/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f4a6176612532302545372541382538422545352542412538462545352539312539382545352542462538352545352541342538372545462542432539412545352542392542362545352538462539312545372539462541352545382541462538362545372542332542422545372542422539462545362538302542422545372542422539332f4151533333332e706e67)](https://camo.githubusercontent.com/5c19d9e66ffaf3d7193b01948279db9b9b3b98d3/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f4a6176612532302545372541382538422545352542412538462545352539312539382545352542462538352545352541342538372545462542432539412545352542392542362545352538462539312545372539462541352545382541462538362545372542332542422545372542422539462545362538302542422545372542422539332f4151533333332e706e67)
 
 CyclicBarrier和CountDownLatch的区别这部分内容参考了如下两篇文章：
 
