@@ -1604,26 +1604,50 @@ CountDownLatch的await方法还有重载形式，**可以设置等待的时间�
 
 ### 1、ReentrantLock
 
-​	java中有两类锁，一类是Synchronized，而另一类就是J.U.C中提供的锁。ReentrantLock与Synchronized都是可重入锁，本质上都是lock与unlock的操作。接下来我们介绍三种J.U.C中的锁，其中 ReentrantLock使用synchronized与之比对介绍。
+​	**java中有两类锁，一类是Synchronized，而另一类就是J.U.C中提供的锁。**ReentrantLock与Synchronized都是可重入锁，本质上都是lock与unlock的操作。接下来我们介绍三种J.U.C中的锁，其中 ReentrantLock使用synchronized与之比对介绍。
 
 #### 1.1 ReentrantLock与synchronized的区别
 
-- 可重入性：两者的锁都是可重入的，差别不大，有线程进入锁，计数器自增1，等下降为0时才可以释放锁
+- 可重入性：两者的锁都是可重入的，差别不大，有线程进入锁，锁的计数器自增1，等下降为0时才可以释放锁
 - 锁的实现：synchronized是基于JVM实现的（用户很难见到，无法了解其实现），ReentrantLock是JDK实现的。
 - 性能区别：在最初的时候，二者的性能差别差很多，当synchronized引入了偏向锁、轻量级锁（自选锁）后，二者的性能差别不大，官方推荐synchronized（写法更容易、在优化时其实是借用了ReentrantLock的CAS技术，试图在用户态就把问题解决，避免进入内核态造成线程阻塞）
 - 功能区别： 
-  （1）便利性：synchronized更便利，它是由编译器保证加锁与释放。ReentrantLock是需要手动释放锁，所以为了避免忘记手工释放锁造成死锁，所以最好在finally中声明释放锁。 
+  （1）便利性：synchronized更便利，它是由编译器保证加锁与释放。**ReentrantLock是需要手动释放锁，所以为了避免忘记手工释放锁造成死锁，所以最好在finally中声明释放锁。** 
   （2）锁的细粒度和灵活度，ReentrantLock优于synchronized
 
 #### 1.2 ReentrantLock独有的功能
 
 - 可以指定是公平锁还是非公平锁，sync只能是非公平锁。（所谓公平锁就是先等待的线程先获得锁）
-- 提供了一个Condition类，可以分组唤醒需要唤醒的线程。不像是synchronized要么随机唤醒一个线程，要么全部唤醒。
-- 提供能够中断等待锁的线程的机制，通过lock.lockInterruptibly()实现，这种机制 ReentrantLock是一种自选锁，通过循环调用CAS操作来实现加锁。性能比较好的原因是避免了进入内核态的阻塞状态。
+- 提供了一个Condition类，**可以分组唤醒需要唤醒的线程**。不像是synchronized要么随机唤醒一个线程，要么全部唤醒。
+- ==提供能够中断等待锁的线程的机制==，通过lock.lockInterruptibly()实现，这种机制 ReentrantLock是一种自选锁，通过循环调用CAS操作来实现加锁。**性能比较好的原因是避免了进入内核态的阻塞状态。**
 
-​	J.U.C包中的锁定类是用于高级情况和高级用户的工具，除非说你对Lock的高级特性有特别清楚的了解以及有明确的需要，或这有明确的证据表明同步已经成为可伸缩性的瓶颈的时候，否则我们还是继续使用synchronized。相比较这些高级的锁定类，synchronized还是有一些优势的，比如synchronized不可能忘记释放锁。还有当JVM使用synchronized管理锁定请求和释放时，JVM在生成线程转储时能够包括锁定信息，这些信息对调试非常有价值，它们可以标识死锁以及其他异常行为的来源。
+​	J.U.C包中的锁定类是用于高级情况和高级用户的工具，除非说你对Lock的高级特性有特别清楚的了解以及有明确的需要，或这有明确的证据表明同步已经成为可伸缩性的瓶颈的时候，否则我们还是继续使用synchronized。相比较这些高级的锁定类，synchronized还是有一些优势的，比如synchronized会释放锁。还有当JVM使用synchronized管理锁定请求和释放时，JVM在生成线程转储时能够包括锁定信息，这些信息对调试非常有价值，它们可以标识死锁以及其他异常行为的来源。
 
-#### 1.3 内置函数（部分）
+```java
+//创建锁：使用Lock对象声明，使用ReentrantLock接口创建
+private final static Lock lock = new ReentrantLock();
+//使用锁：在需要被加锁的方法中使用
+private static void add() {
+    lock.lock();
+    try {
+        count++;
+    } finally {
+        lock.unlock();
+    }
+}
+
+//初始化方面：
+//在new ReentrantLock的时候默认给了一个不公平锁
+public ReentrantLock() {
+    sync = new NonfairSync();
+}
+//也可以加参数来初始化指定使用公平锁还是不公平锁
+public ReentrantLock(boolean fair) {
+    sync = fair ? new FairSync() : new NonfairSync();
+}
+```
+
+#### 1.3 *ReentrantLock*内置函数（部分）
 
 ##### 基础特性：
 
@@ -1645,34 +1669,36 @@ CountDownLatch的await方法还有重载形式，**可以设置等待的时间�
 Condition可以非常灵活的操作线程的唤醒，下面是一个线程等待与唤醒的例子，其中用1234序号标出了日志输出顺序
 
 ```java
-public static void main(String[] args) {
-    ReentrantLock reentrantLock = new ReentrantLock();
-    Condition condition = reentrantLock.newCondition();//创建condition
-    //线程1
-    new Thread(() -> {
-        try {
-            reentrantLock.lock();
-            log.info("wait signal"); // 1
-            condition.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        log.info("get signal"); // 4
-        reentrantLock.unlock();
-    }).start();
-    //线程2
-    new Thread(() -> {
-        reentrantLock.lock();
-        log.info("get lock"); // 2
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        condition.signalAll();//发送信号
-        log.info("send signal"); // 3
-        reentrantLock.unlock();
-    }).start();
+public class ConditionExample {
+    public static void main(String[] args) {
+        ReentrantLock reentrantLock = new ReentrantLock();
+        Condition condition = reentrantLock.newCondition();//创建condition
+        //线程1
+        new Thread(() -> {
+            try {
+                reentrantLock.lock();   //加入AQS等待队列
+                log.info("wait signal"); // 1，输出等待信号
+                condition.await();      //从AQS队列中移除，即锁的释放,然后加入condition的队列
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.info("get signal"); // 4
+            reentrantLock.unlock();
+        }).start();
+        //线程2
+        new Thread(() -> {
+            reentrantLock.lock();   //因为线程1释放锁后获取锁，加入AQS等待队列
+            log.info("get lock"); // 2
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            condition.signalAll();//发送信号,线程1中condition的节点加入AQS，还未被唤醒
+            log.info("send signal"); // 3
+            reentrantLock.unlock(); //释放锁，AQS中线程1被唤醒
+        }).start();
+    }
 }
 ```
 
@@ -1691,59 +1717,163 @@ public static void main(String[] args) {
 
 ​	在没有任何读写锁的时候才可以取得写入锁(悲观读取，容易写线程饥饿)，也就是说如果一直存在读操作，那么写锁一直在等待没有读的情况出现，这样我的写锁就永远也获取不到，就会造成等待获取写锁的线程饥饿。 平时使用的场景并不多。
 
-### 3、票据锁：StempedLock
+### 3、票据锁：StampedLock
 
-​	它控制锁有三种模式（写、读、乐观读）。一个StempedLock的状态是由版本和模式两个部分组成。锁获取方法返回一个数字作为票据（stamp），他用相应的锁状态表示并控制相关的访问。数字0表示没有写锁被锁写访问，在读锁上分为悲观锁和乐观锁。
+​	**它控制锁有三种模式（写、读、乐观读）。**一个StempedLock的状态是由版本和模式两个部分组成。锁获取方法返回一个数字作为票据（stamp），他用相应的锁状态表示并控制相关的访问。**数字0表示没有写锁被锁写访问，在读锁上分为悲观锁和乐观锁。**
 
 > 乐观读： 
 >
 > 如果读的操作很多写的很少，我们可以乐观的认为读的操作与写的操作同时发生的情况很少，因此不悲观的使用完全的读取锁定。程序可以查看读取资料之后是否遭到写入资料的变更，再采取之后的措施。
 
-### 4、如何选择锁？
+### 4、总结
 
 1、当只有少量竞争者，使用synchronized 
 2、竞争者不少但是线程增长的趋势是能预估的，使用ReetrantLock 
 3、synchronized不会造成死锁，jvm会自动释放死锁。
 
+4、synchronized是JVM层面实现的锁，执行异常的时候JVM会释放锁定，其他三种锁是对象层面的锁定，要在finally中执行unlock操作。
+
 ## 7.4 并发容器J.U.C -- 组件FutureTask、ForkJoin、BlockingQueue
 
+### 1.FutureTask
 
+​	FutureTask是J.U.C中的类，是一个可删除的异步计算类。这个类提供了Future接口的的基本实现，**使用相关方法启动和取消计算，查询计算是否完成，并检索计算结果。**只有在计算完成时才能使用get方法检索结果;如果计算尚未完成，get方法将会阻塞。一旦计算完成，计算就不能重新启动或取消(除非使用runAndReset方法调用计算)。
 
+Future实现了RunnableFuture接口，而RunnableFuture接口继承了Runnable与Future接口，所以它既可以作为Runnable被线程中执行，又可以作为callable获得返回值。
 
+```java
+public class FutureTask<V> implements RunnableFuture<V> {
+    ...
+}
 
+public interface RunnableFuture<V> extends Runnable, Future<V> {
+    void run();
+}
+```
 
+#### Runnable与Callable对比
 
+​	通常实现一个线程我们会使用继承Thread的方式或者实现Runnable接口，这两种方式有一个共同的缺陷就是在执行完任务之后无法获取执行结果。从Java1.5之后就提供了Callable与Future，这两个接口就可以实现获取任务执行结果。
 
+- Runnable接口：代码非常简单，只有一个方法run
 
+```java
+public interface RunnableFuture<V> extends Runnable, Future<V> {
+    void run();
+}
+```
 
+- Callable泛型接口：有泛型参数，提供了一个call方法，**执行后可返回传入的泛型参数类型的结果**。
 
+```java
+public interface Callable<V> {
+    V call() throws Exception;
+}
+```
 
+FutureTask支持两种参数类型，Callable和Runnable，在使用Runnable 时，还可以多指定一个返回结果类型。
 
+```java
+public FutureTask(Callable<V> callable) {
+    if (callable == null)
+        throw new NullPointerException();
+    this.callable = callable;
+    this.state = NEW;       // ensure visibility of callable
+}
 
+public FutureTask(Runnable runnable, V result) {
+    this.callable = Executors.callable(runnable, result);
+    this.state = NEW;       // ensure visibility of callable
+}
+```
 
+### 2.Future接口
 
+Future接口提供了一系列方法用于控制线程执行计算，如下：
 
+```java
+public interface Future<V> {
+    boolean cancel(boolean mayInterruptIfRunning);//取消任务
+    boolean isCancelled();//是否被取消
+    boolean isDone();//计算是否完成
+    V get() throws InterruptedException, ExecutionException;//获取计算结果，在执行过程中任务被阻塞
+    V get(long timeout, TimeUnit unit)//timeout等待时间、unit时间单位
+        throws InterruptedException, ExecutionException, TimeoutException;
+}
+```
 
+### 3.ForkJoin
 
+​	ForkJoin是Java7提供的一个并行执行任务的框架，是把大任务分割成若干个小任务，待小任务完成后将结果汇总成大任务结果的框架。主要采用的是**工作窃取算法**，工作窃取算法是指某个线程从其他队列里窃取任务来执行。 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190209123220985.png)
 
+​	在窃取过程中两个线程会访问同一个队列，为了减少窃取任务线程和被窃取任务线程之间的竞争，通常我们会使用双端队列来实现工作窃取算法。被窃取任务的线程永远从队列的头部拿取任务，窃取任务的线程从队列尾部拿取任务。
 
+局限性：
+1、任务只能使用fork和join作为同步机制，如果使用了其他同步机制，当他们在同步操作时，工作线程就不能执行其他任务了。比如在fork框架使任务进入了睡眠，那么在睡眠期间内在执行这个任务的线程将不会执行其他任务了。 
+2、我们所拆分的任务不应该去执行IO操作，如读和写数据文件。 
+3、任务不能抛出检查异常。必须通过必要的代码来处理他们。
 
+框架核心：
+核心有两个类：ForkJoinPool | ForkJoinTask 
+ForkJoinPool：负责来做实现，包括工作窃取算法、管理工作线程和提供关于任务的状态以及他们的执行信息。 
 
+ForkJoinTask:提供在任务中执行fork和join的机制。
 
+### 4.BlockingQueue阻塞队列
 
+主要应用场景：生产者消费者模型，是线程安全的 
 
+![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190209123252790.png)
 
+#### 阻塞情况：
 
+1、当队列满了进行入队操作 
+2、当队列空了的时候进行出队列操作
 
+#### 四套方法：
 
+BlockingQueue提供了四套方法，分别来进行插入、移除、检查。每套方法在不能立刻执行时都有不同的反应。 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190209123308024.png)
 
+- Throws Exceptions ：如果不能立即执行就抛出异常。
+- Special Value：如果不能立即执行就返回一个特殊的值。
+- Blocks：如果不能立即执行就阻塞
+- Times Out：如果不能立即执行就阻塞一段时间，如果过了设定时间还没有被执行，则返回一个值
 
+实现类：
+ArrayBlockingQueue：它是一个有界的阻塞队列，内部实现是数组，初始化时指定容量大小，一旦指定大小就不能再变。采用FIFO方式存储元素。
 
+DelayQueue：阻塞内部元素，内部元素必须实现Delayed接口，Delayed接口又继承了Comparable接口，原因在于DelayQueue内部元素需要排序，一般情况按过期时间优先级排序。
 
+```
+public interface Delayed extends Comparable<Delayed> {
+    long getDelay(TimeUnit unit);
+}
+```
 
+DalayQueue内部采用PriorityQueue与ReentrantLock实现。
 
+```java
+public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
+    implements BlockingQueue<E> {
 
+    private final transient ReentrantLock lock = new ReentrantLock();
+    private final PriorityQueue<E> q = new PriorityQueue<E>();
+    ...
+}
+```
 
+- LinkedBlockingQueue：大小配置可选，如果初始化时指定了大小，那么它就是有边界的。不指定就无边界（最大整型值）。内部实现是链表，采用FIFO形式保存数据。
+
+```
+public LinkedBlockingQueue() {
+    this(Integer.MAX_VALUE);//不指定大小，无边界采用默认值，最大整型值
+}
+```
+
+PriorityBlockingQueue:带优先级的阻塞队列。无边界队列，允许插入null。插入的对象必须实现Comparator接口，队列优先级的排序规则就是按照我们对Comparable接口的实现来指定的。我们可以从PriorityBlockingQueue中获取一个迭代器，但这个迭代器并不保证能按照优先级的顺序进行迭代。
+
+SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队列，不存储元素。
 
 
 
