@@ -1753,7 +1753,7 @@ public interface RunnableFuture<V> extends Runnable, Future<V> {
 
 #### Runnable与Callable对比
 
-​	通常实现一个线程我们会使用继承Thread的方式或者实现Runnable接口，这两种方式有一个共同的缺陷就是在执行完任务之后无法获取执行结果。从Java1.5之后就提供了Callable与Future，这两个接口就可以实现获取任务执行结果。
+​	通常实现一个线程我们会使用继承Thread的方式或者实现Runnable接口，**这两种方式有一个共同的缺陷就是在执行完任务之后无法获取执行结果。**从Java1.5之后就提供了Callable与Future，这两个接口就可以实现获取任务执行结果。
 
 - Runnable接口：代码非常简单，只有一个方法run
 
@@ -1804,24 +1804,25 @@ public interface Future<V> {
 
 ### 3.ForkJoin
 
-​	ForkJoin是Java7提供的一个并行执行任务的框架，是把大任务分割成若干个小任务，待小任务完成后将结果汇总成大任务结果的框架。主要采用的是**工作窃取算法**，工作窃取算法是指某个线程从其他队列里窃取任务来执行。 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190209123220985.png)
+​	ForkJoin是Java7提供的一个并行执行任务的框架，是**把大任务分割成若干个小任务，待小任务完成后将结果汇总成大任务结果的框架。**主要采用的是==**工作窃取算法**==，工作窃取算法是指某个线程从其他队列里窃取任务来执行。 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190209123220985.png)
 
-​	在窃取过程中两个线程会访问同一个队列，为了减少窃取任务线程和被窃取任务线程之间的竞争，通常我们会使用双端队列来实现工作窃取算法。被窃取任务的线程永远从队列的头部拿取任务，窃取任务的线程从队列尾部拿取任务。
+​	在窃取过程中两个线程会**访问同一个队列**，**为了减少窃取任务线程和被窃取任务线程之间的竞争，通常我们会使用双端队列来实现工作窃取算法。**被窃取任务的线程永远从队列的头部拿取任务，窃取任务的线程从队列尾部拿取任务。
 
 局限性：
-1、任务只能使用fork和join作为同步机制，如果使用了其他同步机制，当他们在同步操作时，工作线程就不能执行其他任务了。比如在fork框架使任务进入了睡眠，那么在睡眠期间内在执行这个任务的线程将不会执行其他任务了。 
+1、==任务只能使用fork和join作为同步机制==，如果使用了其他同步机制，当他们在同步操作时，工作线程就不能执行其他任务了。比如在fork框架使任务进入了睡眠，那么在睡眠期间内在执行这个任务的线程将不会执行其他任务了。 
 2、我们所拆分的任务不应该去执行IO操作，如读和写数据文件。 
 3、任务不能抛出检查异常。必须通过必要的代码来处理他们。
 
 框架核心：
-核心有两个类：ForkJoinPool | ForkJoinTask 
+核心有两个类：ForkJoinPool和ForkJoinTask 
+
 ForkJoinPool：负责来做实现，包括工作窃取算法、管理工作线程和提供关于任务的状态以及他们的执行信息。 
 
-ForkJoinTask:提供在任务中执行fork和join的机制。
+ForkJoinTask：提供在任务中执行fork和join的机制。
 
 ### 4.BlockingQueue阻塞队列
 
-主要应用场景：生产者消费者模型，是线程安全的 
+主要应用场景：生产者消费者模型，是**线程安全**的 
 
 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190209123252790.png)
 
@@ -1836,14 +1837,17 @@ BlockingQueue提供了四套方法，分别来进行插入、移除、检查。�
 ![这里写图片描述](/Users/jack/Desktop/md/images/70-20190209123308024.png)
 
 - Throws Exceptions ：如果不能立即执行就抛出异常。
-- Special Value：如果不能立即执行就返回一个特殊的值。
+- Special Value：如果不能立即执行就返回一个特殊的值，一般是true/false。
 - Blocks：如果不能立即执行就阻塞
 - Times Out：如果不能立即执行就阻塞一段时间，如果过了设定时间还没有被执行，则返回一个值
 
-实现类：
+![image-20190210161730391](/Users/jack/Desktop/md/images/image-20190210161730391.png)
+
+#### 实现类：
+
 ArrayBlockingQueue：它是一个有界的阻塞队列，内部实现是数组，初始化时指定容量大小，一旦指定大小就不能再变。采用FIFO方式存储元素。
 
-DelayQueue：阻塞内部元素，内部元素必须实现Delayed接口，Delayed接口又继承了Comparable接口，原因在于DelayQueue内部元素需要排序，一般情况按过期时间优先级排序。
+DelayQueue：阻塞内部元素，内部元素必须实现Delayed接口，**Delayed接口又继承了Comparable接口，原因在于DelayQueue内部元素需要排序，一般情况按过期时间优先级排序。**要保证元素类型具有可比性，所以要继承Comparable接口。
 
 ```
 public interface Delayed extends Comparable<Delayed> {
@@ -1851,7 +1855,7 @@ public interface Delayed extends Comparable<Delayed> {
 }
 ```
 
-DalayQueue内部采用PriorityQueue与ReentrantLock实现。
+==DalayQueue内部采用PriorityQueue与ReentrantLock实现。==PriorityQueue优先队列，基于小顶堆实现的。
 
 ```java
 public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
@@ -1863,7 +1867,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
 }
 ```
 
-- LinkedBlockingQueue：大小配置可选，如果初始化时指定了大小，那么它就是有边界的。不指定就无边界（最大整型值）。内部实现是链表，采用FIFO形式保存数据。
+LinkedBlockingQueue：大小配置可选，如果初始化时指定了大小，那么它就是有边界的。不指定就无边界（最大整型值）。内部实现是链表，采用FIFO形式保存数据。
 
 ```
 public LinkedBlockingQueue() {
@@ -1871,63 +1875,253 @@ public LinkedBlockingQueue() {
 }
 ```
 
-PriorityBlockingQueue:带优先级的阻塞队列。无边界队列，允许插入null。插入的对象必须实现Comparator接口，队列优先级的排序规则就是按照我们对Comparable接口的实现来指定的。我们可以从PriorityBlockingQueue中获取一个迭代器，但这个迭代器并不保证能按照优先级的顺序进行迭代。
+PriorityBlockingQueue:带优先级的阻塞队列。无边界队列，允许插入null。**插入的对象必须实现Comparator接口，队列优先级的排序规则就是按照我们对Comparable接口的实现来指定的。**我们可以从PriorityBlockingQueue中获取一个迭代器，但这个迭代器并不保证能按照优先级的顺序进行迭代。
+
+```java
+public boolean add(E e) {//添加方法
+    return offer(e);
+}
+public boolean offer(E e) {
+    if (e == null)
+        throw new NullPointerException();
+    final ReentrantLock lock = this.lock;
+    lock.lock();
+    int n, cap;
+    Object[] array;
+    while ((n = size) >= (cap = (array = queue).length))
+        tryGrow(array, cap);
+    try {
+        Comparator<? super E> cmp = comparator;//必须实现Comparator接口
+        if (cmp == null)
+            siftUpComparable(n, e, array);
+        else
+            siftUpUsingComparator(n, e, array, cmp);
+        size = n + 1;
+        notEmpty.signal();
+    } finally {
+        lock.unlock();
+    }
+    return true;
+}
+```
 
 SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队列，不存储元素。
 
+# 8.线程池 Executor
 
+## 1.线程池的好处
 
+#### new Thread的弊端
 
+- 每次new Thread 新建对象，性能差
+- 线程缺乏统一管理，可能无限制的新建线程，相互竞争，可能占用过多的系统资源导致死机或者OOM（out of memory 内存溢出），这种问题的原因不是因为单纯的new一个Thread，而是可能因为程序的bug或者设计上的缺陷导致不断new Thread造成的。
+- 缺少更多功能，如更多执行、定期执行、线程中断。
 
+#### 线程池的好处
 
+- 重用存在的线程，减少对象创建、消亡的开销，性能好
+- 可有效控制最大并发线程数，提高系统资源利用率，同时可以避免过多资源竞争，避免阻塞。
+- 提供定时执行、定期执行、单线程、并发数控制等功能。
 
+## 2.线程池相关类
 
+![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210183214452.png)
 
+​	在线程池的类图中，我们最常使用的是最下边的Executors,用它来创建线程池使用线程。那么在上边的类图中，包含了一个Executor框架，它是一个根据一组执行策略的调用调度执行和控制异步任务的框架，目的是提供一种将任务提交与任务如何运行分离开的机制。它包含了三个executor接口：
 
+- Executor:运行新任务的简单接口
+- ExecutorService：扩展了Executor，添加了用来管理执行器生命周期和任务生命周期的方法
+- ScheduleExcutorService：扩展了ExecutorService，支持Future和定期执行任务
 
+### 2.1 线程池核心类-ThreadPoolExecutor
 
+参数说明：ThreadPoolExecutor一共有七个参数，这七个参数配合起来，构成了线程池强大的功能。
 
+corePoolSize：核心线程数量
+maximumPoolSize：线程最大线程数
 
+workQueue：阻塞队列，存储等待执行的任务，很重要，会对线程池运行过程产生重大影响
 
+​	当我们提交一个新的任务到线程池，线程池会根据当前池中正在运行的线程数量来决定该任务的处理方式。处理方式有三种： 
+1、直接切换（SynchronusQueue） 
+2、无界队列（LinkedBlockingQueue）能够创建的最大线程数为corePoolSize,这时maximumPoolSize就不会起作用了。当线程池中所有的核心线程都是运行状态的时候，新的任务提交就会放入等待队列中。 
+3、有界队列（ArrayBlockingQueue）最大maximumPoolSize，能够降低资源消耗，但是这种方式使得线程池对线程调度变的更困难。因为线程池与队列容量都是有限的。所以想让线程池的吞吐率和处理任务达到一个合理的范围，又想使我们的线程调度相对简单，并且还尽可能降低资源的消耗，我们就需要合理的限制这两个数量 
+**分配技巧：** [如果想降低资源的消耗包括降低cpu使用率、操作系统资源的消耗、上下文切换的开销等等，可以设置一个较大的队列容量和较小的线程池容量，这样会降低线程池的吞吐量。如果我们提交的任务经常发生阻塞，我们可以调整maximumPoolSize。如果我们的队列容量较小，我们需要把线程池大小设置的大一些，这样cpu的使用率相对来说会高一些。但是如果线程池的容量设置的过大，提高任务的数量过多的时候，并发量会增加，那么线程之间的调度就是一个需要考虑的问题。这样反而可能会降低处理任务的吞吐量。]
 
+- keepAliveTime：线程没有任务执行时最多保持多久时间终止（当线程中的线程数量大于corePoolSize的时候，如果这时没有新的任务提交核心线程外的线程不会立即销毁，而是等待，直到超过keepAliveTime）
+- unit：keepAliveTime的时间单位
+- threadFactory：线程工厂，用来创建线程，有一个默认的工场来创建线程，这样新创建出来的线程有相同的优先级，是非守护线程、设置好了名称）
+- rejectHandler：当拒绝处理任务时(阻塞队列满)的策略（AbortPolicy默认策略直接抛出异常、CallerRunsPolicy用调用者所在的线程执行任务、DiscardOldestPolicy丢弃队列中最靠前的任务并执行当前任务、DiscardPolicy直接丢弃当前任务） 
 
+![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210183509364.png)
 
+#### corePoolSize、maximumPoolSize、workQueue 三者关系：
 
+​	如果运行的线程数小于corePoolSize的时候，直接创建新线程来处理任务。即使线程池中的其他线程是空闲的。如果运行中的线程数大于corePoolSize且小于maximumPoolSize时，那么只有当workQueue满的时候才创建新的线程去处理任务。如果corePoolSize与maximumPoolSize是相同的，那么创建的线程池大小是固定的。这时有新任务提交，当workQueue未满时，就把请求放入workQueue中。等待空线程从workQueue取出任务。如果workQueue此时也满了，那么就使用另外的拒绝策略参数去执行拒绝策略。
 
+初始化方法：由七个参数组合成四个初始化方法 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210203627559.png)
 
+其他方法：
 
+![image-20190210203736234](/Users/jack/Desktop/md/images/image-20190210203736234.png)
 
+线程池生命周期： 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210203744638.png)
 
+- running：能接受新提交的任务，也能处理阻塞队列中的任务
+- shutdown：不能处理新的任务，但是能继续处理阻塞队列中任务
+- stop：不能接收新的任务，也不处理队列中的任务
+- tidying：如果所有的任务都已经终止了，这时有效线程数为0
+- terminated：最终状态
 
+### 2.2 使用Executor创建线程池
 
+**使用Executor可以创建四种线程池：分别对应上边提到的四种线程池初始化方法**
 
+#### 1、Executors.newCachedThreadPool 
 
+创建一个可缓存的线程池，如果线程池的长度超过了处理的需要，可以灵活回收空闲线程。如果没有可回收的就新建线程。
 
+```java
+//源码：
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
 
+//使用方法：
+public static void main(String[] args) {
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    for (int i = 0; i < 10; i++) {
+        final int index = i;
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                log.info("task:{}", index);
+            }
+        });
+    }
+    executorService.shutdown();
+}
+```
 
+值得注意的一点是，newCachedThreadPool的返回值是ExecutorService类型，该类型只包含基础的线程池方法，但却不包含线程监控相关方法，因此在使用返回值为ExecutorService的线程池类型创建新线程时要考虑到具体情况。
 
+ ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210204025898.png)
 
+#### 2、newFixedThreadPool 
 
+定长线程池，可以线程现成的最大并发数，超出在队列等待
 
+```java
+//源码：
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>());
+}
 
+//使用方法：
+public static void main(String[] args) {
+    ExecutorService executorService = Executors.newFixedThreadPool(3);
+    for (int i = 0; i < 10; i++) {
+        final int index = i;
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                log.info("task:{}", index);
+            }
+        });
+    }
+    executorService.shutdown();
+}
+```
 
+#### 3、newSingleThreadExecutor 
 
+单线程化的线程池，用唯一的一个共用线程执行任务，保证所有任务按指定顺序执行（FIFO、优先级…）
 
+```java
+//源码
+public static ExecutorService newSingleThreadExecutor() {
+    return new FinalizableDelegatedExecutorService
+        (new ThreadPoolExecutor(1, 1,
+                                0L, TimeUnit.MILLISECONDS,
+                                new LinkedBlockingQueue<Runnable>()));
+}
 
+//使用方法：
+public static void main(String[] args) {
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    for (int i = 0; i < 10; i++) {
+        final int index = i;
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                log.info("task:{}", index);
+            }
+        });
+    }
+    executorService.shutdown();
+}
+```
 
+#### 4、newScheduledThreadPool 
 
+定长线程池，支持定时和周期任务执行
 
+```java
+//源码：
+public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
+    return new ScheduledThreadPoolExecutor(corePoolSize);
+}
+public ScheduledThreadPoolExecutor(int corePoolSize) {
+    super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,//此处super指的是ThreadPoolExecutor
+          new DelayedWorkQueue());
+}
 
+//基础使用方法：
+public static void main(String[] args) {
+    ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    executorService.schedule(new Runnable() {
+        @Override
+        public void run() {
+            log.warn("schedule run");
+        }
+    }, 3, TimeUnit.SECONDS);//延迟3秒执行
+    executorService.shutdown();
+}
+```
 
+ScheduledExecutorService提供了三种方法可以使用： 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210204543644.png) 
+scheduleAtFixedRate：以指定的速率执行任务 
+scheduleWithFixedDelay：以指定的延迟执行任务 
 
+比如：
 
+```java
+executorService.scheduleAtFixedRate(new Runnable() {
+    @Override
+    public void run() {
+        log.warn("schedule run");
+    }
+}, 1, 3, TimeUnit.SECONDS);//延迟一秒后每隔3秒执行
+```
 
+小扩展：延迟执行任务的操作，java中还有Timer类同样可以实现
 
-
-
-
-
-
+```java
+Timer timer = new Timer();
+timer.schedule(new TimerTask() {
+    @Override
+    public void run() {
+        log.warn("timer run");
+    }
+}, new Date(), 5 * 1000);
+```
 
 
 
