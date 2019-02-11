@@ -1,4 +1,4 @@
-# Java并发编程与高并发解决方案
+# Java并发编程与高并发解决方案(一)
 
 **J.U.C核心由5大块组成：atomic包、locks包、collections包、tools包（AQS）、executor包（线程池）。**
 
@@ -1931,7 +1931,7 @@ SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队�
 
 - Executor:运行新任务的简单接口
 - ExecutorService：扩展了Executor，添加了用来管理执行器生命周期和任务生命周期的方法
-- ScheduleExcutorService：扩展了ExecutorService，支持Future和定期执行任务
+- ScheduleExcutorService：**扩展了ExecutorService，支持Future和定期执行任务**
 
 ### 2.1 线程池核心类-ThreadPoolExecutor
 
@@ -1942,22 +1942,40 @@ maximumPoolSize：线程最大线程数
 
 workQueue：阻塞队列，存储等待执行的任务，很重要，会对线程池运行过程产生重大影响
 
-​	当我们提交一个新的任务到线程池，线程池会根据当前池中正在运行的线程数量来决定该任务的处理方式。处理方式有三种： 
+​	当我们提交一个新的任务到线程池，**线程池会根据当前池中正在运行的线程数量来决定该任务的处理方式。处理方式有三种：** 
 1、直接切换（SynchronusQueue） 
-2、无界队列（LinkedBlockingQueue）能够创建的最大线程数为corePoolSize,这时maximumPoolSize就不会起作用了。当线程池中所有的核心线程都是运行状态的时候，新的任务提交就会放入等待队列中。 
+
+2、无界队列（LinkedBlockingQueue）**能够创建的最大线程数为corePoolSize,这时maximumPoolSize就不会起作用了。当线程池中所有的核心线程都是运行状态的时候，新的任务提交就会放入等待队列中。** 
 3、有界队列（ArrayBlockingQueue）最大maximumPoolSize，能够降低资源消耗，但是这种方式使得线程池对线程调度变的更困难。因为线程池与队列容量都是有限的。所以想让线程池的吞吐率和处理任务达到一个合理的范围，又想使我们的线程调度相对简单，并且还尽可能降低资源的消耗，我们就需要合理的限制这两个数量 
-**分配技巧：** [如果想降低资源的消耗包括降低cpu使用率、操作系统资源的消耗、上下文切换的开销等等，可以设置一个较大的队列容量和较小的线程池容量，这样会降低线程池的吞吐量。如果我们提交的任务经常发生阻塞，我们可以调整maximumPoolSize。如果我们的队列容量较小，我们需要把线程池大小设置的大一些，这样cpu的使用率相对来说会高一些。但是如果线程池的容量设置的过大，提高任务的数量过多的时候，并发量会增加，那么线程之间的调度就是一个需要考虑的问题。这样反而可能会降低处理任务的吞吐量。]
+
+**==分配技巧：==** 
+
+​	[如果想降低资源的消耗，包括降低cpu使用率、操作系统资源的消耗、上下文切换的开销等等，可以设置一个较大的队列容量和较小的线程池容量，这样会降低线程池的吞吐量。
+
+​	如果我们提交的任务经常发生阻塞，我们可以调整maximumPoolSize。
+
+​	如果我们的队列容量较小，我们需要把线程池大小设置的大一些，这样cpu的使用率相对来说会高一些。但是如果线程池的容量设置的过大，提高任务的数量过多的时候，并发量会增加，那么线程之间的调度就是一个需要考虑的问题。这样反而可能会降低处理任务的吞吐量。]
 
 - keepAliveTime：线程没有任务执行时最多保持多久时间终止（当线程中的线程数量大于corePoolSize的时候，如果这时没有新的任务提交核心线程外的线程不会立即销毁，而是等待，直到超过keepAliveTime）
 - unit：keepAliveTime的时间单位
-- threadFactory：线程工厂，用来创建线程，有一个默认的工场来创建线程，这样新创建出来的线程有相同的优先级，是非守护线程、设置好了名称）
-- rejectHandler：当拒绝处理任务时(阻塞队列满)的策略（AbortPolicy默认策略直接抛出异常、CallerRunsPolicy用调用者所在的线程执行任务、DiscardOldestPolicy丢弃队列中最靠前的任务并执行当前任务、DiscardPolicy直接丢弃当前任务） 
+- threadFactory：线程工厂，用来创建线程，有一个默认的工厂来创建线程，这样新创建出来的线程有相同的优先级，是非守护线程、设置好了名称）
+- rejectHandler：当拒绝处理任务时(阻塞队列满)的策略（
+  - AbortPolicy默认策略直接抛出异常
+  - CallerRunsPolicy用调用者所在的线程执行任务
+  - DiscardOldestPolicy丢弃队列中最靠前的任务并执行当前任务
+  - DiscardPolicy直接丢弃当前任务） 
 
 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210183509364.png)
 
 #### corePoolSize、maximumPoolSize、workQueue 三者关系：
 
-​	如果运行的线程数小于corePoolSize的时候，直接创建新线程来处理任务。即使线程池中的其他线程是空闲的。如果运行中的线程数大于corePoolSize且小于maximumPoolSize时，那么只有当workQueue满的时候才创建新的线程去处理任务。如果corePoolSize与maximumPoolSize是相同的，那么创建的线程池大小是固定的。这时有新任务提交，当workQueue未满时，就把请求放入workQueue中。等待空线程从workQueue取出任务。如果workQueue此时也满了，那么就使用另外的拒绝策略参数去执行拒绝策略。
+​	如果运行的线程数小于corePoolSize的时候，直接创建新线程来处理任务。即使线程池中的其他线程是空闲的。
+
+​	如果运行中的线程数大于corePoolSize且小于maximumPoolSize时，**那么只有当workQueue满的时候才创建新的线程去处理任务。**
+
+​	==如果设置的corePoolSize与maximumPoolSize是相同的，那么创建的线程池大小是固定的==。这时有新任务提交，当workQueue未满时，就把请求放入workQueue中。等待空线程从workQueue取出任务。
+
+​	如果运行中的线程数大于maximumPoolSize，且workQueue此时也满了，那么就使用另外的拒绝策略参数去执行拒绝策略。
 
 初始化方法：由七个参数组合成四个初始化方法 
 ![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210203627559.png)
@@ -2013,7 +2031,7 @@ public static void main(String[] args) {
 
 #### 2、newFixedThreadPool 
 
-定长线程池，可以线程现成的最大并发数，超出在队列等待
+创建定长线程池，可以控制线程的最大并发数，超出就在队列等待
 
 ```java
 //源码：
@@ -2125,367 +2143,97 @@ timer.schedule(new TimerTask() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 参照：https://blog.csdn.net/jesonjoke/column/info/21011
 
 [慕课网](https://www.baidu.com/s?wd=%E6%85%95%E8%AF%BE%E7%BD%91&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd)jimin老师的[《Java并发编程与高并发解决方案》](https://www.baidu.com/s?wd=%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B8%8E%E9%AB%98%E5%B9%B6%E5%8F%91%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E3%80%8B&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd)课程
+
+https://suprisemf.github.io/categories/%E9%AB%98%E5%B9%B6%E5%8F%91%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
