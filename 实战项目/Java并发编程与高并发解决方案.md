@@ -1927,7 +1927,7 @@ SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队�
 
 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210183214452.png)
 
-​	在线程池的类图中，我们最常使用的是最下边的Executors,用它来创建线程池使用线程。那么在上边的类图中，包含了一个Executor框架，它是一个根据一组执行策略的调用调度执行和控制异步任务的框架，目的是提供一种将任务提交与任务如何运行分离开的机制。它包含了三个executor接口：
+​	在线程池的类图中，我们最常使用的是最下边的Executors,用它来创建线程池使用线程。那么在上边的类图中，包含了一个Executor框架，它是一个**根据一组执行策略的调用调度执行和控制异步任务的框架，目的是提供一种将任务提交与任务如何运行分离开的机制。它包含了三个executor接口：**
 
 - Executor:运行新任务的简单接口
 - ExecutorService：扩展了Executor，添加了用来管理执行器生命周期和任务生命周期的方法
@@ -1959,11 +1959,11 @@ workQueue：阻塞队列，存储等待执行的任务，很重要，会对线�
 - keepAliveTime：线程没有任务执行时最多保持多久时间终止（当线程中的线程数量大于corePoolSize的时候，如果这时没有新的任务提交核心线程外的线程不会立即销毁，而是等待，直到超过keepAliveTime）
 - unit：keepAliveTime的时间单位
 - threadFactory：线程工厂，用来创建线程，有一个默认的工厂来创建线程，这样新创建出来的线程有相同的优先级，是非守护线程、设置好了名称）
-- rejectHandler：当拒绝处理任务时(阻塞队列满)的策略（
-  - AbortPolicy默认策略直接抛出异常
-  - CallerRunsPolicy用调用者所在的线程执行任务
-  - DiscardOldestPolicy丢弃队列中最靠前的任务并执行当前任务
-  - DiscardPolicy直接丢弃当前任务） 
+- rejectHandler：当拒绝处理任务时(阻塞队列满)的策略：
+  - AbortPolicy 默认策略直接抛出异常
+  - CallerRunsPolicy 用调用者所在的线程执行任务
+  - DiscardOldestPolicy 丢弃队列中最靠前的任务并执行当前任务
+  - DiscardPolicy 直接丢弃当前任务
 
 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210183509364.png)
 
@@ -1977,10 +1977,11 @@ workQueue：阻塞队列，存储等待执行的任务，很重要，会对线�
 
 ​	如果运行中的线程数大于maximumPoolSize，且workQueue此时也满了，那么就使用另外的拒绝策略参数去执行拒绝策略。
 
-初始化方法：由七个参数组合成四个初始化方法 
+##### 初始化方法：由七个参数组合成四个初始化方法 
+
 ![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210203627559.png)
 
-其他方法：
+##### 其他方法：
 
 ![image-20190210203736234](/Users/jack/Desktop/md/images/image-20190210203736234.png)
 
@@ -1999,7 +2000,7 @@ workQueue：阻塞队列，存储等待执行的任务，很重要，会对线�
 
 #### 1、Executors.newCachedThreadPool 
 
-创建一个可缓存的线程池，如果线程池的长度超过了处理的需要，可以灵活回收空闲线程。如果没有可回收的就新建线程。
+创建一个可缓存的线程池，如果线程池的长度超过了处理的需要，可以灵活回收空闲线程。**如果没有可回收的就新建线程。**
 
 ```java
 //源码：
@@ -2025,7 +2026,7 @@ public static void main(String[] args) {
 }
 ```
 
-值得注意的一点是，newCachedThreadPool的返回值是ExecutorService类型，该类型只包含基础的线程池方法，但却不包含线程监控相关方法，因此在使用返回值为ExecutorService的线程池类型创建新线程时要考虑到具体情况。
+值得注意的一点是，==newCachedThreadPool的返回值是ExecutorService类型，该类型只包含基础的线程池方法，但却不包含线程监控相关方法==，因此在使用返回值为ExecutorService的线程池类型创建新线程时要考虑到具体情况。
 
  ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190210204025898.png)
 
@@ -2059,7 +2060,7 @@ public static void main(String[] args) {
 
 #### 3、newSingleThreadExecutor 
 
-单线程化的线程池，用唯一的一个共用线程执行任务，保证所有任务按指定顺序执行（FIFO、优先级…）
+单线程化的线程池，用唯一的一个共用线程执行任务，**保证所有任务按指定顺序执行**（FIFO、优先级…）
 
 ```java
 //源码
@@ -2115,8 +2116,9 @@ public static void main(String[] args) {
 
 ScheduledExecutorService提供了三种方法可以使用： 
 ![这里写图片描述](/Users/jack/Desktop/md/images/70-20190210204543644.png) 
-scheduleAtFixedRate：以指定的速率执行任务 
-scheduleWithFixedDelay：以指定的延迟执行任务 
+
+==scheduleAtFixedRate：以指定的速率执行任务== 
+==scheduleWithFixedDelay：以指定的延迟执行任务== 
 
 比如：
 
@@ -2138,10 +2140,10 @@ timer.schedule(new TimerTask() {
     public void run() {
         log.warn("timer run");
     }
-}, new Date(), 5 * 1000);
+}, new Date(), 5 * 1000);	//每隔5s执行
 ```
 
-
+![img](/Users/jack/Desktop/md/images/5aab33f70001b59229621586.jpg)
 
 参照：https://blog.csdn.net/jesonjoke/column/info/21011
 
