@@ -452,7 +452,7 @@ public  String delete( @PathVariable  Integer whiteListId) {
 
 ![image-20181226081429859](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081429859-5783269-7514330.png)
 
-### 2.<< : 左移运算符，num << 1,相当于num乘以2，即2的一次方
+### 2.<< : 左移运算符，num << 1,相当于num乘以2的一次方
 
 \>\>: 右移运算符，num >> 1,相当于num除以2，2的一次方
 
