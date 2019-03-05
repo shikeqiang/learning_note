@@ -99,6 +99,170 @@ Java提供了一套实现了Collection接口的标准集合类。其中一些是
 
 
 
+# 区别
+
+## List 和 Set 区别？
+
+List，Set 都是继承自 Collection 接口。
+
+- List 特点：元素有放入顺序，元素可重复。
+- Set 特点：元素无放入顺序，元素不可重复，重复元素会覆盖掉。
+
+> 注意：元素虽然无放入顺序，但是元素在 Set 中的位置是有该元素的 hashcode 决定的，其位置其实是固定的。
+>
+> 另外 List 支持 `for` 循环，也就是通过下标来遍历，也可以用迭代器，但是 Set 只能用迭代，因为他无序，无法用下标来取得想要的值。
+
+Set 和 List 对比：
+
+- Set：检索元素效率高，删除和插入效率低，插入和删除不会引起元素位置改变。
+- List：和数组类似，List 可以动态增长，查找元素效率低，插入删除元素效率，因为可能会引起其他元素位置改变。
+
+## List 和 Map 区别？
+
+- List 是对象集合，允许对象重复。
+- Map 是键值对的集合，不允许 key 重复。
+
+## Array 和 ArrayList 有何区别？什么时候更适合用 Array？
+
+- Array 可以容纳基本类型和对象，而 ArrayList 只能容纳对象。
+- Array 是指定大小的，而 ArrayList 大小是固定的，可自动扩容。
+- Array 没有提供 ArrayList 那么多功能，比如 addAll、removeAll 和 iterator 等。
+
+尽管 ArrayList 明显是更好的选择，但也有些时候 Array 比较好用，比如下面的三种情况。
+
+- 1、如果列表的大小已经指定，大部分情况下是存储和遍历它们
+- 2、对于遍历基本数据类型，尽管 Collections 使用自动装箱来减轻编码任务，在指定大小的基本类型的列表上工作也会变得很慢。
+- 3、如果你要使用多维数组，使用 `[][]` 比 List 会方便。
+
+## ArrayList 与 LinkedList 区别？
+
+🦅 **ArrayList**
+
+- 优点：ArrayList 是实现了基于动态数组的数据结构，因为地址连续，一旦数据存储好了，查询操作效率会比较高（在内存里是连着放的）。
+- 缺点：因为地址连续，ArrayList 要移动数据，所以插入和删除操作效率比较低。
+
+🦅 **LinkedList**
+
+- 优点：LinkedList 基于链表的数据结构，地址是任意的，所以在开辟内存空间的时候不需要等一个连续的地址。对于新增和删除操作 add 和 remove ，LinedList 比较占优势。LinkedList 适用于要头尾操作或插入指定位置的场景。
+- 缺点：因为 LinkedList 要移动指针，所以查询操作性能比较低。
+
+🦅 **适用场景分析**：
+
+- 当需要对数据进行对随机访问的情况下，选用 ArrayList 。
+
+- 当需要对数据进行多次增加删除修改时，采用 LinkedList 。
+
+  > 如果容量固定，并且只会添加到尾部，不会引起扩容，优先采用 ArrayList 。
+
+- 当然，绝大数业务的场景下，使用 ArrayList 就够了。主要是，注意好避免 ArrayList 的扩容，以及非顺序的插入。
+
+🦅 **ArrayList 是如何扩容的？**
+
+直接看 [《ArrayList 动态扩容详解》](https://www.cnblogs.com/kuoAT/p/6771653.html) 文章，很详细。主要结论如下：
+
+- 如果通过无参构造的话，初始数组容量为 0 ，当真正对数组进行添加时，才真正分配容量。每次按照 **1.5** 倍（位运算）的比率通过 copeOf 的方式扩容。
+- 在 JKD6 中实现是，如果通过无参构造的话，初始数组容量为10，每次通过 copeOf 的方式扩容后容量为原来的 **1.5** 倍。
+
+> 重点是 1.5 倍扩容，这是和 HashMap 2 倍扩容不同的地方。
+
+🦅 **ArrayList 集合加入 1 万条数据，应该怎么提高效率？**
+
+ArrayList 的默认初始容量为 10 ，要插入大量数据的时候需要不断扩容，而扩容是非常影响性能的。因此，现在明确了 10 万条数据了，我们可以直接在初始化的时候就设置 ArrayList 的容量！
+
+这样就可以提高效率了~
+
+## ArrayList 与 Vector 区别？
+
+ArrayList 和 Vector 都是用数组实现的，主要有这么三个区别：
+
+- 1、Vector 是多线程安全的，线程安全就是说多线程访问同一代码，不会产生不确定的结果，而 ArrayList 不是。这个可以从源码中看出，Vector 类中的方法很多有 `synchronized` 进行修饰，这样就导致了 Vector 在效率上无法与 ArrayList 相比。
+
+  > Vector 是一种老的动态数组，是线程同步的，效率很低，一般不赞成使用。
+
+- 2、两个都是采用的线性连续空间存储元素，但是当空间不足的时候，两个类的增加方式是不同。
+
+- 3、Vector 可以设置增长因子，而 ArrayList 不可以。
+
+适用场景分析：
+
+- 1、Vector 是线程同步的，所以它也是线程安全的，而 ArrayList 是线程无需同步的，是不安全的。如果不考虑到线程的安全因素，一般用 ArrayList 效率比较高。
+
+  > 实际场景下，如果需要多线程访问安全的数组，使用 CopyOnWriteArrayList 。
+
+- 2、如果集合中的元素的数目大于目前集合数组的长度时，在集合中使用数据量比较大的数据，用 Vector 有一定的优势。
+
+  > 这种情况下，使用 LinkedList 更合适。
+
+## HashMap 和 Hashtable 的区别？
+
+> Hashtable 是在 Java 1.0 的时候创建的，而集合的统一规范命名是在后来的 Java2.0 开始约定的，而当时其他一部分集合类的发布构成了新的集合框架。
+
+- Hashtable 继承 Dictionary ，HashMap 继承的是 Java2 出现的 Map 接口。
+- 2、HashMap 去掉了 Hashtable 的 contains 方法，但是加上了 containsValue 和 containsKey 方法。
+- 3、HashMap 允许空键值，而 Hashtable 不允许。
+- 【重点】4、HashTable 是同步的，而 HashMap 是非同步的，效率上比 HashTable 要高。也因此，HashMap 更适合于单线程环境，而 HashTable 适合于多线程环境。
+- 5、HashMap 的迭代器（Iterator）是 fail-fast 迭代器，HashTable的 enumerator 迭代器不是 fail-fast 的。
+- 6、HashTable 中数组默认大小是 11 ，扩容方法是 `old * 2 + 1` ，HashMap 默认大小是 16 ，扩容每次为 2 的指数大小。
+
+一般现在不建议用 HashTable 。主要原因是两点：
+
+- 一是，HashTable 是遗留类，内部实现很多没优化和冗余。
+- 二是，即使在多线程环境下，现在也有同步的 ConcurrentHashMap 替代，没有必要因为是多线程而用 Hashtable 。
+
+🦅 **Hashtable 的 #size() 方法中明明只有一条语句 "return count;" ，为什么还要做同步？**
+
+同一时间只能有一条线程执行固定类的同步方法，但是对于类的非同步方法，可以多条线程同时访问。所以，这样就有问题了，可能线程 A 在执行 Hashtable 的 put 方法添加数据，线程 B 则可以正常调用 `#size()` 方法读取 Hashtable 中当前元素的个数，那读取到的值可能不是最新的，可能线程 A 添加了完了数据，但是没有对 `count++` ，线程 B 就已经读取 `count` 了，那么对于线程 B 来说读取到的 `count` 一定是不准确的。
+
+**而给 #size() 方法加了同步之后，意味着线程 B 调用 #size() 方法只有在线程 A 调用 put 方法完毕之后才可以调用，这样就保证了线程安全性**。
+
+## HashSet 和 HashMap 的区别？
+
+- Set 是线性结构，值不能重复。HashSet 是 Set 的 hash 实现，HashSet 中值不能重复是用 HashMap 的 key 来实现的。
+
+- Map 是键值对映射，可以空键空值。HashMap 是 Map 的 hash 实现，key 的唯一性是通过 key 值 hashcode 的唯一来确定，value 值是则是链表结构。
+
+  > 因为不同的 key 值，可能有相同的 hashcode ，所以 value 值需要是链表结构。
+
+他们的共同点都是 hash 算法实现的唯一性，他们都不能持有基本类型，只能持有对象。
+
+> 为了更好的性能，Netty 自己实现了 key 为基本类型的 HashMap ，例如 [IntObjectHashMap](https://netty.io/4.1/api/io/netty/util/collection/IntObjectHashMap.html) 。
+
+## HashSet 和 TreeSet 的区别？
+
+- HashSet 是用一个 hash 表来实现的，因此，它的元素是无序的。添加，删除和 HashSet 包括的方法的持续时间复杂度是 `O(1)` 。
+- TreeSet 是用一个树形结构实现的，因此，它是有序的。添加，删除和 TreeSet 包含的方法的持续时间复杂度是 `O(logn)` 。
+
+🦅 **如何决定选用 HashMap 还是 TreeMap？**
+
+- 对于在 Map 中插入、删除和定位元素这类操作，HashMap 是最好的选择。
+- 然而，假如你需要对一个有序的 key 集合进行遍历， TreeMap 是更好的选择。
+
+基于你的 collection 的大小，也许向 HashMap 中添加元素会更快，再将 HashMap 换为 TreeMap 进行有序 key 的遍历。
+
+## HashMap 和 ConcurrentHashMap 的区别？
+
+ConcurrentHashMap 是线程安全的 HashMap 的实现。主要区别如下：
+
+- 1、ConcurrentHashMap 对整个桶数组进行了分割分段(Segment)，然后在每一个分段上都用 lock 锁进行保护，相对 于Hashtable 的 syn 关键字锁的粒度更精细了一些，并发性能更好。而 HashMap 没有锁机制，不是线程安全的。
+
+  > JDK8 之后，ConcurrentHashMap 启用了一种全新的方式实现,利用 CAS 算法。
+
+- 2、HashMap 的键值对允许有 `null` ，但是 ConCurrentHashMap 都不允许。
+
+## 队列和栈是什么，列出它们的区别？
+
+栈和队列两者都被用来预存储数据。
+
+- java.util.Queue是一个接口，它的实现类在Java并发包中。
+  - 队列允许先进先出（FIFO）检索元素，但并非总是这样。
+  - Deque 接口允许从两端检索元素。
+- 栈与队列很相似，但它允许对元素进行后进先出（LIFO）进行检索。
+  - Stack 是一个扩展自 Vector 的类，而 Queue 是一个接口。
+
+
+
+
+
 
 
 [《LinkedHashMap 源码详细分析（JDK1.8）》](https://www.imooc.com/article/22931)
