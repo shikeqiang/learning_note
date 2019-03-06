@@ -1,0 +1,5 @@
+- `synchronized`
+  - ![synchronized-1](/Users/jack/Desktop/md/images/b9bc9653929e5da43d8edad6e6a0d293-20190306111143172.jpeg)
+  - ![synchronized-2导图](http://static.iocoder.cn/a79be5f48c26abb905348e43a1732d55)
+- `volatile`
+  - ![volatile](/Users/jack/Desktop/md/images/506052a856416414e18c7ed79d43cc5c.jpeg)
