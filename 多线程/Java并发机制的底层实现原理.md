@@ -8,7 +8,7 @@
 
 ​	Java编程语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排他锁单独获得这个变量。Java语言提供了volatile，在某些情况下比锁要更加方便。如果一个字段被声明成volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。
 
-​	在了解volatile实现原理之前，先看下与其实现原理相关的CPU术语与说明。![image-20190121110341914](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121110341914.png?raw=true)
+​	在了解volatile实现原理之前，先看下与其实现原理相关的CPU术语与说明。![image-20190121110341914](/Users/jack/Desktop/md/images/image-20190121110341914.png?raw=true)
 
 
 
@@ -40,7 +40,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ​	著名的Java并发编程大师Doug lea在JDK 7的并发包里新增一个队列集合类LinkedTransferQueue，它在使用volatile变量时，用一种==追加字节==的方式来优化队列出队和入队的性能。
 
-![image-20190121111239783](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121111239783.png?raw=true)
+![image-20190121111239783](/Users/jack/Desktop/md/images/image-20190121111239783.png?raw=true)
 
 ### 追加字节能优化性能
 
@@ -58,7 +58,13 @@ instance = new Singleton(); // instance是volatile变量
 
 # 2 synchronized的实现原理与应用
 
-​	synchronized实现同步的基础：Java中的每一个对象都可以作为锁。具体表现为以下3种形式：1.对于普通同步方法，锁是当前实例对象。2.对于静态同步方法，锁是当前类的Class对象。3.对于同步方法块，锁是Synchonized括号里配置的对象。
+​	synchronized实现同步的基础：Java中的每一个对象都可以作为锁。具体表现为以下3种形式：
+
+1.对于普通同步方法，锁是当前实例对象。
+
+2.对于静态同步方法，锁是当前类的Class对象。
+
+3.对于同步方法块，锁是Synchonized括号里配置的对象。
 
 **当一个线程试图访问同步代码块时，它首先必须得到锁，退出或抛出异常时必须释放锁。**
 
@@ -68,13 +74,18 @@ instance = new Singleton(); // instance是volatile变量
 
 ## 2.1 Java对象头
 
-​	synchronized用的锁是存在Java对象头里的。如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即32bit，如下表。![image-20190121112109330](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112109330.png?raw=true)
+​	Hotspot 虚拟机的对象头主要包括两部分数据：Mark Word（标记字段）、Klass Pointer（类型指针）。其中：
 
-​	Java对象头里的Mark Word里默认存储对象的HashCode、分代年龄和锁标记位。32位JVM的Mark Word的默认存储结构如下表：![image-20190121112154725](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112154725.png?raw=true)
+- **Klass Point 是是对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例**。
+- Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode）、GC 分代年龄、锁状态标志、线程持有的锁、偏向线程 ID、偏向时间戳等等。
 
-​	在运行期间，Mark Word里存储的数据会随着锁标志位的变化而变化。Mark Word可能变化为存储以下4种数据，如下表：![image-20190121112221067](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112221067.png?raw=true)
+​	synchronized用的锁是存在Java对象头里的。如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即32bit，如下表。![image-20190121112109330](/Users/jack/Desktop/md/images/image-20190121112109330.png?raw=true)
 
-在64位虚拟机下，Mark Word是64bit大小的，其存储结构如下表：![image-20190121112242072](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112242072.png?raw=true)
+​	Java对象头里的Mark Word里默认存储对象的HashCode、分代年龄和锁标记位。32位JVM的Mark Word的默认存储结构如下表：![image-20190121112154725](/Users/jack/Desktop/md/images/image-20190121112154725.png?raw=true)
+
+​	==在运行期间，Mark Word里存储的数据会随着锁标志位的变化而变化。Mark Word可能变化为存储以下4种数据==，如下表：![image-20190121112221067](/Users/jack/Desktop/md/images/image-20190121112221067.png?raw=true)
+
+在64位虚拟机下，Mark Word是64bit大小的，其存储结构如下表：![image-20190121112242072](/Users/jack/Desktop/md/images/image-20190121112242072.png?raw=true)
 
 ## 2.2 锁的升级与对比
 
@@ -86,7 +97,7 @@ instance = new Singleton(); // instance是volatile变量
 
 #### (1)偏向锁的撤销
 
-​	**偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。**偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。下图中的线程1演示了偏向锁初始化的流程，线程2演示了偏向锁撤销的流程。![image-20190121112607342](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112607342.png?raw=true)
+​	**偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。**偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。下图中的线程1演示了偏向锁初始化的流程，线程2演示了偏向锁撤销的流程。![image-20190121112607342](/Users/jack/Desktop/md/images/image-20190121112607342.png?raw=true)
 
 #### (2)关闭偏向锁
 
@@ -100,17 +111,17 @@ instance = new Singleton(); // instance是volatile变量
 
 #### (2)轻量级锁解锁
 
-​	轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。下图是两个线程同时争夺锁，导致锁膨胀的流程图。![image-20190121112839832](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121112839832.png?raw=true)
+​	轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。下图是两个线程同时争夺锁，导致锁膨胀的流程图。![image-20190121112839832](/Users/jack/Desktop/md/images/image-20190121112839832.png?raw=true)
 
 ​	因为自旋会消耗CPU，为了避免无用的自旋（比如获得锁的线程被阻塞住了），一旦锁升级成重量级锁，就不会再恢复到轻量级锁状态。当锁处于这个状态下，其他线程试图获取锁时，都会被阻塞住，当持有锁的线程释放锁之后会唤醒这些线程，被唤醒的线程就会进行新一轮的夺锁之争。
 
-### 3.锁的优缺点对比![image-20190121113029916](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121113029916.png?raw=true)
+### 3.锁的优缺点对比![image-20190121113029916](/Users/jack/Desktop/md/images/image-20190121113029916.png?raw=true)
 
 # 3 原子操作的实现原理
 
 ## 1.术语定义
 
-![image-20190121115102622](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121115102622.png?raw=true)
+![image-20190121115102622](/Users/jack/Desktop/md/images/image-20190121115102622.png?raw=true)
 
 ## 2.处理器如何实现原子操作
 
@@ -118,7 +129,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ### （1）使用总线锁保证原子性
 
-​	第一个机制是通过总线锁保证原子性。如果多个处理器同时对共享变量进行读改写操作（i++就是经典的读改写操作），那么共享变量就会被多个处理器同时进行操作，这样读改写操作就不是原子的，操作完之后共享变量的值会和期望的不一致。举个例子，如果i=1，我们进行两次i++操作，我们期望的结果是3，但是有可能结果是2，如图:![image-20190121115250152](https://github.com/JDawnF/learning_note/blob/master/images/image-20190121115250152.png?raw=true)
+​	第一个机制是通过总线锁保证原子性。如果多个处理器同时对共享变量进行读改写操作（i++就是经典的读改写操作），那么共享变量就会被多个处理器同时进行操作，这样读改写操作就不是原子的，操作完之后共享变量的值会和期望的不一致。举个例子，如果i=1，我们进行两次i++操作，我们期望的结果是3，但是有可能结果是2，如图:![image-20190121115250152](/Users/jack/Desktop/md/images/image-20190121115250152.png?raw=true)
 
 ​	原因可能是多个处理器同时从各自的缓存中读取变量i，分别进行加1操作，然后分别写入系统内存中。那么，想要保证读改写共享变量的操作是原子的，就必须保证CPU1读改写共享变量的时候，CPU2不能操作缓存了该共享变量内存地址的缓存。处理器使用总线锁就是来解决这个问题的。
 
@@ -130,7 +141,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ​	**频繁使用的内存会缓存在处理器的L1、L2和L3高速缓存里，那么原子操作就可以直接在处理器内部缓存中进行，并不需要声明总线锁**，在Pentium 6和目前的处理器中可以使用“缓存锁定”的方式来实现复杂的原子性。==所谓“缓存锁定”是指内存区域如果被缓存在处理器的缓存行中，并且在Lock操作期间被锁定，那么当它执行锁操作回写到内存时，处理器不在总线上声言LOCK＃信号，而是修改内部的内存地址，并允许它的缓存一致性机制来保证操作的原子性，==因为缓存一致性机制会阻止同时修改由两个以上处理器缓存的内存区域数据，当其他处理器回写已被锁定的缓存行的数据时，会使缓存行无效，在上图所示的例子中，当CPU1修改缓存行中的i时使用了缓存锁定，那么CPU2就不能同时缓存i的缓存行。
 
-##### ​	但是有两种情况下处理器不会使用缓存锁定。
+##### 	但是有两种情况下处理器不会使用缓存锁定。
 
 第一种情况是：当操作的数据不能被缓存在处理器内部，或操作的数据跨多个缓存行（cache line）时，则处理器会调用总线锁定。
 
@@ -152,7 +163,7 @@ instance = new Singleton(); // instance是volatile变量
 
 ​	在Java并发包中有一些并发框架也使用了自旋CAS的方式来实现原子操作，比如LinkedTransferQueue类的Xfer方法。CAS虽然很高效地解决了原子操作，**但是CAS仍然存在三大问题。ABA问题，循环时间长开销大，以及只能保证一个共享变量的原子操作。**
 
-#### ​1）ABA问题。
+#### 1）ABA问题。
 
 ​	因为CAS需要在操作值的时候，检查值有没有发生变化，如果没有发生变化则更新，但是如果一个值原来是A，变成了B，又变成了A，那么使用CAS进行检查时会发现它的值没有发生变化，但是实际上却变化了。ABA问题的解决思路就是使用版本号。在变量前面追加上版本号，每次变量更新的时候把版本号加1，那么A→B→A就会变成1A→2B→3A。从Java 1.5开始，**JDK的Atomic包里提供了一个类AtomicStampedReference来解决ABA问题。这个类的compareAndSet方法的作用是首先检查当前引用是否等于预期引用，并且检查当前标志是否等于预期标志，如果全部相等，则以原子方式将该引用和该标志的值设置为给定的更新值。**
 
@@ -165,7 +176,7 @@ public boolean compareAndSet(
 	}
 ```
 
-#### ​2）循环时间长开销大。
+#### 2）循环时间长开销大。
 
 ​	自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令，那么效率会有一定的提升。**pause指令有两个作用**：第一，它可以延迟流水线执行指令（de-pipeline），使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零；第二，它可以避免在退出循环的时候因内存顺序冲突（Memory Order Violation）而引起CPU流水线被清空（CPU Pipeline Flush），从而提高CPU的执行效率。
 
