@@ -133,6 +133,8 @@ public static void main(String[] args) throws InterruptedException {
 
 **抢占式调度：**允许高优先级的任务打断当前执行的任务，抢占CPU的控制权。这有利于后面的高优先级的任务也能及时得到响应。但实现相对较复杂且可能出现低优先级的任务长期得不到调度。
 
+​	==线程调度分为协同式调度和抢占式调度，Java使用的是抢占式调度，也就是每个线程将由操作系统来分配执行时间，线程的切换不由线程本身来决定（协同式调度）。这就是平台独立的原因。==
+
 #### 产生死锁的原因主要是： 
 
 （1） 因为系统资源不足。 
@@ -165,6 +167,12 @@ public static void main(String[] args) throws InterruptedException {
 ​	**4.sleep是线程类（Thread）的方法，导致此线程暂停执行指定时间，给执行机会给其他线程，但是监控状态依然保持，到时后会自动恢复。调用sleep不会释放对象锁。**
 
 ​	5.wait是Object类的方法，对此对象调用wait方法导致本线程放弃对象锁，进入等待此对象的等待锁定池，**==只有针对此对象发出notify方法（或notifyAll）后本线程才进入对象锁定池准备获得对象锁进入运行状态。==**
+
+### 多线程及同步队列器
+
+CopyOnWriteArrayList适合使用在读操作远远大于写操作的场景里，比如缓存。
+
+ReadWriteLock 当写操作时，其他线程无法读取或写入数据，而当读操作时，其它线程无法写入数据，但却可以读取数据 。适用于 读取远远大于写入的操作。
 
 # 6.原始jdbc执行语句
 
@@ -283,11 +291,15 @@ ASCII码包含一些特殊空字符，所以ASCII码不都是可打印字符
 
 ​	==实现国际化应用常用的手段是利用ResourceBundle类,ResourceBundle能够依据Local的不同，选择性的读取与Local对应后缀的properties文件，以达到国际化的目的。==
 
-# 8.子父类关系及执行顺序
+# 8.父子类关系及执行顺序
+
+**==this()和super()为构造方法，作用是在JVM堆中构建出一个对象。因此避免多次创建对象，同一个方法内只能调用一次this()或super()==。同时为了避免操作对象时对象还未构建成功，需要this()和super()的调用在第一行实现【以此来创建对象】，防止异常。**
 
 ##### ==父类静态代码块->子类静态代码块->父类非静态代码块->父类构造函数->子类非静态代码块->子类构造函数==
 
 ​	当实例化子类对象时，首先要加载父类的class文件进内存，静态代码块是随着类的创建而执行，所以父类静态代码块最先被执行，子类class文件再被加载，同理静态代码块被先执行；实例化子类对象要先调用父类的构造方法，而调用父类构造方法前会先执行父类的非静态代码块。这里的非静态代码块其实就是构造块。
+
+子类不可以继承父类的构造方法，只可以调用父类的构造方法。
 
 **静态块：用static申明，JVM加载类时执行，仅执行一次；构造块：类中直接用{}定义，每一次创建对象时执行 **![image-20190101113345126](/Users/jack/Desktop/md/images/image-20190101113345126-6313625-7514330.png)
 
@@ -520,6 +532,8 @@ a-b=0Xf000000000000000-0X8000000000000000+1
 
 ​	==单目>算数运算符>移位>比较>按位>逻辑>三目>赋值==
 
+### 9.公式-n=~n+1可推出~n=-n-1，所以~10=-11再加5结果为-6
+
 # 14.抽象类与接口
 
 如果是抽象类实现接口，可以实现部分方法甚至一个都不实现，具体类才必须实现接口的所有方法。
@@ -734,6 +748,10 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 ![img](/Users/jack/Desktop/md/images/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6.png)
 
+![img](/Users/jack/Desktop/md/images/6316247_1468250146658_4928035E95900B857798B54E569E5BCC.png)
+
+类的析构函数是一个对象被撤销时自动调用的。析构函数跟构造函数相反。
+
 # 23.数据库管理系统
 
 #### 数据库系统的特点：
@@ -868,6 +886,12 @@ update：修改数据内容的。
 selete与match()和against()一起使用：match()：指定被搜素的列；against()：指定要使用的搜索表达式，即：
 selecte * from product where match(detail) against('rabbit');
 ```
+
+### MySQL组合索引（复合索引）的最左优先原则。
+
+​	最左优先就是说组合索引的第一个字段必须出现在查询组句中，这个索引才会被用到。只要组合索引最左边第一个字段出现在Where中，那么不管后面的字段出现与否或者出现顺序如何，MySQL引擎都会自动调用索引来优化查询效率。
+
+​	根据最左匹配原则可以知道B-Tree建立索引的过程，比如假设有一个3列索引(col1,col2,col3),那么MySQL只会会建立三个索引(col1),(col1,col2),(col1,col2,col3)。
 
 # 24.String字符串
 
@@ -1351,14 +1375,14 @@ for(int i=0;i<list.size();i++){
 
 # 44.Servlet
 
-## 1.Servlet过滤器的配置
+## 1、Servlet过滤器的配置
 
 ​	第一部分是过滤器在Web应用中的定义，由<filter>元素表示，包括<filter-name>和<filter-class>两个必需的子元素
 ​	第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
 
 ![img](/Users/jack/Desktop/md/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
 
-## 2.servlet是什么
+## 2、servlet是什么
 
 ​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
  容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。
@@ -1373,6 +1397,18 @@ for(int i=0;i<list.size();i++){
 请求处理：service方法是servlet真正处理客户端传过来的请求的方法，由web容器调用， 根据HTTP请求方法（GET、POST等），将请求分发到doGet、doPost等方法 
 
 服务终止：destory方法是在servlet实例被销毁时由web容器调用。Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态
+
+#### Servlet的生命周期分为5个阶段：加载、创建、初始化、处理客户请求、卸载。
+
+(1)加载：容器通过类加载器使用servlet类对应的文件加载servlet
+
+==(2)创建：通过调用servlet构造函数创建一个servlet对象==
+
+(3)初始化：调用init方法初始化
+
+(4)处理客户请求：每当有一个客户请求，容器会创建一个线程来处理客户请求
+
+(5)卸载：调用destroy方法让servlet自己释放其占用的资源
 
 https://www.cnblogs.com/lgk8023/p/6427977.html
 
@@ -1581,11 +1617,19 @@ public String(String original) {
 6.继承使用显示多态 HQL:from object polymorphism="exlicit" 避免查处所有对象
 7.消除大表，使用二级缓存
 
+# 54.进程
 
+**在操作系统中同时存在多个进程，它们可以共享允许共享的系统资源，还可以调用同一段程序代码**
 
+# 55.日志
 
+​	日志的级别之间的大小关系如右所示：ALL < TRACE < DEBUG < INFO < WARN < ERROR < FATAL < OFF Log4j建议只使用四个级别，优先级从高到低分别是 ERROR > WARN > INFO > DEBUG。 log4j在运行期间是不可以重新设置的
 
-
+```
+Log4j支持按分钟为间隔生成新的日志文件
+Log4j是一个打印日志用的组件
+Log4j支持按年为间隔生成新的日志文件
+```
 
 
 
