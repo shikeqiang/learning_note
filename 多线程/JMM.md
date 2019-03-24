@@ -1,5 +1,7 @@
 # Java 内存模型
 
+![jmm-](/Users/jack/Desktop/md/images/006tNc79gy1fow7lb5c5kj310y0z4q7w.jpg)
+
 关于 Java 内存模型，涉及的内容会很多，所以建议胖友看如下的 [《深入Java内存模型.pdf》](https://files-cdn.cnblogs.com/files/skywang12345/%E6%B7%B1%E5%85%A5Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.pdf) 这本小书。
 
 然后，看完之后你肯定会忘记，就可以靠 [《《深入理解 Java 内存模型》读书笔记》](http://www.iocoder.cn/JUC/zhisheng/Java-Memory-Model?vip) 来补刀。

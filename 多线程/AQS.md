@@ -1,5 +1,7 @@
 # AQS
 
+底层通过CAS和volatile实现
+
 ![1544061621591.png](/Users/jack/Desktop/md/images/1544061621591.png?raw=true)
 
 ### 1 AQS 简单介绍
