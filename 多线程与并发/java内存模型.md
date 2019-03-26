@@ -83,6 +83,8 @@
 
 ## 1.5 happens-before简介
 
+![èå¾](/Users/jack/Desktop/md/images/happens-before-01-20190326211437944.png)
+
 ​	==在JMM中，如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须要存在happens-before关系==。**这里提到的两个操作既可以是在一个线程之内，也可以是在不同线程之间。**与程序员密切相关的happens-before规则如下：
 
 - 程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。
@@ -672,6 +674,19 @@ public class FinalExample {
 **6）join()规则：如果线程A执行操作ThreadB.join()并成功返回，那么线程B中的任意操作happens-before于线程A从ThreadB.join()操作成功返回。**	
 
 PS:线程的join方法的意思是使得放弃当前线程的执行，并返回对应的线程，比如t1.join()表示停止当前的线程，并返回t1线程，即执行t1线程。
+
+上面八条是**原生 Java** 满足 happens-before 关系的规则，但是我们可以对他们进行推导出其他满足 happens-before 的规则：
+
+1. 将一个元素放入一个线程安全的队列的操作，happens-before 从队列中取出这个元素的操作。
+2. 将一个元素放入一个线程安全容器的操作，happens-before 从容器中取出这个元素的操作。
+3. 在 CountDownLatch 上的 countDown 操作，happens-before CountDownLatch 上的 await 操作。
+4. 释放 Semaphore 上的 release 的操作，happens-before 上的 acquire 操作。
+5. Future 表示的任务的所有操作，happens-before Future 上的 get 操作。
+6. 向 Executor 提交一个 Runnable 或 Callable 的操作，happens-before 任务开始执行操作。
+
+这里再说一遍 happens-before 的概念：**如果两个操作不存在上述（前面8条 + 后面6条）任一一个 happens-before 规则，那么这两个操作就没有顺序的保障，JVM 可以对这两个操作进行重排序。如果操作 A happens-before 操作 B，那么操作A在内存上所做的操作对操作B都是可见的。**
+
+详细看 [《【死磕 Java 并发】—– Java 内存模型之 happens-before》](http://www.iocoder.cn/JUC/sike/happens-before/?vip) 文章。
 
 下面就来看看几个规则。
 
