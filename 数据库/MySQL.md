@@ -279,7 +279,7 @@ MySQL 中存储引擎使用类似的方式进行查询，先去索引中查找�
   ALTER TABLE 'table_name' ADD UNIQUE('col')；
   ```
 
-- 3、主键索引：特殊的唯一索引，不允许重复，不允许有空值。
+- 3、主键索引：特殊的唯一索引，**不允许重复，不允许有空值**。
 
   - ```sql
     ALTER TABLE 'table_name' ADD PRIMARY KEY('col')；
@@ -1176,11 +1176,45 @@ SELECT * FROM A LEFT JOIN B ON A.id=B.id UNIONSELECT * FROM A RIGHT JOIN B ON A.
 
 **嵌套查询**用一条SQL语句得结果作为另外一条SQL语句得条件，效率不好把握SELECT * FROM A WHERE id IN (SELECT id FROM B)
 
+# 九、InnoDB和MyISAM的区别
 
+​	InnoDB 中不保存表的具体行数，也就是说，执行select count(*) from table 时，InnoDB要扫描一遍整个表来计算有多少行，但是MyISAM只要简单的读出保存好的行数即可。
 
+**注意的是，当count(*)语句包含where条件时，两种表的操作是一样的。也就是 上述“6”中介绍到的InnoDB使用表锁的一种情况。**
 
+## MyISAM适合：
 
+l  做很多count 的计算；
 
+l  插入不频繁，查询非常频繁，如果执行大量的SELECT，MyISAM是更好的选择；
+
+l  没有事务。
+
+## InnoDB适合：
+
+l  可靠性要求比较高，或者要求事务；
+
+l  表更新和查询都相当的频繁，并且表锁定的机会比较大的情况指定数据引擎的创建；
+
+l  如果你的数据执行大量的INSERT或UPDATE，出于性能方面的考虑，应该使用InnoDB表；
+
+l  DELETE FROM table时，InnoDB不会重新建立表，而是一行一行的 删除；
+
+l  LOAD TABLE FROM MASTER操作对InnoDB是不起作用的，解决方法是首先把InnoDB表改成MyISAM表，导入数据后再改成InnoDB表，但是对于使用的额外的InnoDB特性（例如外键）的表不适用。
+
+要注意，创建每个表格的代码是相同的，除了最后的 TYPE参数，这一参数用来指定数据引擎。
+
+## 其他区别
+
+1、对于AUTO_INCREMENT类型的字段，InnoDB中必须包含只有该字段的索引(索引可以为主键索引，当然也可以为非主键索引)，但是在MyISAM表中，可以和其他字段一起建立联合索引。
+
+2、DELETE FROM table时，InnoDB不会重新建立表，而是一行一行的删除。
+
+3、LOAD TABLE FROMMASTER操作对InnoDB是不起作用的，解决方法是首先把InnoDB表改成MyISAM表，导入数据后再改成InnoDB表，但是对于使用的额外的InnoDB特性(例如外键)的表不适用。
+
+4、 InnoDB存储引擎被完全与MySQL服务器整合，InnoDB存储引擎为在主内存中缓存数据和索引而维持它自己的缓冲池。
+
+5、清空整个表时，InnoDB是一行一行的删除，效率非常慢。MyISAM则会重建表。
 
 
 
