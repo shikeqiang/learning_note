@@ -10,7 +10,7 @@
 
 第二步：DispatcherServlet前端控制器请求HandlerMapping处理器映射器查找Handler。
 
-              DispatcherServlet：前端控制器，相当于中央调度器，各各组件都和前端控制器进行交互，降低了各组件之间耦合度。
+DispatcherServlet：前端控制器，相当于中央调度器，各各组件都和前端控制器进行交互，降低了各组件之间耦合度。
 
 第三步：HandlerMapping处理器映射器，根据url及一些配置规则（xml配置、注解配置）查找Handler，将Handler返回给                          DispatcherServlet前端控制器。
 
@@ -20,13 +20,13 @@
 
 第六步：Handler执行完成返回ModelAndView
 
-              ModelAndView是springmvc的一个对象，对Model和view进行封装。
+ModelAndView是springmvc的一个对象，对Model和view进行封装。
 
 第七步：适配器将ModelAndView返回给DispatcherServlet
 
 第八步：DispatcherServlet调用视图解析器进行视图解析，解析后生成view。视图解析器根据逻辑视图名解析出真正的视图。
 
-              View：springmvc视图封装对象，提供了很多view，比如：jsp、freemarker、pdf、excel。
+View：springmvc视图封装对象，提供了很多view，比如：jsp、freemarker、pdf、excel。
 
 第九步：ViewResolver视图解析器给前端控制器返回view
 
