@@ -1,3 +1,5 @@
+![image-20190405215634507](/Users/jack/Desktop/md/images/image-20190405215634507.png)
+
 # 	1.继承和实现
 
 ## 继承和实现的约束
