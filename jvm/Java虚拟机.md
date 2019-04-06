@@ -682,11 +682,238 @@ Java 一共有四种引用类型：
 - [《[JVM\]理解GC日志》](https://www.jianshu.com/p/fd1d4f21733a)
 - [《GC 日志查看分析》](https://blog.csdn.net/TimHeath/article/details/53053106)
 
+# 十二、虚拟机类加载机制
 
+## 1、类加载器
 
+​	**类加载器(ClassLoader)，用来加载 Java 类(.Class文件)到 Java 虚拟机中。**一般来说，Java 虚拟机使用 Java 类的方式如下：==Java 源程序(`.java` 文件)在经过 Java 编译器编译之后就被转换成 Java 字节代码(`.class` 文件)。==
 
+**类加载器，负责读取 Java 字节代码，并转换成 `java.lang.Class` 类的一个实例。**
 
+- 每个这样的实例用来表示一个 Java 类。通过此实例的 `Class的newInstance(...)` 方法，就可以创建出该类的一个对象。
+- 实际的情况可能更加复杂，比如 Java 字节代码可能是通过工具动态生成的，也可能是通过网络下载的。
 
+## 2、类加载发生的时机
+
+虚拟机严格规定，有且仅有 5 种情况必须对类进行加载：
+
+> 注意，有些文章会称为对类进行“初始化”。
+
+- 1、遇到 `new`、`getstatic`、`putstatic`、`invokestatic` 这四条字节码指令时，如果类还没进行初始化，则需要先触发其初始化。
+- 2、**使用 `java.lang.reflect` 包的方法对类进行反射调用的时候，如果类还没进行初始化，则需要先触发其初始化。**
+- 3、**当初始化了一个类的时候，如果发现其父类还没进行初始化，则需要先触发其父类的初始化。**
+- 4、当虚拟机启动时，用户需要指定一个执行的主类，即调用其 `main(String[] args)` 方法，虚拟机则会先初始化该主类。
+- 5、当使用 JDK7 的动态语言支持时，如果一个 `java.lang.invoke.MethodHandle` 实例最后的解析结果为 REF_getStatic、REF_putStatic、REF_invokeStatic 的方法句柄，并且这个方法句柄所对应的类没有进行过初始化，则需要先触发其初始化。
+
+## 3、类加载器加载 Class 文件
+
+下图所示是 ClassLoader 加载一个 `.class` 文件到 JVM 时需要经过的步骤：
+
+![类加载器是如何加载 class 文件](/Users/jack/Desktop/md/images/08-20190406220511902.png)
+
+- 第一个阶段，加载(Loading)，是找到 `.class` 文件并把这个文件包含的字节码加载到内存中。
+
+- 第二阶段，连接(Linking)，又可以分为三个步骤，分别是**字节码验证、Class 类数据结构分析及相应的内存分配、最后的符号表的解析。**
+
+- 第三阶段，Initialization(类中静态属性和初始化赋值)，以及Using(静态块的执行)等。
+
+  > 注意，不包括卸载(Unloading)部分。
+
+###  **1）加载**
+
+> ==加载是“类加载”过程的第一阶段==。
+
+在加载阶段，虚拟机需要完成以下三件事情：
+
+- 通过一个类的全限定名来获取其定义的二进制字节流。
+- **将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。**
+- 在Java堆中生成一个代表这个类的 `java.lang.Class` 对象，作为对方法区中这些数据的访问入口。
+
+​	相对于类加载的其他阶段而言，加载阶段（准确地说，是加载阶段获取类的二进制字节流的动作）是可控性最强的阶段，**因为开发人员既可以使用系统提供的类加载器来完成加载，也可以自定义自己的类加载器来完成加载。**
+
+​	加载阶段完成后，虚拟机外部的二进制字节流就按照虚拟机所需的格式存储在方法区之中，而且在Java堆中也创建一个 `java.lang.Class` 类的对象，这样便可以通过该对象访问方法区中的这些数据。
+
+###  **2）连接**
+
+#### **2.1 验证：确保被加载的类的正确性**
+
+​	验证是连接阶段的第一步，这一阶段的目的是为了**确保 Class 文件的字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。**
+
+##### 验证阶段大致会完成4个阶段的检验动作：
+
+- 文件格式验证：验证字节流是否符合 Class 文件格式的规范。例如：是否以 `0xCAFEBABE` 开头、主次版本号是否在当前虚拟机的处理范围之内、常量池中的常量是否有不被支持的类型。
+- 元数据验证：对字节码描述的信息进行语义分析（注意：对比 javac 编译阶段的语义分析），以保证其描述的信息符合 Java 语言规范的要求。例如：这个类是否有父类，除了 `java.lang.Object` 之外。
+- 字节码验证：通过数据流和控制流分析，确定程序语义是合法的、符合逻辑的。
+- 符号引用验证：确保解析动作能正确执行。
+
+​	**验证阶段是非常重要的，但不是必须的，它对程序运行期没有影响，如**果所引用的类经过反复验证，那么可以考虑采用 `-Xverifynone` 参数来关闭大部分的类验证措施，以缩短虚拟机类加载的时间。
+
+#### **2.2 准备：为类的静态变量分配内存，并将其初始化为默认值**
+
+​	==准备阶段，是正式为类变量分配内存并设置类变量初始值的阶段，这些内存都将在方法区中分配。==对于该阶段有以下几点需要注意：
+
+- 1、**这时候进行内存分配的仅包括类变量(`static`)，而不包括实例变量，实例变量会在对象实例化时随着对象一块分配在 Java 堆中。**
+
+  > 对于类本身，静态变量就是其属性。
+
+- 2、**这里所设置的初始值通常情况下是数据类型默认的零值(如 `0`、`0L`、`null`、`false` 等），而不是被在 Java 代码中被显式地赋予的值。**
+
+  ​	==假设一个类变量的定义为： `public static int value = 3`。那么静态变量 `value` 在准备阶段过后的初始值为 `0`，而不是 `3`。因为这时候尚未开始执行任何 Java 方法，而把 `value` 赋值为 `3` 的 `public static` 指令是在程序编译后，存放于**类构造器** `<clinit>()`方法之中的，所以把 `value` 赋值为 `3` 的动作将在初始化阶段才会执行。==
+
+  > **这里还需要注意如下几点：**
+  >
+  > - 对基本数据类型来说，对于类变量(`static`)和全局变量，如果不显式地对其赋值而直接使用，则系统会为其赋予默认的零值，而**对于局部变量来说，在使用前必须显式地为其赋值，否则编译时不通过。**
+  > - **对于同时被 `static` 和 `final` 修饰的常量，必须在声明的时候就为其显式地赋值，否则编译时不通过；**而只被 `final` 修饰的常量则既可以在声明时显式地为其赋值，也可以在类初始化时显式地为其赋值，总之，在使用前必须为其显式地赋值，系统不会为其赋予默认零值。
+  > - 对于引用数据类型 reference 来说，如数组引用、对象引用等，**如果没有对其进行显式地赋值而直接使用，系统都会为其赋予默认的空值，即 `null` 等。**
+  > - 如果在数组初始化时没有对数组中的各元素赋值，那么其中的元素将根据对应的数据类型而被赋予默认的“空”值。
+
+- 3、如果类字段的字段属性表中存在 ConstantValue 属性，即同时被 `final` 和 `static` 修饰，那么在准备阶段变量 `value` 就会被初始化为 ConstValue 属性所指定的值。
+
+  假设上面的类变量 `value` 被定义为： `public static final int value = 3` 。编译时， `javac` 将会为 `value` 生成 ConstantValue 属性。在准备阶段虚拟机就会根据 ConstantValue 的设置将 `value` 赋值为 3。我们可以理解为 `static final` 常量在编译期就将其结果放入了调用它的类的常量池中。
+
+#### **2.3 解析：把类中的符号引用转换为直接引用**
+
+> R 大在 [《JVM 符号引用转换直接引用的过程?》](https://www.zhihu.com/question/50258991) 和 [《JVM 里的符号引用如何存储？》](https://www.zhihu.com/question/30300585) 做过解答。
+
+​	==解析阶段，是虚拟机将常量池内的符号引用替换为直接引用的过程。解析动作，主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符 7 类符号引用进行。==
+
+- 符号引用，就是一组符号来描述目标，可以是任何字面量。
+- 直接引用，就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄。
+
+###  **3）初始化**
+
+​	初始化，为类的静态变量赋予正确的初始值，JVM 负责对类进行初始化，主要对类变量进行初始化。在 Java 中对类变量进行初始值设定有两种方式：
+
+- 1、声明类变量是指定初始值。
+- 2、使用静态代码块为类变量指定初始值。
+
+#### JVM 初始化步骤：
+
+- 1、假如这个类还没有被加载和连接，则程序先加载并连接该类。
+- 2、假如该类的直接父类还没有被初始化，则先初始化其直接父类。
+- 3、假如类中有初始化语句，则系统依次执行这些初始化语句。
+
+## 4、双亲委派模型（Parent Delegation Model）
+
+**类加载器 ClassLoader 是具有层次结构的，也就是父子关系(是组合关系，而不是继承关系)**，如下图所示：
+
+![双亲委派模型](/Users/jack/Desktop/md/images/09.png)
+
+- Bootstrap ClassLoader ：根类加载器，负责加载 Java 的核心类，它不是 `java.lang.ClassLoader` 的子类，而是由 JVM 自身实现。
+
+  > 此处，说的是 Hotspot 的情况下。
+
+- Extension ClassLoader ：扩展类加载器，扩展类加载器的加载路径是 JDK 目录下 `jre/lib/ext` 。扩展加载器的 `getParent()` 方法返回 `null` ，**实际上扩展类加载器的父类加载器是根加载器，只是根加载器并不是 Java 实现的。**
+
+- System ClassLoader ：系统(应用)类加载器，它负责在 JVM 启动时加载来自 Java 命令的 `-classpath` 选项、`java.class.path` 系统属性或 `CLASSPATH` 环境变量所指定的 jar 包和类路径。程序可以通过 `getSystemClassLoader()` 来获取系统类加载器。**系统加载器的加载路径是程序运行的当前路径。**
+
+- ==该模型要求除了顶层的 Bootstrap 启动类加载器外，其余的类加载器都应当有自己的父类加载器。子类加载器和父类加载器不是以继承（Inheritance）的关系来实现，而是通过组合（Composition）关系来复用父加载器的代码。==简略代码如下：
+
+  ```Java
+  // java.lang.ClassLoader
+  
+  public abstract class ClassLoader {
+  
+      // ... 省略其它代码
+  
+      // The parent class loader for delegation
+      // Note: VM hardcoded the offset of this field, thus all new fields
+      // must be added *after* it.
+      private final ClassLoader parent;
+  
+  }
+  ```
+
+- **每个类加载器都有自己的命名空间（由该加载器及所有父类加载器所加载的类组成。)**
+
+  - 在同一个命名空间中，不会出现类的完整名字（包括类的包名）相同的两个类。
+  - 在不同的命名空间中，有可能会出现类的完整名字（包括类的包名）相同的两个类）。
+  - 类加载器负责加载所有的类，同一个类(一个类用其全限定类名(包名加类名)标志)只会被加载一次。
+
+###  **Java 虚拟机如何判定两个 Java 类是相同的？**
+
+​	Java 虚拟机不仅要看类的全名是否相同，还要看加载此类的类加载器是否一样。**只有两者都相同的情况，才认为两个类是相同的**。==即便是同样的字节代码，被不同的类加载器加载之后所得到的类，也是不同的。==
+
+​	比如一个 Java 类 `com.example.Sample` ，编译之后生成了字节代码文件 `Sample.class` 。两个不同的类加载器 ClassLoaderA 和 ClassLoaderB 分别读取了这个 `Sample.class` 文件，并定义出两个 `java.lang.Class` 类的实例来表示这个类。这两个实例是不相同的。对于 Java 虚拟机来说，它们是不同的类。试图对这两个类的对象进行相互赋值，会抛出运行时异常 ClassCastException 。
+
+### **双亲委派模型的工作过程**
+
+- 1、当前 ClassLoader 首先从自己已经加载的类中，查询是否此类已经加载，如果已经加载则直接返回原来已经加载的类。
+
+  > **每个类加载器都有自己的加载缓存，当一个类被加载了以后就会放入缓存，等下次加载的时候就可以直接返回了。**
+
+- 2、当前 ClassLoader 的缓存中没有找到被加载的类的时候
+
+  - **委托父类加载器去加载，父类加载器采用同样的策略，首先查看自己的缓存，然后委托父类的父类去加载，一直到 bootstrap ClassLoader。**
+  - 当所有的父类加载器都没有加载的时候，再由当前的类加载器加载，并将其放入它自己的缓存中，以便下次有加载请求的时候直接返回。
+
+源码如下：
+
+```Java
+// java.lang.ClassLoader
+
+protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+    synchronized (getClassLoadingLock(name)) {
+        // 首先，从缓存中获得 name 对应的类，查看这个类是否已经被加载
+        Class<?> c = findLoadedClass(name);
+        if (c == null) { // 获得不到
+            long t0 = System.nanoTime();
+            try {
+                // 其次，如果父类非空，使用它去继续加载类
+                if (parent != null) {
+                    c = parent.loadClass(name, false);
+                // 其次，如果父类为空，直接使用根类Bootstrap 去加载类
+                } else {
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+            }
+
+            if (c == null) { // 还是加载不到
+                // 最差，调用自己去加载类
+                long t1 = System.nanoTime();
+                c = findClass(name);
+            }
+        }
+        // 如果要解析类，则进行解析
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+}
+```
+
+#### **为什么优先使用父 ClassLoader 加载类？**
+
+- 1、**共享功能**：可以避免重复加载，当父亲已经加载了该类的时候，子类不需要再次加载，一些 Framework 层级的类一旦被顶层的 ClassLoader 加载过就缓存在内存里面，以后任何地方用到都不需要重新加载。
+
+- 2、**隔离功能**：主要是为了安全性，避免用户自己编写的类动态替换 Java 的一些核心类，比如 String ，同时也避免了重复加载，因为 JVM 中区分不同类，不仅仅是根据类名，相同的 class 文件被不同的 ClassLoader 加载就是不同的两个类，如果相互转型的话会抛 `java.lang.ClassCaseException` 。
+
+  > 这也就是说，即使我们自己定义了一个 `java.util.String` 类，也不会被重复加载。
+
+## 5、破坏双亲委托模型
+
+​	正如我们上面看到的源码，破坏双亲委托模型，需要做的是，`loadClass(String name, boolean resolve)` 方法中，不调用父 `parent` ClassLoader 方法去加载类，那么就成功了。那么我们要做的仅仅是，错误的覆盖 `loadClass(String name, boolean resolve)` 方法，不去使用父 `parent` ClassLoader 方法去加载类即可。
+
+可以深入看看如下文章：
+
+- [《Tomcat 类加载器之为何违背双亲委派模型》](https://blog.csdn.net/dangwanma6489/article/details/80244981)
+- [《真正理解线程上下文类加载器（多案例分析）》](https://blog.csdn.net/yangcheng33/article/details/52631940) 提供了多种打破双亲委托模型的案例。
+- [《深入拆解 Java 虚拟机》](http://gk.link/a/100kc) 的 [「第 9 章 类加载及执行子系统的案例与实战」](http://svip.iocoder.cn/Java/VirtualMachine/Interview/#)
+
+**如何自定义 ClassLoader 类？**
+
+直接参考 [《Java 自定义 ClassLoader 实现 JVM 类加载》](https://www.jianshu.com/p/3036b46f1188) 文章即可。
+
+![èå¾](/Users/jack/Desktop/md/images/f20e86724ff310733d7556bd203dc061.jpeg)
+
+参照：
+
+- [《Java 面试知识点解析(三)——JVM篇》](https://www.cnblogs.com/wmyskxz/p/9045972.html)
+- [《总结的 JVM 面试题》](https://www.jianshu.com/p/54eb60cfa7bd)
+- [《JAVA 对象创建的过程》](https://troywu0.gitbooks.io/spark/content/java%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E7%9A%84%E8%BF%87%E7%A8%8B.html)
+- [《Java 虚拟机详解 —— JVM 常见问题总结》](https://www.cnblogs.com/smyhvae/p/4810168.html)
 
 
 
