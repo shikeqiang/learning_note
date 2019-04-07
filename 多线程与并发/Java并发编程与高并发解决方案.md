@@ -1545,8 +1545,8 @@ public ConcurrentSkipListSet() {
 
 ![è¿éåå¾çæè¿°](/Users/jack/Desktop/md/images/70-20190130131322898.png)
 
-Sync queue：同步队列，是一个双向链表。包括head节点和tail节点。head节点主要用作后续的调度。 
-Condition queue：非必须，单向链表。当程序中存在cindition的时候才会存在此列表。
+==Sync queue：同步队列，是一个双向链表。包括head节点和tail节点。head节点主要用作后续的调度。 
+Condition queue：非必须，单向链表。当程序中存在cindition的时候才会存在此列表。==
 
 ### 2、AQS设计思想
 
@@ -1569,6 +1569,8 @@ Condition queue：非必须，单向链表。当程序中存在cindition的时�
 
 ​	AQS内部维护了一个CLH队列来管理锁。**线程会首先尝试获取锁，如果失败就将当前线程及等待状态等信息包装成一个node节点加入到同步队列sync queue里。** 
 ​	接着会不断的循环尝试获取锁，==条件是当前节点为head的直接后继才会尝试==。如果失败就会阻塞自己直到自己被唤醒。而当持有锁的线程释放锁的时候，会唤醒队列中的后继线程。
+
+底层是基于volatile和CAS实现的。
 
 ### 4、AQS组件：CountDownLatch
 
