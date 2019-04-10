@@ -1,40 +1,40 @@
 # NIO及其核心组件
 
-### 一、NIO简介
+# 一、NIO简介
 
-**Java NIO** 是 **java 1.4** 之后新出的一套IO接口，这里的的新是相对于原有标准的Java IO和Java Networking接口。NIO提供了一种完全不同的操作方式。
+​	**Java NIO** 是 **java 1.4** 之后新出的一套IO接口，这里的的新是相对于原有标准的Java IO和Java Networking接口。NIO提供了一种完全不同的操作方式。
 
 **它支持面向缓冲的，基于通道的I/O操作方法。** 随着JDK 7的推出，NIO系统得到了扩展，为文件系统功能和文件处理提供了增强的支持。 **由于NIO文件类支持的这些新的功能，NIO被广泛应用于文件处理。**
 
-netty就是基于NIO实现的，而netty又可以用于通信协议，如dubbo等
+​	==netty就是基于NIO实现的，而netty又可以用于通信协议，如dubbo等。==
 
-### 二、NIO特性/NIO和IO的差别
+# 二、NIO特性/NIO和IO的差别
 
-> **1 Channels and Buffers（通道和缓冲区）**
+## **1 Channels and Buffers（通道和缓冲区）**
 
 **==IO是面向流的，NIO是面向缓冲区的==**
 
 - 标准的IO编程接口是面向字节流和字符流的。而==NIO是面向通道和缓冲区的，数据总是从通道中读到buffer缓冲区内，或者从buffer缓冲区写入到通道中；（ NIO中的所有I/O操作都是通过一个通道开始的）==
 - Java IO面向流意味着每次从流中读一个或多个字节，直至读取所有字节，它们没有被缓存在任何地方；
-- Java NIO是面向缓存的I/O方法。 将数据读入缓冲器，使用通道进一步处理数据。 在NIO中，使用通道和缓冲区来处理I/O操作。
+- Java NIO是面向缓存的I/O方法。 将数据读入缓冲器，使用通道进一步处理数据。 **在NIO中，使用通道和缓冲区来处理I/O操作。**
 
-> **2 Non-blocking IO（非阻塞IO）**
+## **2 Non-blocking IO（非阻塞IO）**
 
 **==IO流是阻塞的，NIO流是不阻塞的==**。
 
 - Java NIO使我们可以进行非阻塞IO操作。比如说，单线程中从通道读取数据到buffer，同时可以继续做别的事情，当数据读取到buffer中后，线程再继续处理数据。写数据也是一样的。另外，非阻塞写也是如此。一个线程请求写入一些数据到某通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。
-- Java IO的各种流是阻塞的。这意味着，当一个线程调用read() 或 write()时，该线程被阻塞，直到有一些数据被读取，或数据完全写入。该线程在此期间不能再干任何事情了
+- **Java IO的各种流是阻塞的。这意味着，当一个线程调用read() 或 write()时，该线程被阻塞，直到有一些数据被读取，或数据完全写入。该线程在此期间不能再干任何事情了**
 
-> **3 Selectors（选择器）**
+## **3 Selectors（选择器）**
 
 **NIO有选择器，而IO没有。**
 
 - ==选择器用于使用单个线程处理多个通道。因此，它需要较少的线程来处理这些通道==。
 - 线程之间的切换对于操作系统来说是昂贵的。 因此，为了提高系统效率选择器是有用的。
 
-## 三 读数据和写数据方式
+# 三 读数据和写数据方式
 
-通常来说NIO中的所有IO都是从 **Channel（通道）** 开始的。
+​	通常来说NIO中的所有IO都是从 **Channel（通道）** 开始的。
 
 **从通道进行数据读取** ：创建一个缓冲区，然后请求通道读取数据。
 
@@ -42,9 +42,9 @@ netty就是基于NIO实现的，而netty又可以用于通信协议，如dubbo�
 
 数据读取和写入操作图示：
 
-![image-20190112093120063](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093120063-7256680.png)
+![image-20190112093120063](/Users/jack/Desktop/md/images/image-20190112093120063-7256680.png)
 
-## 四 NIO核心组件
+# 四 NIO核心组件
 
 NIO包含下面几个核心的组件：
 
@@ -54,13 +54,13 @@ NIO包含下面几个核心的组件：
 
 整个NIO体系包含的类远远不止这三个，只能说这三个是NIO体系的“核心API”。
 
-> ## 缓冲区(Buffer)
+## 1.缓冲区(Buffer)
 
-## 一、简介
+### 一、简介
 
-**Java NIO Buffers用于和NIO Channel交互。 我们从Channel中读取数据到buffers里，从Buffer把数据写入到Channels.**
+​	**Java NIO Buffers用于和NIO Channel交互。 我们从Channel中读取数据到buffers里，从Buffer把数据写入到Channels.**
 
-在Java NIO中使用的核心缓冲区如下（都是抽象类，覆盖了通过I/O发送的基本数据类型：byte, char、short, int, long, float, double ，long）：
+在Java NIO中使用的核心缓冲区如下（**都是抽象类**，覆盖了通过I/O发送的基本数据类型：byte, char、short, int, long, float, double ，long）：
 
 - ByteBuffer
 - CharBuffer
@@ -73,21 +73,21 @@ NIO包含下面几个核心的组件：
 #### 1.利用Buffer读写数据，通常遵循四个步骤：
 
 1. **把数据写入buffer；**
-2. **调用flip方法，进行翻转， 该限制设置为当前位置，然后将该位置设置为零。 ；**
+2. **调用flip方法，进行翻转， 该限制设置为当前位置，然后将该位置设置为零 ；**
 3. **从Buffer中读取数据；**
 4. **调用buffer.clear()或者buffer.compact()。**
 
-当写入数据到buffer中时，buffer会记录已经写入的数据大小。当需要读数据时，==通过 **flip()**方法把buffer从写模式调整为读模式；在读模式下，可以读取所有已经写入的数据。==
+​	当写入数据到buffer中时，buffer会记录已经写入的数据大小。当需要读数据时，==通过 **flip()**方法把buffer从写模式调整为读模式；在读模式下，可以读取所有已经写入的数据。==
 
-当读取完数据后，需要清空buffer，以满足后续写入操作。清空buffer有两种方式：调用 **clear()** 或 **compact()** 方法。==**clear会清空整个buffer，compact则只清空已读取的数据**，未被读取的数据会被移动到buffer的开始位置，写入位置则近跟着未读数据之后。==
+​	当读取完数据后，需要清空buffer，以满足后续写入操作。清空buffer有两种方式：调用 **clear()** 或 **compact()** 方法。==**clear会清空整个buffer，compact则只清空已读取的数据**，未被读取的数据会被移动到buffer的开始位置，写入位置则近跟着未读数据之后。==
 
 #### 2.Buffer的容量，位置，上限（Buffer Capacity, Position and Limit）
 
-**Buffer缓冲区实质上就是一块内存**，用于写入数据，也供后续再次读取数据。这块内存被NIO Buffer管理，并提供一系列的方法用于更简单的操作这块内存。
+​	**Buffer缓冲区实质上就是一块内存**，用于写入数据，也供后续再次读取数据。这块内存被NIO Buffer管理，并提供一系列的方法用于更简单的操作这块内存。
 
 一个Buffer有三个属性是必须掌握的，分别是：
 
-- **capacity 容量**
+- **capacity 容量**，缓冲区总的容量大小
 - **position 位置**，每次读/写数据都需要从一个确定的位置开始，最大可以达到capacity-1
 - **limit 限制**，写的时候是表示最大写入数量；读的时候表示最大能读到的数量
 
@@ -95,34 +95,34 @@ position和limit的具体含义取决于当前buffer的模式。capacity在读�
 
 **读写模式下position和limit的含义：**
 
-![image-20190112093206617](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093206617-7256726.png)
+![image-20190112093206617](/Users/jack/Desktop/md/images/image-20190112093206617-7256726.png)
 
 > 容量（Capacity）
 
-作为一块内存，==buffer有一个固定的大小，叫做capacity（容量）==。也就是最多只能写入容量值得字节，整形等数据。==一旦buffer写满了就需要**清空已读数据**以便下次继续写入新的数据。==
+​	作为一块内存，==buffer有一个固定的大小，叫做capacity（容量）==。也就是最多只能写入容量值得字节，整型等数据。==一旦buffer写满了就需要**清空已读数据**以便下次继续写入新的数据。==
 
 > 位置（Position）
 
-**当写入数据到Buffer的时候需要从一个确定的位置开始**，==默认初始化时这个位置position为0==，一旦写入了数据比如一个字节，整形数据，那么==position的值就会指向数据之后的一个单元==，**position最大可以到capacity-1.**
+​	**当写入数据到Buffer的时候需要从一个确定的位置开始**，==默认初始化时这个位置position为0==，一旦写入了数据比如一个字节，整形数据，那么==position的值就会指向数据之后的一个单元==，**position最大可以到capacity-1.**
 
-**当从Buffer读取数据时，也需要从一个确定的位置开始。buffer从写入模式变为读取模式时，position会归零，每次读取后，position向后移动。**
+​	**当从Buffer读取数据时，也需要从一个确定的位置开始。buffer从写入模式变为读取模式时，position会归零，每次读取后，position向后移动。**
 
 > 上限（Limit）
 
-在写模式，**limit的含义是我们所能写入的最大数据量，它等同于buffer的容量**，即表示能够读或者写的最大数据量。
+​	在写模式，**limit的含义是我们所能写入的最大数据量，它等同于buffer的容量**，即表示能够读或者写的最大数据量。
 
-一旦切换到读模式，**limit则代表我们所能读取的最大数据量，他的值等同于写模式下position的位置**。换句话说，您可以读取与写入数量相同的字节数（限制设置为写入的字节数，由位置标记）。
+​	一旦切换到读模式，**limit则代表我们所能读取的最大数据量，他的值等同于写模式下position的位置**。换句话说，您可以读取与写入数量相同的字节数（限制设置为写入的字节数，由位置标记）。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/152644_UfAI_2243330.png)
+![img](/Users/jack/Desktop/md/images/152644_UfAI_2243330.png)
 
-## 二 Buffer的常见方法
+### 二、Buffer的常见方法
 
 | 方法                                  | 介绍                                                         |
 | ------------------------------------- | :----------------------------------------------------------- |
 | abstract Object               array() | 返回支持此缓冲区的数组 （可选操作）                          |
 | abstract int arrayOffset()            | 返回该缓冲区的缓冲区的第一个元素的在数组中的**偏移量** （可选操作） |
 | int capacity()                        | 返回此缓冲区的容量                                           |
-| Buffer clear()                        | 清除此缓存区。将position = 0;limit = capacity;mark = -1;     |
+| Buffer clear()                        | 清除此缓存区。**将position = 0;limit = capacity;mark = -1;** |
 | Buffer flip()                         | **flip()方法可以把Buffer从写模式切换到读模式**。调用flip方法会把position归零，并设置limit为之前的position的值。 也就是说，现在position代表的是读取位置，limit标示的是已写入的数据位置，将读写的一些东西互换 |
 | abstract boolean hasArray()           | 告诉这个缓冲区是否由可访问的数组支持                         |
 | boolean hasRemaining()                | return   position < limit，返回是否还有未读内容              |
@@ -134,15 +134,15 @@ position和limit的具体含义取决于当前buffer的模式。capacity在读�
 | Buffer rewind()                       | 把position设为0，mark设为-1，不改变limit的值                 |
 | Buffer mark()                         | 将此缓冲区的标记设置在其位置                                 |
 
-## 三 Buffer的使用方式/方法介绍
+### 三、Buffer的使用方式/方法介绍
 
 > 分配缓冲区（Allocating a Buffer）
 
-为了获得缓冲区对象，我们必须首先分配一个缓冲区。在每个Buffer类中，==allocate()方法用于分配非直接缓冲区。==
+​	为了获得缓冲区对象，我们必须首先分配一个缓冲区。在每个Buffer类中，==allocate()方法用于分配非直接缓冲区。==
 
 下面来看看ByteBuffer分配容量为28**字节**的非直接缓冲区，例子：
 
-```
+```Java
 ByteBuffer buf = ByteBuffer.allocate(28);
 ```
 
@@ -166,11 +166,11 @@ CharBuffer buf = CharBuffer.allocate(2048);
  buf.put(127);	//通过put写数据
 ```
 
-put方法有很多不同版本，对应不同的写数据方法。例如把**数据写到特定的位置，或者把一个字节数据写入buffer**。看考JavaDoc文档可以查阅的更多数据。
+​	put方法有很多不同版本，对应不同的写数据方法。例如把**数据写到特定的位置，或者把一个字节数据写入buffer**。看考JavaDoc文档可以查阅的更多数据。
 
 > ###### 翻转（flip()）
 
-==flip()方法可以把Buffer从写模式切换到读模式。==调用flip方法会把position归零，并设置limit为之前的position的值。 也就是说，现在**position代表的是读取位置，limit标示的是已写入的数据位置。**
+​	==flip()方法可以把Buffer从写模式切换到读模式。==调用flip方法会把position归零，并设置limit为之前的position的值。 也就是说，现在**position代表的是读取位置，limit标示的是已写入的数据位置。**
 
 > **从Buffer读取数据（Reading Data from a Buffer）**
 
@@ -199,17 +199,17 @@ Buffer.rewind()方法将position置为0，这样我们可以**重复读取buffer
 
 > **clear() and compact()**
 
-一旦我们从buffer中读取完数据，需要复用buffer为下次写数据做准备。只需要调用clear（）或compact（）方法。
+​	一旦我们从buffer中读取完数据，需要复用buffer为下次写数据做准备。只需要调用clear（）或compact（）方法。
 
-==如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。==
+​	==如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。==
 
-如果Buffer还有一些数据没有读取完，调用clear就会导致这部分数据被“遗忘”，因为我们没有标记这部分数据未读。
+​	如果Buffer还有一些数据没有读取完，调用clear就会导致这部分数据被“遗忘”，因为我们没有标记这部分数据未读。
 
-针对这种情况，如果需要保留未读数据，那么可以使用compact。 因此 **compact()** 和 **clear()** 的区别就在于: **对未读数据的处理，是保留这部分数据还是一起清空** 。
+​	针对这种情况，如果需要保留未读数据，那么可以使用compact。 因此 **compact()** 和 **clear()** 的区别就在于: **对未读数据的处理，是保留这部分数据还是一起清空** 。
 
 > **mark()与reset()方法**
 
-通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用**Buffer.reset()**方法恢复到这个position。即先给一个位置做标识，后面可以直接跳到这个位置。例如：
+​	通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用**Buffer.reset()**方法恢复到这个position。即先给一个位置做标识，后面可以直接跳到这个位置。例如：
 
 ```
 buffer.mark();//call buffer.get() a couple of times, e.g. during parsing.buffer.reset();  //set position back to mark.    
@@ -233,9 +233,9 @@ buffer.mark();//call buffer.get() a couple of times, e.g. during parsing.buffer.
 
 compareTo也是比较buffer中的剩余元素，只不过这个方法适用于比较排序的。
 
-> ## 通道
+## 2.通道
 
-#### 一 Channel（通道）介绍
+### 一、Channel（通道）介绍
 
 **通常来说NIO中的所有IO都是从 Channel（通道） 开始的。**
 
@@ -244,12 +244,12 @@ compareTo也是比较buffer中的剩余元素，只不过这个方法适用于�
 
 **数据读取和写入操作图示：**
 
-![image-20190115093729588](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190115093729588-7516249.png)
+![image-20190115093729588](/Users/jack/Desktop/md/images/image-20190115093729588-7516249.png)
 
 ##### Java NIO Channel通道和流非常相似，主要有以下几点区别：
 
 - **==通道可以读也可以写，流一般来说是单向的==（只能读或者写，所以之前我们用流进行IO操作的时候需要分别创建一个输入流和一个输出流）。**
-- **通道可以异步读写。**
+- **==通道可以异步读写。==**
 - **通道总是基于缓冲区Buffer来读写**
 
 在Java NIO中，主要使用的通道如下（**都是抽象类**，涵盖了UDP 和 TCP 网络IO，以及文件IO）：
@@ -259,9 +259,9 @@ compareTo也是比较buffer中的剩余元素，只不过这个方法适用于�
 - **SocketChannel：** 用于TCP的数据读写，一般是客户端实现
 - **ServerSocketChannel:** 允许我们==监听TCP连接请求，每个请求会创建会一个SocketChannel==，一般是服务器实现
 
-#### 二 FileChannel的使用
+### 二、FileChannel的使用
 
-##### **使用FileChannel读取数据到Buffer（缓冲区）以及利用Buffer（缓冲区）写入数据到FileChannel：**
+**使用FileChannel读取数据到Buffer（缓冲区）以及利用Buffer（缓冲区）写入数据到FileChannel：**
 
 ```Java
 package filechannel;
@@ -283,7 +283,6 @@ public class FileChannelTxt{
 		ByteBuffer buf2 = ByteBuffer.allocate(48);
 		// 写入数据
 		buf2.put("filechannel test".getBytes());
-        
         //flip()方法可以把Buffer从写模式切换到读模式。调用flip方法会把position归零，并设置limit为之前的position的值。 也就是说，现在position代表的是读取位置，limit标示的是已写入的数据位置，将读写的一些东西互换
 		buf2.flip();
 		inChannel.write(buf);
@@ -306,11 +305,11 @@ public class FileChannelTxt{
 }
 ```
 
-通过上述实例代码，我们可以大概总结出FileChannel的一般使用规则：
+#### FileChannel的一般使用规则：
 
-> #### 1. 开启FileChannel
+##### 1. 开启FileChannel
 
-**使用之前，FileChannel必须被打开** ，但是你无法直接打开FileChannel（FileChannel是抽象类）。==需要通过 **FileInputStream** ， **FileOutputStream** 或 **RandomAccessFile**的getChannel方法 获取FileChannel。==
+​	**使用之前，FileChannel必须被打开** ，但是你无法直接打开FileChannel（FileChannel是抽象类）。==需要通过 **FileInputStream** ， **FileOutputStream** 或 **RandomAccessFile**的getChannel方法 获取FileChannel。==
 
 我们上面的例子是通过RandomAccessFile打开FileChannel的：
 
@@ -321,9 +320,9 @@ public class FileChannelTxt{
         FileChannel inChannel=raf.getChannel();
 ```
 
-> #### 2. 从FileChannel读取数据/写入数据
+##### 2. 从FileChannel读取数据/写入数据
 
-**从FileChannel中读取数据/写入数据之前首先要创建一个Buffer（缓冲区）对象**
+​	**从FileChannel中读取数据/写入数据之前首先要创建一个Buffer（缓冲区）对象**
 
 **使用FileChannel的read()方法读取数据：**
 
@@ -345,21 +344,21 @@ public class FileChannelTxt{
         inChannel.write(buf);
 ```
 
-> #### 3. 关闭FileChannel
+##### 3. 关闭FileChannel
 
-完成使用后，FileChannel您必须关闭它。
+完成使用后，FileChannel必须关闭它。
 
 ```
 channel.close（）;    
 ```
 
-#### 三 SocketChannel和ServerSocketChannel的使用
+### 三、SocketChannel和ServerSocketChannel的使用
 
-**利用SocketChannel和ServerSocketChannel==实现客户端与服务器端简单通信==：**一个是客户端，一个是服务器端
+​	**利用SocketChannel和ServerSocketChannel==实现客户端与服务器端简单通信==：**一个是客户端，一个是服务器端
 
-**SocketChannel** 用于创建基于tcp协议的客户端对象，因为SocketChannel中不存在accept()方法，所以，它不能成为一个服务端程序。==通过 **connect()方法** ，SocketChannel对象可以连接到其他tcp服务器程序。==
+​	**SocketChannel** 用于创建基于tcp协议的客户端对象，因为SocketChannel中不存在accept()方法，所以，它不能成为一个服务端程序。==通过 **connect()方法** ，SocketChannel对象可以连接到其他tcp服务器程序。==
 
-客户端:
+客户端(后启动):
 
 ```Java
 package socketchannel;
@@ -394,9 +393,9 @@ public class WebClient{
 }
 ```
 
-==**ServerSocketChannel** 允许我们监听TCP链接请求，通过ServerSocketChannelImpl的 **accept()方法** 可以创建一个SocketChannel对象用户从客户端读/写数据。==
+​	==**ServerSocketChannel** 允许我们监听TCP链接请求，通过ServerSocketChannelImpl的 **accept()方法** 可以创建一个SocketChannel对象用户从客户端读/写数据。==
 
-服务端：
+服务端(先启动)：
 
 ```Java
 package socketchannel;
@@ -439,9 +438,9 @@ public class WebServer{
 }
 ```
 
-通过上述实例代码，我们可以大概总结出SocketChannel和ServerSocketChannel的使用的一般使用规则：
+#### SocketChannel和ServerSocketChannel的使用的一般使用规则：
 
-#### 客户端
+##### 客户端
 
 > ##### 1.通过SocketChannel的open方法，连接到远程服务器，open方法的参数是IP和端口号
 >
@@ -449,7 +448,7 @@ public class WebServer{
 >
 > ##### 3.用close方法关闭SocketChannel
 
-#### 服务端
+##### 服务端
 
 > ##### 1.通过ServerSocketChannel 绑定ip地址和端口号，与客户端的一致
 >
@@ -459,11 +458,11 @@ public class WebServer{
 >
 > ##### 4. 关闭SocketChannel和ServerSocketChannel
 
-#### 四 ️DatagramChannel的使用
+### 四 ️DatagramChannel的使用
 
-DataGramChannel，类似于java 网络编程的DatagramSocket类；==使用UDP进行网络传输==， **UDP是无连接，面向数据报文段的协议，对传输的数据不保证安全与完整** ；和上面介绍的SocketChannel和ServerSocketChannel的使用方法类似，所以这里就简单介绍一下如何使用。
+​	DataGramChannel，类似于java 网络编程的DatagramSocket类；==使用UDP进行网络传输==， **UDP是无连接，面向数据报文段的协议，对传输的数据不保证安全与完整** ；和上面介绍的SocketChannel和ServerSocketChannel的使用方法类似，所以这里就简单介绍一下如何使用。
 
-> #### 1.获取DataGramChannel
+#### 1.获取DataGramChannel
 
 ```Java
         //1.通过DatagramChannel的open()方法创建一个DatagramChannel对象
@@ -474,11 +473,11 @@ DataGramChannel，类似于java 网络编程的DatagramSocket类；==使用UDP�
 
 ==上面代码表示程序可以在1234端口接收数据报。==
 
-> #### 2.接收/发送消息
+#### 2.接收/发送消息
 
 **接收消息：**
 
-先创建一个缓存区对象，然后通过receive方法接收消息，这个方法返回一个SocketAddress对象，表示发送消息方的地址：
+​	先创建一个缓存区对象，然后通过receive方法接收消息，这个方法返回一个SocketAddress对象，表示发送消息方的地址：
 
 ```
 ByteBuffer buf = ByteBuffer.allocate(48);
@@ -500,11 +499,11 @@ int send = channel.send(buffer, new InetSocketAddress("localhost",1234));
 
 这个例子发送一串字符：“datagramchannel”到主机名为”localhost”服务器的端口1234上。
 
-#### 五 Scatter / Gather
+### 五 Scatter / Gather
 
-Channel 提供了一种被称为 Scatter/Gather 的新功能，也称为==本地矢量 I/O==。**Scatter/Gather 是指在多个缓冲区上实现一个简单的 I/O 操作。正确使用 Scatter / Gather可以明显提高性能。**
+​	Channel 提供了一种被称为 Scatter/Gather 的新功能，也称为==本地矢量 I/O==。**Scatter/Gather 是指在多个缓冲区上实现一个简单的 I/O 操作。正确使用 Scatter / Gather可以明显提高性能。**
 
-大多数现代操作系统都支持本地矢量I/O（native vectored I/O）操作。当您在一个通道上请求一个Scatter/Gather操作时，该请求会被翻译为适当的本地调用来直接填充或抽取缓冲区，减少或避免了缓冲区拷贝和系统调用；
+​	大多数现代操作系统都支持本地矢量I/O（native vectored I/O）操作。当您在一个通道上请求一个Scatter/Gather操作时，该请求会被翻译为适当的本地调用来直接填充或抽取缓冲区，减少或避免了缓冲区拷贝和系统调用；
 
 ==Scatter/Gather应该使用直接的ByteBuffers以从本地I/O获取最大性能优势。==
 
@@ -517,7 +516,7 @@ Channel 提供了一种被称为 Scatter/Gather 的新功能，也称为==本地
 
 =="scattering read"是把数据从单个Channel写入到多个buffer==,如下图所示：
 
-![image-20190112093414109](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093414109-7256854.png)
+![image-20190112093414109](/Users/jack/Desktop/md/images/image-20190112093414109-7256854.png)
 
 示例代码：
 
@@ -528,7 +527,7 @@ ByteBuffer[] bufferArray = { header, body };
 channel.read(bufferArray);
 ```
 
-read()方法内部会负责把数据**按顺序**写进传入的buffer数组内。==一个buffer写满后，接着写到下一个buffer中。==
+​	read()方法内部会负责把数据**按顺序**写进传入的buffer数组内。==一个buffer写满后，接着写到下一个buffer中。==
 
 举个例子，假如通道中有200个字节数据，那么header会被写入128个字节数据，body会被写入72个字节数据；
 
@@ -538,7 +537,7 @@ read()方法内部会负责把数据**按顺序**写进传入的buffer数组内�
 
 #### Gathering Writes
 
-**"gathering write"把多个buffer的数据写入到同一个channel中**，下面是示意图：![image-20190112093437129](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093437129-7256877.png)
+**"gathering write"把多个buffer的数据写入到同一个channel中**，下面是示意图：![image-20190112093437129](/Users/jack/Desktop/md/images/image-20190112093437129-7256877.png)
 
 示例代码：
 
@@ -553,38 +552,38 @@ channel.write(bufferArray);
 
 **注意：**
 
-并不是所有数据都写入到通道，写入的数据要根据position和limit的值来判断，==只有position和limit之间的数据才会被写入；==
+​	并不是所有数据都写入到通道，写入的数据要根据position和limit的值来判断，==只有position和limit之间的数据才会被写入；==
 
 举个例子，假如以上header缓冲区中有128个字节数据，但此时position=0，limit=58；那么只有下标索引为0-57的数据才会被写入到通道中。
 
-#### 六 通道之间的数据传输
+### 六 通道之间的数据传输
 
 **在Java NIO中如果一个channel是FileChannel类型的，那么他可以直接把数据传输到另一个channel。**
 
 - **transferFrom()** :transferFrom方法把数据从通道源传输到FileChannel
 - **transferTo()** :transferTo方法把FileChannel数据传输到另一个channel
 
-> ### 选择器
+## 3.选择器
 
-#### 一 Selector（选择器）介绍
+### 一、Selector（选择器）介绍
 
-**Selector** 一般称 为**选择器** ，当然你也可以翻译为 **多路复用器** 。它是Java NIO核心组件中的一个，用于检查一个或多个NIO Channel（通道）的状态是否处于可读、可写。如此可以实现==单线程管理多个channels==,也就是可以管理多个网络链接。
+​	**Selector** 一般称 为**选择器** ，当然你也可以翻译为 **多路复用器** 。它是Java NIO核心组件中的一个，用于检查一个或多个NIO Channel（通道）的状态是否处于可读、可写。如此可以实现==单线程管理多个channels==,也就是可以管理多个网络链接。
 
 **==使用Selector的好处在于==：** 使用更少的线程来就可以来处理通道了， 相比使用多个线程，避免了**线程上下文切换带来的开销。**
 
-Java NIO提供了“选择器”的概念。这是一个==可以用于监视多个通道的对象，如数据到达，连接打开等==。因此，单线程可以监视多个通道中的数据。
+​	Java NIO提供了“选择器”的概念。这是一个==可以用于监视多个通道的对象，如数据到达，连接打开等==。因此，单线程可以监视多个通道中的数据。
 
 **如果应用程序有多个通道(连接)打开，但每个连接的流量都很低**，则可考虑使用它。 例如：在聊天服务器中。
 
 下面是一个单线程中Slector维护3个Channel的示意图：
 
-![image-20190112093731825](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093731825-7257052.png)
+![image-20190112093731825](/Users/jack/Desktop/md/images/image-20190112093731825-7257052.png)
 
-**要使用Selector的话，我们必须==把Channel注册到Selector上，然后就可以调用Selector的select()方法。==这个方法会进入阻塞，直到有一个channel的状态符合条件。当方法返回后，线程可以处理这些事件。**
+​	**要使用Selector的话，我们必须==把Channel注册到Selector上，然后就可以调用Selector的select()方法。==这个方法会进入阻塞，直到有一个channel的状态符合条件。当方法返回后，线程可以处理这些事件。**
 
-#### 二 Selector（选择器）的使用方法介绍
+### 二、Selector（选择器）的使用方法介绍
 
-##### 1. Selector的创建
+#### 1. Selector的创建
 
 通过调用Selector.open()方法创建一个Selector对象，如下：
 
@@ -592,35 +591,33 @@ Java NIO提供了“选择器”的概念。这是一个==可以用于监视多�
 Selector selector = Selector.open();
 ```
 
-这里需要说明一下
-
-##### 2. 注册Channel到Selector
+#### 2. 注册Channel到Selector
 
 ```
 channel.configureBlocking(false);
 SelectionKey key = channel.register(selector, Selectionkey.OP_READ);
 ```
 
-**Channel必须是非阻塞的**。 所以FileChannel不适用Selector，==因为FileChannel不能切换为非阻塞模式==，更准确的来说是因为FileChannel没有继承SelectableChannel。==Socket channel可以正常使用。==
+​	**Channel必须是非阻塞的**。 所以FileChannel不适用Selector，==因为FileChannel不能切换为非阻塞模式==，更准确的来说是因为FileChannel没有继承SelectableChannel。==Socket channel可以正常使用。==
 
-**SelectableChannel抽象类** 有一个 **configureBlocking（）** 方法用于**==使通道处于阻塞模式或非阻塞模式。==**，如果参数是false的话，即为非阻塞
+​	**SelectableChannel抽象类** 有一个 **configureBlocking（）** 方法用于**==使通道处于阻塞模式或非阻塞模式。==**，如果参数是false的话，即为非阻塞
 
 ```
 abstract SelectableChannel configureBlocking(boolean block)  
 ```
 
-### **==注意：==**
+##### **==注意：==**
 
-**SelectableChannel抽象类**的**configureBlocking（）** 方法是由 **AbstractSelectableChannel抽象类**实现的，**SocketChannel、ServerSocketChannel、DatagramChannel**都是直接继承了 **AbstractSelectableChannel抽象类** 。 
+​	**SelectableChannel抽象类**的**configureBlocking（）** 方法是由 **AbstractSelectableChannel抽象类**实现的，**SocketChannel、ServerSocketChannel、DatagramChannel**都是直接继承了 **AbstractSelectableChannel抽象类** 。 
 
-**register()** 方法的第二个参数。这是一个“ **interest集合** ”，意思是在**通过Selector监听Channel时对什么事件感兴趣**。可以监听四种不同类型的事件，**各种就绪事件**：
+​	**register()** 方法的第二个参数。这是一个“ **interest集合** ”，意思是在**通过Selector监听Channel时对什么事件感兴趣**。可以监听四种不同类型的事件，**各种就绪事件**：
 
 - **Connect**
 - **Accept**
 - **Read**
 - **Write**
 
-通道触发了一个事件意思是该事件已经就绪。比如某个Channel成功连接到另一个服务器称为“ **连接就绪** ”。一个Server Socket Channel准备好接收新进入的连接称为“ **接收就绪**”。一个有数据可读的通道可以说是“ **读就绪** ”。等待写数据的通道可以说是“ **写就绪**”。
+​	**通道触发了一个事件意思是该事件已经就绪。**比如某个Channel成功连接到另一个服务器称为“ **连接就绪** ”。一个Server Socket Channel准备好接收新进入的连接称为“ **接收就绪**”。一个有数据可读的通道可以说是“ **读就绪** ”。等待写数据的通道可以说是“ **写就绪**”。
 
 这四种事件用SelectionKey的四个常量来表示：
 
@@ -752,7 +749,7 @@ while(keyIterator.hasNext()) {
 - **wakeup()方法** ：通过调用Selector对象的wakeup（）方法让处在阻塞状态的select()方法立刻返回。该方法使得选择器上的第一个还没有返回的选择操作立即返回。如果当前没有进行中的选择操作，那么下一次对select()方法的一次调用将立即返回。
 - **close()方法** ：通过close（）方法关闭Selector， 该方法使得任何一个在选择操作中阻塞的线程都被唤醒（类似wakeup（）），==同时使得注册到该Selector的所有Channel被注销，所有的键将被取消，但是Channel本身并不会关闭。==
 
-#### 三 模板代码
+### 三、模板代码
 
 **一个服务端的模板代码：**
 
@@ -789,7 +786,7 @@ while(true){
 }
 ```
 
-#### 四 客户端与服务端简单交互实例
+### 四、客户端与服务端简单交互实例
 
 ##### **服务端：**
 
@@ -891,7 +888,7 @@ public class WebClient{
 
 **运行结果：**
 
-先运行服务端，再运行客户端，服务端会不断收到客户端发送过来的消息。
+**先运行服务端，再运行客户端，服务端会不断收到客户端发送过来的消息。**
 
 
 

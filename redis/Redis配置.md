@@ -1,4 +1,4 @@
-# Redis配置
+# shRedis配置
 
 ## 1.Redis备份(持久化)
 
@@ -187,7 +187,7 @@ aof-load-truncated yes
 
   ##### 	==**Redis 在默认情况下会采用 noeviction 策略。换句话说，如果内存己满 ， 则不再提供写入操作 ，而只提供读取操作 。**==显然这往往并不能满足我们的要求，因为对于互联网系统而 言 ， 常常会涉及数以百万甚至更多的用户 ， 所以往往需要设置回收策略。 
 
-  ​	这里需要指出的是 : **LRU 算法或者 TTL 算法都是不是很精确算法，而是一个近似的算法。** Redis不会通过对全部的键值对进行比较来确定最精确的时间值，从而确定删除哪个键值对，因为这将消耗太多的时间，导致回收垃圾执行的时间太长，造成服务停顿。而在 Redis 的默认配置文件中，存在着参数 maxmemo-samples，它的默认值为 3，假设采取了 volatile-ttl算法，让我们去了解这样的一个回收的过程，假设当前有 5 个即将超时的键值对， 如表所示 。  ![image-20181217155413513](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217155413513-5033253.png)
+  ​	这里需要指出的是 : **LRU 算法或者 TTL 算法都是不是很精确算法，而是一个近似的算法。** Redis不会通过对全部的键值对进行比较来确定最精确的时间值，从而确定删除哪个键值对，因为这将消耗太多的时间，导致回收垃圾执行的时间太长，造成服务停顿。而在 Redis 的默认配置文件中，存在着参数 maxmemo-samples，它的默认值为 3，假设采取了 volatile-ttl算法，让我们去了解这样的一个回收的过程，假设当前有 5 个即将超时的键值对， 如表所示 。  ![image-20181217155413513](/Users/jack/Desktop/md/images/image-20181217155413513-5033253.png)
 
   ​	由于配置 maxmemory-samples 的值为 3，如果 Redis 是按表中的顺序探测，那么它只会取到样本 Al、 A2, A3，然后进行比较，因为 A2 过期剩余秒数最少，**所以决定淘汰 A2,因此 A2是最先被删除的。**注意，此时即将过期且剩余超时秒数最短的 A4却还在内存中，因为它不属于探测样本。这就是 Redis 中采用的近似算法。==当设置 maxmemory-samples 越大，则 Redis 删除的就越精确，==但是与此同时带来不利的是，Redis 也就需要花更多的时间去计算和l匹配更为精确的值 。
 
@@ -203,11 +203,11 @@ aof-load-truncated yes
 
 - 存在多台从服务器，从服务器不写入数据，**只负责同步主服务器的数据，并让外部程序读取数据。** 
 
-- 主服务器在写入数据后，即刻将写入数据的命令发送给从服务器，从而使得主从数 据同步。 
+- ==主服务器在写入数据后，即刻将写入数据的命令发送给从服务器，从而使得主从数据同步==。 
 
 - 应用程序可以随机读取某一台从服务器的数据， 这样就分摊了读数据的压力。
 
-- **==当从服务器不能工作的时候，整个系统将不受影响；当主服务器不能工作的时候，可以方便地从从服务器中选举一 台来当主服务器 。==**![image-20181217160258317](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217160258317-5033778.png)
+- **==当从服务器不能工作的时候，整个系统将不受影响；当主服务器不能工作的时候，可以方便地从从服务器中选举一 台来当主服务器 。==**![image-20181217160258317](/Users/jack/Desktop/md/images/image-20181217160258317-5033778.png)
 
 ### 3.2 Redis 主从同步配置 
 
@@ -225,11 +225,11 @@ slaveof server port
 
 ### 3.3 Redis 主从同步的过程
 
-##### 	Redis主从同步过程图如下：![image-20181217161915988](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217161915988-5034756.png)
+##### 	Redis主从同步过程图如下：![image-20181217161915988](/Users/jack/Desktop/md/images/image-20181217161915988-5034756.png)
 
 (1) 无论如何要先保证开启主服务器，开启主服务器后，**从服务器通过命令或者重启配置项可以同步到主服务器。** 
 
-(2)**当从服务器启动时，读取同步的配置，根据配置决定是否使用当前数据响应客户端，然后发送 SYNC 命令。**当主服务器接收到同步命令的时候，就会执行==bgsave==命令备份数据，**但是==主服务器并不会拒绝客户端的读/写，而是将来自客户端的写命令写入缓冲区==。**从服务器未收到主服务器备份的快照文件的时候，**会根据其配置决定使用现有数据响应客户端或者拒绝。** 
+(2) **当从服务器启动时，读取同步的配置，根据配置决定是否使用当前数据响应客户端，然后发送 SYNC 命令。**当主服务器接收到同步命令的时候，就会执行==bgsave==命令备份数据，**但是==主服务器并不会拒绝客户端的读/写，而是将来自客户端的写命令写入缓冲区==。**从服务器未收到主服务器备份的快照文件的时候，**会根据其配置决定使用现有数据响应客户端或者拒绝。** 
 
 (3)**当bgsave命令被主服务器执行完后，开始向从服务器发送备份文件，这个时候从服务器就会丢弃所有现有的数据，开始载入发送的快照文件。** 
 
@@ -239,7 +239,7 @@ slaveof server port
 
 ​	只是在主服务器同步到从服务器的过程中，需要备份文件，所以在配置的时候一般需要预留 一些内存空间给主服务器，用以腾出空间执行备份命令。 一般来说主服务器使用 50%~65%的内存 空间 ，为主从复制留下可用的内存空间。 
 
-![image-20181217163557060](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217163557060-5035757.png)
+![image-20181217163557060](/Users/jack/Desktop/md/images/image-20181217163557060-5035757.png)
 
 ​	如果出现多台同步，可能会出现频繁等待和频繁操作 bgsave 命令的情况，导致主机在较长时间里性能不佳，这个时候我们会考虑主从链进行同步的机制，以减少这种可能 。
 
@@ -247,42 +247,42 @@ slaveof server port
 
 ​	Redis可以存在多台服务器，并且实现了主从复制的功能。哨兵模式是一种特殊的模式，首先 Redis提供了哨兵的命令，哨兵是一个独立的进程，作为进程，它会独立运行。**==其原理是哨兵通过发送命令， 等待Redis服务器响应，从而监控运行的多个Redis实例。==**
 
-![image-20181217165016332](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217165016332-5036616.png)
+![image-20181217165016332](/Users/jack/Desktop/md/images/image-20181217165016332-5036616.png)
 
 这里的哨兵有两个作用 :
 
 - **==通过发送命令，让Redis服务器返回监测其运行状态，包括主服务器和从服务器。==** 
 
-- **==当哨兵监测到 master 看机， 会自动将 slave 切换成 master，然后通过发布订阅模式通知到其他的从服务器，修改配置文件，让它们切换主机 。==** 
+- **==当哨兵监测到 master 宕机， 会自动将 slave 切换成 master，然后通过发布订阅模式通知到其他的从服务器，修改配置文件，让它们切换主机 。==** 
 
-  ​	但其实在使用的过程中会通过多个哨兵进行监控，即哨兵不但监控Redis服务器，哨兵之间也在相互监控着，判断哨兵是否“存活”。
+  ​	但其实在使用的过程中会通过多个哨兵进行监控，**即哨兵不但监控Redis服务器，哨兵之间也在相互监控着，判断哨兵是否“存活”。**
 
 ##### 故障切换(failover)处理过程：
 
-​	假设主服务器岩机，哨兵1先监测到这个结果，当时系统并不会马上进行 failover操作 ，而仅仅是哨兵 l 主观地认为 主机己经不可用，这个现象被称为**主观下线**。**当后面的哨兵监测也监测到了主服务器不可用 ， 并且有了 一 定数量的哨兵认为主服务器不可用，那么哨兵之间就会形成一次投票，**投票的结果由一个哨兵发起，进行 failover操作，在 failover操作的过程中切换成功后，就会通过**==发布订阅方式==**，让各个哨兵把自己监控的服务器实现切换主机 ，这个过程被称为**客观下线**。这样对于客户端而言， 一切都是透明的，即不可见的。![image-20181217165742172](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217165742172-5037062.png)
+​	假设主服务器岩机，哨兵1先监测到这个结果，当时系统并不会马上进行 failover操作 ，而仅仅是哨兵 l 主观地认为 主机己经不可用，这个现象被称为**主观下线**。**当后面的哨兵监测也监测到了主服务器不可用 ， 并且有了 一 定数量的哨兵认为主服务器不可用，那么哨兵之间就会形成一次投票，**投票的结果由一个哨兵发起，进行 failover操作，在 failover操作的过程中切换成功后，就会通过**==发布订阅方式==**，让各个哨兵把自己监控的服务器实现切换主机 ，这个过程被称为**客观下线**。这样对于客户端而言， 一切都是透明的，即不可见的。![image-20181217165742172](/Users/jack/Desktop/md/images/image-20181217165742172-5037062.png)
 
 ### 4.1 搭建哨兵模式
 
 ​	配置 3 个哨兵和 l 主 2 从的 Redis 服务器来演示这个过程。
 
-![image-20181217171147234](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217171147234-5037907.png)
+![image-20181217171147234](/Users/jack/Desktop/md/images/image-20181217171147234-5037907.png)
 
-​	结构就是如上图所示，下面是修改Redis配置文件：![image-20181217171231903](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217171231903-5037951.png)
+​	结构就是如上图所示，下面是修改Redis配置文件：![image-20181217171231903](/Users/jack/Desktop/md/images/image-20181217171231903-5037951.png)
 
 ​	上述内容主要是配置 Redis服务器，**从服务器比主服务器多一个 slaveof的配置和密码**， **这里配置的 bind使得 Redis服务器可以跨网段访问 。 而对于外部的访问还需要提供密码，** 因此还提供了==requirepass==的配置，用以配置密码 ，这样就配置完了 3 台服务器 。 
 
-​	**配置3个哨兵 ，每一个哨兵的配置都是一样的** ，在 Redis 安装目录下可以找到 sentinel.conf文件，然后对其进行修改。下面对 3 个哨兵的这个文件作出修改，同样也是在原有的基础上进行修改 ，如下所示。 ![image-20181217171450592](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217171450592-5038090.png)
+​	**配置3个哨兵 ，每一个哨兵的配置都是一样的** ，在 Redis 安装目录下可以找到 sentinel.conf文件，然后对其进行修改。下面对 3 个哨兵的这个文件作出修改，同样也是在原有的基础上进行修改 ，如下所示。 ![image-20181217171450592](/Users/jack/Desktop/md/images/image-20181217171450592-5038090.png)
 
 启动哨兵模式：
 
-```
+```xml
 #启动哨兵进程
 . / redis-sentinel ../sentinel.conf 
 #启动 Redis 服务器进程
 ./redis-server ../redis.conf
 ```
 
-​	注意服务器启动的顺序 ， **首先是主机 (192.168.11.128) 的 Redis 服务进程 ， 然后启动从机的服务进程，最后启动 3 个哨 兵的服务进程。**这里可以从哨兵启动的输出窗口看一下哨兵监控信息 ，![image-20181217171614771](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217171614771-5038174.png)
+​	注意服务器启动的顺序 ， **首先是主机 (192.168.11.128) 的 Redis 服务进程 ， 然后启动从机的服务进程，最后启动 3 个哨 兵的服务进程。**这里可以从哨兵启动的输出窗口看一下哨兵监控信息 ，![image-20181217171614771](/Users/jack/Desktop/md/images/image-20181217171614771-5038174.png)
 
 ### 4.2 在Java中使用哨兵模式
 
@@ -320,17 +320,17 @@ System.out.println(myvalue);
 
 ##### 在spring中使用哨兵模式：
 
-​	![image-20181217173117013](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217173117013-5039077.png)
+​	![image-20181217173117013](/Users/jack/Desktop/md/images/image-20181217173117013-5039077.png)
 
-![image-20181217173132804](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217173132804-5039092.png)
+![image-20181217173132804](/Users/jack/Desktop/md/images/image-20181217173132804-5039092.png)
 
-![image-20181217173150632](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217173150632-5039110.png) 
+![image-20181217173150632](/Users/jack/Desktop/md/images/image-20181217173150632-5039110.png) 
 
 ### 4.3 哨兵模式的其他配置项
 
-![image-20181217173356887](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217173356887-5039236.png)
+![image-20181217173356887](/Users/jack/Desktop/md/images/image-20181217173356887-5039236.png)
 
-![image-20181217173408575](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217173408575-5039248.png)
+![image-20181217173408575](/Users/jack/Desktop/md/images/image-20181217173408575-5039248.png)
 
 ​	**sentinel down-after-milliseconds 配置项只是一个哨兵在超过其指定的毫秒数依旧没有得到回答消息后，会自己认为主机不可用。**对于其他哨兵而言，并不会认为主机不可用。哨兵会记录这个消息， 当拥有认为主观下线的哨兵到达 sentinel monitor所配置的数量的时候， 就会发起一次新的投票， 然后切换主机，此时哨兵会重写 Redis 的哨兵配置文件， 以适应新场景 的需要。	
 

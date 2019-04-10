@@ -28,14 +28,14 @@
 
 #### **1） 输入字节流InputStream**（要输入首先就先要读取数据）：
 
-- **ByteArrayInputStream、StringBufferInputStream、FileInputStream** 是三种基本的介质流，它们分别从Byte 数组、StringBuffer、和本地文件中**读取**数据。
+- **ByteArrayInputStream、StringBufferInputStream、FileInputStream** 是三种基本的介质流，它们分别从Byte 数组、StringBuffer、和本地文件中读取数据。
 - **PipedInputStream** 是从与其它线程共用的管道中读取数据。PipedInputStream的一个实例要和PipedOutputStream的一个实例共同使用，共同完成管道的读取写入操作。主要用于线程操作。
 - **DataInputStream**： 将基础数据类型读取出来
 - **ObjectInputStream** 和所有 **FilterInputStream** 的子类都是装饰流（装饰器模式的主角）。
 
 #### **2）输出字节流OutputStream(要输出首先就要先写入数据)：**
 
-**ByteArrayOutputStream**、**FileOutputStream**： 是两种基本的介质流，它们分别向- Byte 数组、和本地文件中**写入数据**。
+**ByteArrayOutputStream**、**FileOutputStream**： 是两种基本的介质流，它们分别向-Byte 数组、和本地文件中**写入数据**。
 
 **PipedOutputStream** 是向与其它线程共用的管道中写入数据。
 
@@ -103,7 +103,7 @@
 
 **基本类型数据流（处理流）：用于操作基本数据类型值。**
 
-因为平时若是我们输出一个8个字节的long类型或4个字节的float类型，那怎么办呢？可以一个字节一个字节输出，也可以把转换成字符串输出，但是这样转换费时间，若是直接输出该多好啊，因此这个数据流就解决了我们输出数据类型的困难。**数据流可以直接输出float类型或long类型，提高了数据读写的效率。**
+​	因为平时若是我们输出一个8个字节的long类型或4个字节的float类型，那怎么办呢？可以一个字节一个字节输出，也可以把转换成字符串输出，但是这样转换费时间，若是直接输出该多好啊，因此这个数据流就解决了我们输出数据类型的困难。**数据流可以直接输出float类型或long类型，提高了数据读写的效率。**
 
 - DataInputStream，
 - DataOutputStream。
@@ -128,13 +128,13 @@
 
 ### 其他类：File（已经被Java7的Path取代）
 
-File类是对文件系统中文件以及文件夹进行封装的对象，可以通过对象的思想来操作文件和文件夹。 File类保存文件或目录的各种元数据信息，包括文件名、文件长度、最后修改时间、是否可读、获取当前文件的路径名，判断指定文件是否存在、获得当前目录中的文件列表，创建、删除文件和目录等方法。
+​	File类是对文件系统中文件以及文件夹进行封装的对象，可以通过对象的思想来操作文件和文件夹。 **File类保存文件或目录的各种元数据信息，包括文件名、文件长度、最后修改时间、是否可读、获取当前文件的路径名，判断指定文件是否存在、获得当前目录中的文件列表，创建、删除文件和目录等方法。**
 
 ### 其他类：RandomAccessFile
 
 ​	该对象并不是流体系中的一员，其封装了字节流，同时还封装了一个==缓冲区（字符数组），通过内部的指针来操作字符数组中的数据。== 该对象特点：
 
-1. 该对象只能操作文件，所以构造函数接收两种类型的参数：a.字符串文件路径；b.File对象。
+1. 该对象只能操作文件，所以构造函数接收两种类型的参数：**a.字符串文件路径；b.File对象。**
 2. 该对象既可以对文件进行读操作，也能进行写操作，在进行对象实例化时可指定操作模式(r,rw)。
 
 **注意：** IO中的很多内容都可以使用NIO完成，这些知识点大家知道就好，使用的话还是尽量使用NIO/AIO。![1544083896118](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544083896118.png)
@@ -172,7 +172,7 @@ public class FileOutputStreamTest {
 }
 ```
 
-这里是通过定义了两个继承了输入流InputStream和输出流OutputStream的类：FileInputStream和FileOutputStream，然后通过读取文件Test.txt，此时程序应该用输入流FileInputStream的read方法，然后将读取到数据存到newTest.txt，用FileOutputStream的write方法，注意最后两个流都要用close关闭。
+​	**这里是通过定义了两个继承了输入流InputStream和输出流OutputStream的类：FileInputStream和FileOutputStream，然后通过读取文件Test.txt，此时程序应该用输入流FileInputStream的read方法，然后将读取到数据存到newTest.txt，用FileOutputStream的write方法，注意最后两个流都要用close关闭。**
 
 注： 使用java的io流执行输出时，不要忘记关闭输出流，关闭输出流除了可以保证流的物理资源被回收之外，可能==还可以将输出流缓冲区中的数据flush到物理节点中里（因为在执行close（）方法之前，自动执行输出流的flush（）方法）==。java很多输出流默认都提供了缓存功能，其实我们没有必要刻意去记忆哪些流有缓存功能，哪些流没有，只有正常关闭所有的输出流即可保证程序正常。
 
@@ -189,7 +189,7 @@ public class BufferedStreamTest {
             //创建字节输入流
             fis=new FileInputStream("E:\\learnproject\\Iotest\\lib\\src\\main\\java\\com\\Test.txt");
             //创建字节输出流
-            fos=new FileOutputStream("E:\\learnproject\\Iotest\\lib\\src\\main\\java\\com\\newTest.txt";
+            fos=new FileOutputStream("E:\\learnproject\\Iotest\\lib\\src\\main\\java\\com\\newTest.txt)";
             //创建字节缓存输入流
             bis=new BufferedInputStream(fis);
             //创建字节缓存输出流
@@ -212,7 +212,7 @@ public class BufferedStreamTest {
 }
 ```
 
-​	可以看到使用字节缓存流读取和写入数据的方式和文件流（FileInputStream,FileOutputStream）并没有什么不同，只是把处理流套接到文件流上进行读写。缓存流的原理下节介绍。
+​	可以看到使用字节缓存流读取和写入数据的方式和文件流（FileInputStream,FileOutputStream）并没有什么不同，只是把处理流套接到文件流上进行读写。
 
 ​	上面代码中我们使用了缓存流和文件流，但是我们只关闭了缓存流。这个需要注意一下，当我们使用处理流套接到节点流上的使用的时候，只需要关闭最上层的处理就可以了。java会自动帮我们关闭下层的节点流。
 
