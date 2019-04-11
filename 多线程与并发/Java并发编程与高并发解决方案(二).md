@@ -66,7 +66,7 @@ public class DeadLock implements Runnable {
 
 上述代码出现死锁原因：
 
-当DeadLock类的对象flag\==1时（td1），先锁定o1,睡眠500毫秒，而td1在睡眠的时候另一个flag==0的对象（td2）线程启动，先锁定o2,睡眠500毫秒。td1睡眠结束后需要锁定o2才能继续执行，而此时o2已被td2锁定；
+​	当DeadLock类的对象flag\==1时（td1），先锁定o1,睡眠500毫秒，而td1在睡眠的时候另一个flag==0的对象（td2）线程启动，先锁定o2,睡眠500毫秒。td1睡眠结束后需要锁定o2才能继续执行，而此时o2已被td2锁定；
 td2睡眠结束后需要锁定o1才能继续执行，而此时o1已被td1锁定；td1、td2相互等待，都需要得到对方锁定的资源才能继续执行，从而死锁。
 
 ## 2.2、处理死锁的基本方法
@@ -83,7 +83,7 @@ td2睡眠结束后需要锁定o1才能继续执行，而此时o1已被td1锁定�
 运行上述的代码在终端输入**“jps”**可以看到：
 
 可见控制台输出：我们上边运行的类的类名以及对应的进程ID 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190211104302812.png) 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190211104302812.png) 
 
 接下来使用命令获取进程对应线程的堆栈信息：
 
@@ -92,10 +92,10 @@ jstack 9284
 ```
 
 分析堆栈信息（提取有用的部分） 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190211104323941.png)
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190211104323941.png)
 
 两个线程都进行了加锁操作（如上图） 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190211104332901.png) 
+![这里写图片描述](/Users/jack/Desktop/md/images/70-20190211104332901.png) 
 系统发现了一个Java-level的线程死锁。ok，确认无疑是发生了死锁现象。
 
 ## 4.避免死锁
@@ -136,7 +136,7 @@ jstack 9284
 
 此处的缓存非彼之计算机缓存。**该缓存主要是降低高并发对数据库冲击，提高数据访问速度、查询命中的数据库缓存。当然也有静态缓存、动态缓存。**
 
-[![图示](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/19.png)](https://suprisemf.github.io/2018/08/03/%E7%BC%93%E5%AD%98%E4%B9%8B%E7%89%B9%E5%BE%81%E3%80%81%E5%9C%BA%E6%99%AF%E5%92%8C%E7%BB%84%E4%BB%B6%E4%BB%8B%E7%BB%8Da/19.png)
+[![图示](/Users/jack/Desktop/md/images/19.png)](https://suprisemf.github.io/2018/08/03/%E7%BC%93%E5%AD%98%E4%B9%8B%E7%89%B9%E5%BE%81%E3%80%81%E5%9C%BA%E6%99%AF%E5%92%8C%E7%BB%84%E4%BB%B6%E4%BB%8B%E7%BB%8Da/19.png)
 
 #### 缓存的特征
 
@@ -203,7 +203,7 @@ jstack 9284
 它是本地缓存的实现框架。
 原理图如下：
 
-[![图示](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20.png)](https://suprisemf.github.io/2018/08/03/%E7%BC%93%E5%AD%98%E4%B9%8B%E7%89%B9%E5%BE%81%E3%80%81%E5%9C%BA%E6%99%AF%E5%92%8C%E7%BB%84%E4%BB%B6%E4%BB%8B%E7%BB%8Da/20.png)
+[![图示](/Users/jack/Desktop/md/images/20.png)](https://suprisemf.github.io/2018/08/03/%E7%BC%93%E5%AD%98%E4%B9%8B%E7%89%B9%E5%BE%81%E3%80%81%E5%9C%BA%E6%99%AF%E5%92%8C%E7%BB%84%E4%BB%B6%E4%BB%8B%E7%BB%8Da/20.png)
 
 ​	可以看出来，它的实现原理类似ConcurrentHashMap，使用多个segment细粒度锁，既保证了线程安全，又支持高并发场景需求。该类Cache类似于一个Map，也是存储键值对的集合，但它还需要处理缓存过期、动态加载等算法逻辑；根据面向对象的思想，它还需要做方法与数据关联性的封装。
 Guava Cache实现的主要功能有：自动将结点加入到缓存结构中；当缓存中结点超过设置的最大元素值时，使用LRU算法实现缓存清除；它缓存的key封装在weakReference（弱引用）中，它缓存的value缓存在weakReference（弱引用）或softReference（软引用）中；它可以统计缓存中各数据的命中率、异常率、未命中率等数据；
@@ -214,7 +214,7 @@ Guava Cache实现的主要功能有：自动将结点加入到缓存结构中；
 
 内存结构图如下：
 
-![image-20190211110046097](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211110046097.png)
+![image-20190211110046097](/Users/jack/Desktop/md/images/image-20190211110046097.png)
 
 其中涉及到四个部分：按部分作用区域由大到小分别为
 
@@ -230,7 +230,7 @@ Guava Cache实现的主要功能有：自动将结点加入到缓存结构中；
 
 Memcache处理原理图如下：
 
-![image-20190211110305436](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211110305436.png)
+![image-20190211110305436](/Users/jack/Desktop/md/images/image-20190211110305436.png)
 
 它本身不提供分布式的解决方案。在服务端，Memcache的集群环境实际上就是一个个Memcache服务器的堆积。它cache的分布式机制是在客户端实现。通过客户端的路由来处理，以达到分布式解决方案的目的。
 
@@ -265,7 +265,7 @@ Memcache处理原理图如下：
 Redis即**Re**mote **Di**ctionary **S**ervice的简称，即远程字典服务。
 它是一个远程的非关系型内存数据库。性能强劲。具有复制特性，以及为解决数据而生的独一无二的数据模型：可以存储键值对、以及五种不同类型的值之间的映射。并提供将内存中数据持久化到硬盘功能。可以使用复制特性扩展读性能；可以使用客户端分片扩展写性能。
 
-如下图所示：![image-20190211110451742](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211110451742.png)
+如下图所示：![image-20190211110451742](/Users/jack/Desktop/md/images/image-20190211110451742.png)
 
 #### Redis特点
 
@@ -302,7 +302,7 @@ Redis即**Re**mote **Di**ctionary **S**ervice的简称，即远程字典服务�
 
 如下图所示：
 
-![image-20190211111400220](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211111400220.png)
+![image-20190211111400220](/Users/jack/Desktop/md/images/image-20190211111400220.png)
 
 导致缓存一致性出现问题的情况：
 
@@ -315,14 +315,14 @@ Redis即**Re**mote **Di**ctionary **S**ervice的简称，即远程字典服务�
 
 如下图示：
 
-![image-20190211111429833](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211111429833.png)
+![image-20190211111429833](/Users/jack/Desktop/md/images/image-20190211111429833.png)
 
 当出现缓存不一致情况或某个缓存中数据的key更新后，线程会向数据库请求并查询数据。但发生在多并发情形下，该并发问题会对数据库造成巨大的冲击，甚至会导致缓存雪崩。
 如图中所示，为解决缓存并发中的问题，需要对线程访问数据库时加锁：查询数据库前加锁，在重建缓存后解锁。
 
 #### 缓存穿透问题
 
-如下图示：![image-20190211111543417](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211111543417.png)
+如下图示：![image-20190211111543417](/Users/jack/Desktop/md/images/image-20190211111543417.png)
 
 在高并发场景下，某一个缓存的key的多线程并发访问中未被命中，由于缓存架构存在访问的容错性，会允许线程从后端获取数据，从而对数据库造成巨大冲击。
 当缓存中的key对应的数据为空时，导致大量的无效查询操作，且对数据库造成巨大压力。
@@ -346,7 +346,7 @@ Redis即**Re**mote **Di**ctionary **S**ervice的简称，即远程字典服务�
 
 简单的消息队列模型：
 
-![image-20190211112104541](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211112104541.png)
+![image-20190211112104541](/Users/jack/Desktop/md/images/image-20190211112104541.png)
 
 ​	举例购物网站购物后，需要发送短信通知。其中图中的流程A就是发短信的业务，将其封装为一条消息A1，并放到消息队列，消息队列按照一定处理顺序处理消息，若成功则消息A1被处理；如果因短信调用端接口出现问题，短信发送超时或短时间内达到上限，则导致失败，可以重新将消息放入消息队列。
 其中的一些待处理的细节：
@@ -397,7 +397,7 @@ RocketMQ等
 
 Kafka是Apache基金会下的一个开源项目。
 是一个高性能跨语言的分布式发布订阅（PUB/SUB）的消息队列系统。
-其处理流程图为:![image-20190211112637201](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211112637201.png)
+其处理流程图为:![image-20190211112637201](/Users/jack/Desktop/md/images/image-20190211112637201.png)
 
 ##### Kafka特性
 
@@ -429,7 +429,7 @@ Kafka是Apache基金会下的一个开源项目。
 相对于其他消息队列，RabbitMQ有自己的服务器的管理界面。
 处理流程图如下：
 
-![image-20190211112701852](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211112701852.png)
+![image-20190211112701852](/Users/jack/Desktop/md/images/image-20190211112701852.png)
 
 ##### **其中的概念说明：**
 
@@ -462,7 +462,7 @@ Kafka是Apache基金会下的一个开源项目。
 
 例子如下：
 
-![image-20190211113005922](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113005922.png)
+![image-20190211113005922](/Users/jack/Desktop/md/images/image-20190211113005922.png)
 
 ### 应用拆分的好处
 
@@ -500,7 +500,7 @@ Dubbo还提供了监控中心（可选，需要单独配置）和调用中心。
 
 其处理流程原理图如下：
 
-![image-20190211113028746](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113028746.png)
+![image-20190211113028746](/Users/jack/Desktop/md/images/image-20190211113028746.png)
 
 其中的Registey模块选择zookeeper；
 服务端Provider通常会声明一个Java接口类来代表自己提供的服务。当消费端Consumer获得接口并**配置完相应的内容后**，会**调用相应的接口方法**，底层实际就对应着invoke()方法调用服务，并将结果封装为接口定义的类型返回。
@@ -513,7 +513,7 @@ Dubbo还提供了监控中心（可选，需要单独配置）和调用中心。
 
 微服务处理流程图如下：
 
-![image-20190211113043896](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113043896.png)
+![image-20190211113043896](/Users/jack/Desktop/md/images/image-20190211113043896.png)
 
 ### 微服务特点
 
@@ -563,7 +563,7 @@ Dubbo还提供了监控中心（可选，需要单独配置）和调用中心。
 
 高并发场景下，爆炸性大量的对数据库的请求操作不仅会占用十分高比例的网络带宽，导致其他应用对数据库的请求受阻，还会导致从库与主库的延迟大大增加，降低了从库数据的不准确率，也降低了缓存的命中率。
 
-如下图：![image-20190211113220215](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113220215.png)
+如下图：![image-20190211113220215](/Users/jack/Desktop/md/images/image-20190211113220215.png)
 
 ### 限流方式
 
@@ -585,14 +585,14 @@ Dubbo还提供了监控中心（可选，需要单独配置）和调用中心。
 计数器法是最简单、最易实现的限流算法。通过重复设置计数器，对接口一定时间段内的访问频率进行限制。
 
 **弊端**：存在临界问题。
-如下图所示：![image-20190211113246614](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113246614.png)
+如下图所示：![image-20190211113246614](/Users/jack/Desktop/md/images/image-20190211113246614.png)
 
 如上图所示，在临界的小时间段内，发送了200个请求，导致限流的不成功，可能会导致应用的崩溃。
 
 #### >滑动窗口
 
 滑动窗口可以被看做是一个高精度的计数器算法。其中小窗口的个数越多，对限流中请求的统计会越精确，但占用的系统资源会多。
-如下图所示：![image-20190211113258431](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113258431.png)
+如下图所示：![image-20190211113258431](/Users/jack/Desktop/md/images/image-20190211113258431.png)
 
 其中，虚线包括了6个小窗口，这该6个小窗口组成了一个滑动窗口，滑动窗口对请求数量进行限定；每个小窗口都有一个计数器，都限定了相同的一定时间。每经过该小窗口的时间，滑动窗口就向右侧移动一格，如上图的所示，从而避免了计数器法中的弊端。
 
@@ -601,14 +601,14 @@ Dubbo还提供了监控中心（可选，需要单独配置）和调用中心。
 漏桶算法（Leaky Bucket）作为计量工具（The Leaky Bucket Algorithm as a Meter）时，可以用于流量整形（Traffic Shaping）和流量控制（TrafficPolicing）。
 其算法示意图如下：
 
-![image-20190211113315460](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113315460.png)
+![image-20190211113315460](/Users/jack/Desktop/md/images/image-20190211113315460.png)
 
 漏桶算法构建一个容量固定的漏桶，请求数会先放入漏桶，以可控的一定速率流出来，当漏桶满了时，多余的请求会被丢弃。
 
 #### >令牌桶算法
 
 令牌桶算法可以看做是漏桶算法和滑动窗口思想的结合体，构造一个存放固定容量令牌的桶，按照可控的固定速率往桶里添加令牌。
-如下图所示：![image-20190211113327432](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190211113327432.png)
+如下图所示：![image-20190211113327432](/Users/jack/Desktop/md/images/image-20190211113327432.png)
 
 当桶满了时，新添加的令牌会被丢弃或拒绝。当一个请求过来时，该桶就移除一个令牌；当桶中没了令牌时，请求也就无法通过。其中移除令牌是没有延迟时间的，若当设置该延迟时间后，就十分近似漏桶算法了。它通过将桶总量划分为多个令牌的容量，不会造成大量请求的突发，可以很好地解决临界问题。
 

@@ -74,6 +74,55 @@ select name,sum(score) from student,student_course where student.id=student_scor
 select name,sum(score) from student left join student_course on student.id=student_course.id group by sid;
 ```
 
+5.总成绩最高的学生，结果列出学生id和总成绩 下面的sql效率很低，因为要重复计算所有的总成绩。
+
+```sql
+select sid,sum(score) as sum_score from student_course group by sid 
+having sum_score >=all (select sum(score) from student_course group by sid);
+```
+
+因为order by中可以使用聚集函数，最简单的方法是：
+
+```sql
+select sid,sum(score) as sum_score from student_course group by sid
+order by sum_score desc limit 1;	--按总成绩降序排列，并只显示一条记录，即最高成绩--
+```
+
+同理可以查总成绩的前三名,只要将1修改为3即可。
+
+6.在student_course表查询课程1成绩第2高的学生，如果第2高的不止一个则列出所有的学生
+
+这是个查询 **第N大数** 的问题。 先查出第2高的成绩：
+
+```sql
+select min(score) from student_course where cid = 1 group by score order by score desc limit 2;
+```
+
+使用这种方式是错的，因为作用的先后顺序是group by->min->order by->limit，mysql提供了limit offset,size这种方式来取第N大的值，因此正确的做法是：
+
+```sql
+select score from student_course where cid = 1 group by score order by score desc limit 1,1;
+```
+
+然后再取出该成绩对应的学生：
+
+```sql
+select * from student_course where cid=1 and score = (
+select score from student_course where cid = 1 group by score order by score desc limit 1,1);
+```
+
+类似的，可以查询 **某个值第N高** 的记录。
+
+
+
+
+
+
+
+
+
+
+
 
 
 

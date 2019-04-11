@@ -2045,10 +2045,11 @@ public ThreadPoolExecutor(int corePoolSize,
  3、keepAliveTime 线程池空闲时，线程存活的时间; 
  4、TimeUnit 时间单位;
  5、ThreadFactory 线程工厂; 
- 6、BlockingQueue任务队列; 7、RejectedExecutionHandler 线程拒绝策略;
+ 6、BlockingQueue任务队列; 
+ 7、RejectedExecutionHandler 线程拒绝策略;
 ```
 
-阿里巴巴规范中，线程池不允许使用Executors去创建，而是通过ThreadPoolExecutor的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。说明:Executors各个方法的弊端:
+​	阿里巴巴规范中，线程池不允许使用Executors去创建，而是通过ThreadPoolExecutor的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。说明:Executors各个方法的弊端:
 
 ```
  1)newFixedThreadPool和newSingleThreadExecutor:   
@@ -2059,7 +2060,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 #### 1、Executors.newCachedThreadPool 
 
-​	创建一个可缓存的线程池，如果线程池的长度超过了处理的需要，可以灵活回收空闲线程。**如果没有可回收的就新建线程。**
+​	==创建一个可缓存的线程池，如果线程池的长度超过了处理的需要，可以灵活回收空闲线程==。**如果没有可回收的就新建线程。**
 
 ```java
 //源码：
@@ -2091,7 +2092,7 @@ public static void main(String[] args) {
 
 #### 2、newFixedThreadPool 
 
-​	创建定长线程池，可以控制线程的最大并发数，超出就在队列等待
+​	==创建定长线程池，可以控制线程的最大并发数，超出就在队列等待==
 
 ```java
 //源码：
@@ -2148,7 +2149,7 @@ public static void main(String[] args) {
 
 #### 4、newScheduledThreadPool 
 
-定长线程池，支持定时和周期任务执行
+​	==定长线程池，支持定时和周期任务执行==
 
 ```java
 //源码：
