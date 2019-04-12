@@ -1505,20 +1505,53 @@ for(int i=0;i<list.size();i++){
 
 ![image-20190201104605382](/Users/jack/Desktop/md/images/image-20190201104605382.png)
 
+### **Web服务器在与客户端交互时Servlet的工作过程是:**
+
+1. 在客户端对web服务器发出请求
+
+2. web服务器接收到请求后将其发送给Servlet
+
+3. **Servlet容器为此产生一个实例对象并调用Servlet API中相应的方法来对客户端HTTP请求进行处理,然后将处理的响应结果返回给WEB服务器.**
+
+4. web服务器将从Servlet实例对象中收到的响应结构发送回客户端.
+
 ## 3、servlet的生命周期
 
-加载和实例化：Servlet容器负责加载和实例化Servlet。当Servlet容器启动时，或者在容器检测到需要这个Servlet来响应第一个请求时，创建Servlet实例。
-初始化：init方法是在servlet实例创建时调用的方法，用于创建或打开任何与servlet相的资源和初始 化servlet的状态，Servlet规范保证调用init方法前不会处理任何请求 
+加载和实例化：
 
-请求处理：service方法是servlet真正处理客户端传过来的请求的方法，由web容器调用， 根据HTTP请求方法（GET、POST等），将请求分发到doGet、doPost等方法 
+> Servlet容器负责加载和实例化Servlet。**当Servlet容器启动时，或者在容器检测到需要这个Servlet来响应第一个请求时，创建Servlet实例。**
+>
+> **因为容器是通过Java的反射API来创建Servlet实例**，调用的是Servlet的默认构造方法（即不带参数的构造方法），所以我们在编写Servlet类的时候，不应该提供带参数的构造方法。
 
-服务终止：destory方法是在servlet实例被销毁时由web容器调用。Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态
+初始化：
+
+> init方法是在servlet实例创建时调用的方法，用于创建或打开任何与servlet相关的资源和初始 化servlet的状态，Servlet规范保证调用init方法前不会处理任何请求 。
+>
+> 对于每一个Servlet实例，init()方法只被调用一次。在初始化期间，Servlet实例可以使用容器为它准备的
+>
+> ServletConfig对象从Web应用程序的配置信息（在web.xml中配置）中获取初始化的参数信息。在初始化期间，如果发生错误，Servlet实例可以抛出ServletException异常或者UnavailableException异常来通知容器。ServletException异常用于指明一般的初始化失败，例如没有找到初始化参数；而
+>
+> UnavailableException异常用于通知容器该Servlet实例不可用。例如，数据库服务器没有启动，数据库连接无法建立，Servlet就可以抛出UnavailableException异常向容器指出它暂时或永久不可用。
+
+请求处理：
+
+> **service方法是servlet真正处理客户端传过来的请求的方法，由web容器调用， 根据HTTP请求方法（GET、POST等），将请求分发到doGet、doPost等方法** 。
+>
+> 要注意的是，在service()方法调用之前，init()方法必须成功执行。
+
+服务终止：
+
+> destory方法是在servlet实例被销毁时由web容器调用。Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态。
+>
+> 在destroy()方法调用之后，容器会释放这个Servlet实例，该实例随后会被Java的垃圾收集器所回收。如果再次需要这个Servlet处理请求，Servlet容器会创建一个新的Servlet实例。
+
+​	==在整个Servlet的生命周期过程中，创建Servlet实例、**调用实例的init()和destroy()方法都只进行一次**，当初始化完成后，Servlet容器会将该实例保存在内存中，通过调用它的service()方法，为接收到的请求服务。==
 
 #### Servlet的生命周期分为5个阶段：加载、创建、初始化、处理客户请求、卸载。
 
 (1)加载：容器通过类加载器使用servlet类对应的文件加载servlet
 
-==(2)创建：通过调用servlet构造函数创建一个servlet对象==
+==(2)创建实例：通过调用servlet构造函数创建一个servlet对象==
 
 (3)初始化：调用init方法初始化
 
