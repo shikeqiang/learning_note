@@ -49,7 +49,7 @@ public class MemMap {
 }
 ```
 
-结果为：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images//biLgFkf.png)
+结果为：![img](/Users/jack/Desktop/md/images/biLgFkf.png)
 
 上面程序中调用FileChannel类的**==map方法==**进行内存映射，map主要有三个参数，第一个参数设置映射模式,现在支持3种模式：
 
@@ -131,7 +131,7 @@ public class MemMapReadWrite {
 }
 ```
 
-结果为：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/bMsFKdn.png)
+结果为：![img](/Users/jack/Desktop/md/images/bMsFKdn.png)
 
 ## 二、字符及编码
 
@@ -263,6 +263,8 @@ Encoded:
 ### 同步阻塞 IO ：
 
 ​	在此种方式下，用户进程在发起一个 IO 操作以后，必须等待 IO 操作的完成，只有当真正完成了 IO 操作以后，用户进程才能运行。 JAVA传统的 IO 模型属于此种方式！
+
+> 典型的阻塞 IO 模型的例子为:data = socket.read();如果数据没有就绪，就会一直阻塞在 read 方法。
 
 ### 同步非阻塞 IO:
 

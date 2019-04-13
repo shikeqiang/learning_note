@@ -113,9 +113,65 @@ select score from student_course where cid = 1 group by score order by score des
 
 类似的，可以查询 **某个值第N高** 的记录。
 
+7.在student_course表查询各科成绩最高的学生，结果列出学生id、课程id和对应的成绩 你可能会这样写：
 
+```sql
+select sid,cid,max(score) from student_course group by cid;
+```
 
+然而上面是不对的，因为 **==使用了group by的查询字段只能是group by中的字段或者聚集函数或者是每个分组内均相同的字段==**。 虽然不会报错，但是sid是无效的，如果去掉sid的话只能查出没门课程的最高分，不包含学生id。 本题的正确解法是使用相关嵌套查询：
 
+```sql
+select * from student_course as x where score>=(
+	select max(score) from student_course y where y.cid=x.cid
+);
+```
+
+相关嵌套查询也就是在进行内层查询的时候需要用到外层查询，有一些注意事项：
+
+- 子查询一定要有括号
+- as可以省略
+- ==使用相关查询；>=max等价于>=all，但是聚合函数比使用any或all效率高==
+
+8.在student_course表中查询每门课的前2名，结果按课程id升序，同一课程按成绩降序,这个问题也就是取每组的前N条纪录：
+
+```sql
+select * from student_course x where 2>(
+    select count(*) from student_course y where y.cid=x.cid and y.score>x.score)
+    order by cid,score desc;
+```
+
+​	这也是一个相关嵌套查询，对于每一个分数，如果同一门课程下只有0个、1个分数比这个分数还高，那么这个分数肯定是前2名之一。
+
+9.一个叫team的表，里面只有一个字段name,一共有4条纪录，分别是a,b,c,d,对应四个球队，两两进行比赛，用一条sql语句显示所有可能的比赛组合：
+
+```sql
+select a.name, b.name
+from team a, team b
+where a.name < b.name
+```
+
+其实就是一个表和自己连接查询。
+
+10.题目：数据库中有一张如下所示的表，表名为sales。
+
+| 年   | 季度 | 销售 |
+| ---- | ---- | ---- |
+| 1991 | 1    | 11   |
+| 1991 | 2    | 12   |
+| 1991 | 3    | 13   |
+| 1991 | 4    | 14   |
+| 1992 | 1    | 21   |
+| 1992 | 2    | 22   |
+| 1992 | 3    | 23   |
+| 1992 | 4    | 24   |
+
+要求：写一个SQL语句查询出如下所示的结果。
+
+| 年   | 一季度 | 二季度 | 三季度 | 四季度 |
+| ---- | ------ | ------ | ------ | ------ |
+| 1991 | 11     | 12     | 13     | 14     |
+| 1992 | 21     | 22     | 23     | 24     |
 
 
 
