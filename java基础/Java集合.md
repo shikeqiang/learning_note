@@ -73,22 +73,47 @@
 - HashMap ：
   - JDK8 之前，HashMap 由数组+链表组成的，数组是HashMap的主体，链表则是主要为了解决哈希冲突而存在的。
   - JDK8 以后，在解决哈希冲突时有了较大的变化，**当链表长度大于阈值（默认为 8 ）时，将链表转化为红黑树，以减少搜索时间。**
+
+  > HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。 
+
 - LinkedHashMap ：LinkedHashMap 继承自 HashMap，所以**它的底层仍然是基于拉链式散列结构即由数组和链表或红黑树组成。**另外，LinkedHashMap 在上面结构的基础上，==增加了一条双向链表，使得上面的结构可以保持键值对的插入顺序。==同时通过对链表进行相应的操作，实现了访问顺序相关逻辑。详细可以查看：[《LinkedHashMap 源码详细分析（JDK1.8）》](https://www.imooc.com/article/22931) 。
+
+  > ==LinkedHashSet 底层使用 LinkedHashMap 来保存所有元素，它继承与 HashSet，其所有的方法操作上又与 HashSet 相同==，因此 LinkedHashSet 的实现上非常简单，只提供了四个构造方法，并通过传递一个标识参数，调用父类的构造器，底层构造一个 LinkedHashMap 来实现，在相关操作上与父类 HashSet 的操作相同，直接调用父类 HashSet 的方法即可。 
+
 - Hashtable ：数组+链表组成的，数组是 HashMap 的主体，链表则是主要为了解决哈希冲突而存在的。
+
 - TreeMap ：红黑树（自平衡的排序二叉树）。
+
+  > **TreeMap 实现 SortedMap 接口，能够把它保存的记录根据键排序，默认是按键值的升序排序， 也可以指定排序的比较器，当用 Iterator 遍历 TreeMap 时，得到的记录是排过序的。** 在使用 TreeMap 时，key 必须实现 Comparable 接口或者在构造 TreeMap 传入自定义的 Comparator，否则会在运行时抛出 java.lang.ClassCastException 类型的异常。 
+  >
+  > 如果使用排序的映射，建议使用 TreeMap。
 
 ### 3）Set
 
 - HashSet ：无序，唯一，基于 HashMap 实现的，底层采用 HashMap 来保存元素。
+
+  > HashSet 首先判断两个元素的哈希值，如果哈希值一样，接着会比较 equals 方法 如果 equls 结果为true ，HashSet 就视为同一个元素。如果 equals 为 false 就不是同一个元素。
+
 - LinkedHashSet ：LinkedHashSet 继承自 HashSet，并且其内部是通过 LinkedHashMap 来实现的。有点类似于我们之前说的LinkedHashMap 其内部是基于 HashMap 实现一样，不过还是有一点点区别的。
+
 - TreeSet ：有序，唯一，红黑树(自平衡的排序二叉树)。
+
+  > 1. TreeSet()是使用二叉树的原理对新 add()的对象按照指定的顺序排序(升序、降序)，每增 加一个对象都会进行排序，将对象插入的二叉树指定的位置。 
+  >
+  > 2. Integer 和 String 对象都可以进行默认的 TreeSet 排序，而自定义类的对象是不可以的，**自己定义的类必须实现 Comparable 接口，并且覆写相应的 compareTo()函数，才可以正常使 用。** 
+  >
+  > 3. 在覆写 compare()函数时，要返回相应的值才能使 TreeSet 按照一定的规则来排序 
+  >
+  > 4. 比较此对象与指定对象的顺序。如果该对象小于、等于或大于指定对象，则分别返回负整 
+  >
+  >    数、零或正整数。
 
 ### **快速失败（fail-fast）和安全失败（fail-safe）的区别**
 
 差别在于 ConcurrentModification 异常：
 
-- 快速失败：当你在迭代一个集合的时候，如果有另一个线程正在修改你正在访问的那个集合时，就会抛出一个 ConcurrentModification 异常。 在 `java.util` 包下的都是快速失败。
-- 安全失败：你在迭代的时候会去底层集合做一个拷贝，所以你在修改上层集合的时候是不会受影响的，不会抛出 ConcurrentModification 异常。在 `java.util.concurrent` 包下的全是安全失败的。
+- 快速失败：当你在迭代一个集合的时候，如果有另一个线程正在修改你正在访问的那个集合时，就会抛出一个 ConcurrentModification 异常。 ==在 `java.util` 包下的都是快速失败==。
+- 安全失败：你在迭代的时候会去底层集合做一个拷贝，所以你在修改上层集合的时候是不会受影响的，不会抛出 ConcurrentModification 异常。==在 `java.util.concurrent` 包下的全是安全失败的。==
 
 ### Comparable 和 Comparator 的区别
 
@@ -139,7 +164,7 @@ Set 和 List 对比：
 🦅 **ArrayList**
 
 - 优点：ArrayList 是实现了基于动态数组的数据结构，因为地址连续，一旦数据存储好了，查询操作效率会比较高（在内存里是连着放的）。
-- 缺点：因为地址连续，ArrayList 要移动数据，所以插入和删除操作效率比较低。
+- 缺点：因为地址连续，ArrayList 要移动数据，所以插入和删除操作效率比较低。即删除或者插入元素的时候，需要移动其他位置的元素，即其他元素在数组中的索引需要改变。
 
 🦅 **LinkedList**
 
@@ -243,7 +268,11 @@ ConcurrentHashMap 是线程安全的 HashMap 的实现。主要区别如下：
 
 - 1、**ConcurrentHashMap 对整个桶数组进行了分割分段(Segment)，然后在每一个分段上都用 lock 锁进行保护，相对 于Hashtable 的 syn 关键字锁的粒度更精细了一些，并发性能更好。而 HashMap 没有锁机制，不是线程安全的。**
 
-  > JDK8 之后，ConcurrentHashMap 启用了一种全新的方式实现,利用 CAS 算法。
+  > JDK8 之后，ConcurrentHashMap 启用了一种全新的方式实现,利用 CAS 算法，并且也引入了红黑树。
+  >
+  > ==ConcurrentHashMap 是一个 Segment 数组，Segment 通过继承ReentrantLock 来进行加锁，所以每次需要加锁的操作锁住的是一个 segment，这样只要保证每个 Segment 是线程安全的，也就实现了全局的线程安全。==
+  >
+  > concurrencyLevel:并行级别，默认是 16，也就是说 ConcurrentHashMap 有 16 个 Segments，所以理论上，这个时候，**最多可以同时支持 16 个线程并发写，只要它们的操作分别分布在不同的 Segment 上。**这个值可以在初始化的时候设置为其他值，但是一旦初始化以后，它是不可以扩容的。再具体到每个 Segment 内部，其实每个 Segment 很像之前介绍的 HashMap，不过它要保证线程安全，所以处理起来要麻烦些。
 
 - 2、HashMap 的键值对允许有 `null` ，但是 ConCurrentHashMap 都不允许。
 
@@ -257,9 +286,9 @@ ConcurrentHashMap 是线程安全的 HashMap 的实现。主要区别如下：
 - 栈与队列很相似，但它允许对元素进行后进先出（LIFO）进行检索。
   - Stack 是一个扩展自 Vector 的类，而 Queue 是一个接口。
 
+## 为什么HashMap允许key，value都可以为空，而ConCurrentHashMap和Hashtable不允许？
 
-
-
+![image-20190414112633320](/Users/jack/Desktop/md/images/image-20190414112633320.png)
 
 
 

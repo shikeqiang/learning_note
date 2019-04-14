@@ -173,11 +173,28 @@ where a.name < b.name
 | 1991 | 11     | 12     | 13     | 14     |
 | 1992 | 21     | 22     | 23     | 24     |
 
+```sql
+select 年, 
+sum(case when 季度=1 then 销售量 else 0 end) as 一季度, 
+sum(case when 季度=2 then 销售量 else 0 end) as 二季度, 
+sum(case when 季度=3 then 销售量 else 0 end) as 三季度, 
+sum(case when 季度=4 then 销售量 else 0 end) as 四季度 
+from sales group by 年;
+```
 
+同理，如果要查询每个人的每门课的成绩可以使用如下sql
 
-
-
-
+```sql
+create view temp as select student.name as sname,course.name as cname,score
+from student_course join (student,course)
+on(student_course.sid=student.id and student_course.cid=course.id)
+;
+select sname,
+sum(case when cname='语文' then score else 0 end) as 语文,
+sum(case when cname='数学' then score else 0 end) as 数学
+from temp
+group by sname;
+```
 
 
 

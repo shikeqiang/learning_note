@@ -7,7 +7,7 @@
 - 可以让线程尝试获取锁，并在无法获取锁的时候立即返回或者等待一段时间。
 - 可以在不同的范围，以不同的顺序获取和释放锁。
 
-# 1、什么是可重入锁及ReentrantLock
+# 1、可重入锁及ReentrantLock
 
 举例来说明锁的可重入性。代码如下：
 
@@ -40,7 +40,7 @@ public class UnReentrant{
 
 ### 1. 简介
 
-​	==ReentrantLock，可重入锁，是一种递归无阻塞的同步机制。它可以等同于 `synchronized` 的使用==，但是 ReentrantLock 提供了比 `synchronized` 更强大、灵活的锁机制，可以减少死锁发生的概率。
+​	==ReentrantLock，可重入锁，是一种递归无阻塞的同步机制。它可以等同于synchronized 的使用==，但是 ReentrantLock 提供了比synchronized更强大、灵活的锁机制，可以减少死锁发生的概率。
 
 > 一个可重入的互斥锁定 Lock，它具有与使用 `synchronized` 方法和语句所访问的隐式监视器锁定相同的一些基本行为和语义，但功能更强大。
 >
@@ -457,13 +457,14 @@ public void lock() {
 #### 5.3 lockInterruptibly
 
 ```Java
+//如果当前线程未被中断，获取锁
 @Override
 public void lockInterruptibly() throws InterruptedException {
     sync.acquireInterruptibly(1);	
 }
 ```
 
-#### 5.4 tryLock
+#### 5.4 tryLock(无参)
 
 ```java
 //只有当没有其他线程持有锁的时候才可以获得。
@@ -476,9 +477,10 @@ public boolean tryLock() {
 - `tryLock()` **实现**方法，在实现时，希望能**快速的**获得是否能够获得到锁，因此即使在设置为 `fair = true` ( 使用公平锁 )，依然调用 `Sync.nonfairTryAcquire(int acquires)` 方法。
 - 如果**真的**希望 `tryLock()` 还是按照是否公平锁的方式来，可以调用 `tryLock(0, TimeUnit)` 方法来实现。
 
-#### 5.5 tryLock
+#### 5.5 tryLock(有参)
 
 ```java
+//如果锁在给定等待时间内没有被另一个线程保持，则获取该锁。
 @Override
 public boolean tryLock(long timeout, TimeUnit unit)
         throws InterruptedException {
@@ -486,38 +488,48 @@ public boolean tryLock(long timeout, TimeUnit unit)
 }
 ```
 
+##### lock()与tryLock()的区别：
+
+> tryLock()只是"试图"获取锁, 如果锁不可用, 不会导致当前线程被禁用, 当前线程仍然继续往下执行代码. 而 lock()方法则是一定要获取到锁, 如果锁不可用, 就一直等待, 在未获得锁之前,当前线程并不继续向下执行。
+
 #### 5.6 unlock
 
-```
+```Java
 @Override
 public void unlock() {
     sync.release(1);
 }
 ```
 
+​	执行此方法时, 当前线程将释放持有的锁. 锁只能由持有者释放, 如果线程并不持有锁, 却执行该方法, 可能导致异常的发生. 
+
 #### 5.7 newCondition
 
-```
+```Java
 @Override
 public Condition newCondition() {
     return sync.newCondition();
 }
 ```
 
+​	条件对象，获取等待通知组件。该组件和当前的锁绑定，当前线程只有获取了锁，才能调用该组件的 await()方法，而调用后，当前线程将释放锁。 本质还是通过newCondition创建一个ConditionObject对象，这个对象实现了Condition接口，将当前线程加入condition队列，所以本质还是调用了wait方法。
+
 #### 5.8 其他实现方法
 
 ```Java
+//查询当前线程保持此锁的次数，也就是执行此线程执行 lock 方法的次数
 public int getHoldCount() {
     return sync.getHoldCount();
 }
+//当前线程是否保持锁锁定，线程的执行 lock 方法的前后分别是 false 和 true
 public boolean isHeldByCurrentThread() {
     return sync.isHeldExclusively();
 }
+//此锁是否有任意线程占用
 public boolean isLocked() {
     return sync.isLocked();
 }
-
-
+//该锁是否公平锁
 public final boolean isFair() {
     return sync instanceof FairSync;
 }
@@ -525,19 +537,22 @@ public final boolean isFair() {
 protected Thread getOwner() {
     return sync.getOwner();
 }
+//是否有线程等待此锁
 public final boolean hasQueuedThreads() {
     return sync.hasQueuedThreads();
 }
+//查询给定线程是否等待获取此锁
 public final boolean hasQueuedThread(Thread thread) {
     return sync.isQueued(thread);
 }
+//返回正等待获取此锁的线程估计数，比如启动10个线程，1个线程获得锁，此时返回的是9
 public final int getQueueLength() {
     return sync.getQueueLength();
 }
 protected Collection<Thread> getQueuedThreads() {
     return sync.getQueuedThreads();
 }
-
+//查询是否有线程等待与此锁有关的给定条件(condition)，对于指定 contidion 对象，有多少线程执行了 condition.await 方法
 public boolean hasWaiters(Condition condition) {
     if (condition == null)
         throw new NullPointerException();
@@ -562,6 +577,12 @@ protected Collection<Thread> getWaitingThreads(Condition condition) {
 ```
 
 关于 ReentrantLock 类，详细的源码解析，可以看看 [《【死磕 Java 并发】—– J.U.C 之重入锁：ReentrantLock》](http://www.iocoder.cn/JUC/sike/ReentrantLock/?vip) 。
+
+#### 5.9 ***tryLock*** 和 ***lock*** 和 ***lockInterruptibly*** 的区别 
+
+- tryLock 能获得锁就返回 true，不能就立即返回 false，tryLock(long timeout,TimeUnit unit)，可以增加时间限制，如果超过该时间段还没获得锁，返回 false 
+- lock 能获得锁就返回 true，不能的话一直等待获得锁 
+- lock 和 lockInterruptibly，如果两个线程分别执行这两个方法，但此时中断这两个线程,lock 不会抛出异常，而 lockInterruptibly 会抛出异常。 
 
 ## **6.synchronized 和 ReentrantLock 异同？**
 
@@ -590,7 +611,7 @@ protected Collection<Thread> getWaitingThreads(Condition condition) {
 >
 > 并且，实际代码实战中，可能的优化场景是，通过读写分离，进一步性能的提升，所以使用 ReentrantReadWriteLock 。
 
-# 2、ReentrantReadWriteLock 是什么？
+# 2、ReentrantReadWriteLock
 
 ​	**ReentrantReadWriteLock ，读写锁，是用来提升并发程序性能的锁分离技术的 Lock 实现类。==可以用于 “多读少写” 的场景，读写锁支持多个读操作并发执行，写操作只能由一个线程来操作。==**
 
@@ -1297,7 +1318,7 @@ protected final boolean isHeldExclusively() {
 }
 ```
 
-## 5.11 newCondition
+### 5.11 newCondition
 
 ```java
 final ConditionObject newCondition() {
@@ -1494,7 +1515,7 @@ ReadWriteLock 的源码解析，可以看看 [《【死磕 Java 并发】—– 
 
 参照：<https://xuliugen.blog.csdn.net/article/details/78375986>
 
-# 3、Condition 是什么？
+# 3、Condition
 
 ​	在没有 Lock 之前，我们使用 `synchronized` 来控制同步，配合 Object 的 `wait()`、`notify()` 等一系列方法可以实现**等待 / 通知模式**。在 Java SE 5 后，Java 提供了 Lock 接口，相对于 `synchronized` 而言，Lock 提供了条件 Condition ，对线程的等待、唤醒操作更加详细和灵活。下图是 Condition 与 Object 的监视器方法的对比（摘自《Java并发编程的艺术》）：
 
@@ -1601,7 +1622,7 @@ final ConditionObject newCondition() {
 
 ### 3.3.1 ConditionObject
 
-​	获取一个 Condition 必须要通过 Lock 的 `#newCondition()` 方法。该方法定义在接口 Lock 下面，返回的结果是绑定到此 Lock 实例的**新 Condition 实例**。Condition 为一个接口，其下仅有一个实现类 ConditionObject ，**由于 Condition 的操作需要获取相关的锁，而 AQS则是同步锁的实现基础，所以 ConditionObject 则定义为 AQS 的内部类**。代码如下：
+​	获取一个 Condition 必须要通过 Lock 的 `newCondition()` 方法。该方法定义在接口 Lock 下面，返回的结果是绑定到此 Lock 实例的**新 Condition 实例**。Condition 为一个接口，其下仅有一个实现类 ConditionObject ，**由于 Condition 的操作需要获取相关的锁，而 AQS则是同步锁的实现基础，所以 ConditionObject 则定义为 AQS 的内部类**。代码如下：
 
 ```Java
 public class ConditionObject implements Condition, java.io.Serializable {
@@ -1883,6 +1904,13 @@ final boolean transferForSignal(Node node) {
 - 使用 Lock + Condition 来实现。具体代码，参看 [《用三个线程按顺序循环打印 abc 三个字母，比如 abcabcabc》](https://blog.csdn.net/Big_Blogger/article/details/65629204) 。
 - 使用 `synchronized` + await/notifyAll 来实现，参看 [《Java用三个线程按顺序循环打印 abc 三个字母,比如 abcabcabc》](https://blog.csdn.net/weixin_41704428/article/details/80482928) 。
 
+## ***3.6 Condition*** 类和 ***Object*** 类锁方法区别
+
+- Condition 类的 awiat 方法和 Object 类的 wait 方法等效 
+- Condition 类的 signal 方法和 Object 类的 notify 方法等效 
+- Condition 类的 signalAll 方法和 Object 类的 notifyAll 方法等效 
+- ReentrantLock 类可以唤醒指定条件的线程，而 object 的唤醒是随机的 
+
 # 4、LockSupport 是什么？
 
 **LockSupport 是 JDK 中比较底层的类，用来创建锁和其他同步工具类的基本线程阻塞。**
@@ -1936,3 +1964,8 @@ final boolean transferForSignal(Node node) {
 
 - [《多线程同步工具 —— LockSupport》](https://www.cnblogs.com/hvicen/p/6217303.html)
 - [《Java 并发编程 —— LockSupport》](http://www.tianshouzhi.com/api/tutorials/mutithread/303) 带部分源码解析。
+
+
+
+
+

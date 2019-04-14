@@ -4,9 +4,9 @@
 - `volatile`
   - ![volatile](/Users/jack/Desktop/md/images/506052a856416414e18c7ed79d43cc5c.jpeg)
 
-# 一、`synchronized` 的原理是什么?
+# 一、synchronized的原理
 
-`synchronized`是 Java 内置的关键字，它提供了一种独占的加锁方式。
+`synchronized`是 Java 内置的关键字，它提供了一种**独占的加锁方式，独占式的悲观锁。**
 
 - `synchronized`的获取和释放锁由JVM实现，用户不需要显示的释放锁，非常方便。
 - 然而，synchronized也有一定的局限性。
