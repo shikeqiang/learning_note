@@ -204,15 +204,17 @@ public CountDownLatch(int count) {
 
 注意：
 
-(1)CountDownLatch的构造函数
+> (1)CountDownLatch的构造函数
+>
+>  CountDownLatch countDownLatch = new CountDownLatch(7); 	//7表示需要等待执行完毕的线程数量。
+>
+> (2)在每一个线程执行完毕之后，都需要执行 countDownLatch.countDown() 方法，不然计数器就不会准确;
+>
+> **(3)只有所有的线程执行完毕之后，才会执行 countDownLatch.await() 之后的 代码;** 
+>
+> ==(4)CountDownLatch 阻塞的是主线程;== 
 
- CountDownLatch countDownLatch = new CountDownLatch(7); 	//7表示需要等待执行完毕的线程数量。
-
-(2)在每一个线程执行完毕之后，都需要执行 countDownLatch.countDown() 方法，不然计数器就不会准确;
-
-**(3)只有所有的线程执行完毕之后，才会执行 countDownLatch.await() 之后的 代码;** 
-
-==(4)CountDownLatch 阻塞的是主线程;== 
+​	CountDownLatch实现了AQS接口，以他为例，任务分为 N 个子线程去执行，state 也初始化为 N(注意 N 要与线程个数一致)。==这 N 个子线程是并行执行的，每个子线程执行完后 countDown()一次，state会 CAS 减 1。==等到所有子线程都执行完后(即 state=0)，会 unpark()主调用线程，然后主调用线程就会从 await()函数返回，继续后余动作。 
 
 #### 4.3 CountDownLatch 的使用示例
 

@@ -1623,7 +1623,7 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 
 ① 虚拟机中没有泛型，只有普通类和方法。 
 
-② 在编译阶段，所有泛型类的类型参数都会被Object或者它们的限定边界来替换。(类型擦除) 
+② ==在编译阶段，所有泛型类的类型参数都会被Object或者它们的限定边界来替换。==(类型擦除) 
 
 ③ 在继承泛型类型的时候，桥方法的合成是为了避免类型变量擦除所带来的多态灾难。 无论我们如何定义一个泛型类型，相应的都会有一个原始类型被自动提供。原始类型的名字就是擦除类型参数的泛型类型的名字。
 
@@ -1638,6 +1638,10 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 ​	jstat命令可以查看堆内存各部分的使用量，以及加载类的数量
 
 ​	jhat分析java堆的命令，可以将堆中的对象以html的形式显示出来
+
+> <? extends T>表示该通配符所代表的类型是 T 类型的子类。
+>
+> <? super T>表示该通配符所代表的类型是 T 类型的父类。
 
 # 50.redirect和forward差别：
 
@@ -1786,6 +1790,8 @@ Log4j支持按年为间隔生成新的日志文件
 
 # 56.反射
 
+![image-20190415175409800](/Users/jack/Desktop/md/images/image-20190415175409800.png)
+
 ​	Java反射机制主要提供了以下功能：**在运行时构造一个类的对象；判断一个类所具有的成员变量和方法；调用一个对象的方法；生成动态代理。反射最大的应用就是框架**
 
 ## Java反射的主要功能：
@@ -1798,7 +1804,7 @@ Log4j支持按年为间隔生成新的日志文件
 - 在运行时刻调用动态对象的方法.
 - 创建数组,数组大小和类型在运行时刻才确定,也能更改数组成员的值.
 
-反射的应用很多，很多框架都有用到
+## 反射的应用
 
 - Spring 的IOC/DI也是反射….
 - JavaBean和jsp之间调用也是反射….
@@ -1810,23 +1816,83 @@ Log4j支持按年为间隔生成新的日志文件
 
 参照：<https://uule.iteye.com/blog/1423512>
 
+## **反射使用步骤(获取 Class 对象、调用对象方法)**
 
+> 获取想要操作的类的 Class 对象，他是反射的核心，通过 Class 对象我们可以任意调用类的方法。 
+>
+> 调用 Class 类中的方法，既就是反射的使用阶段。 
+>
+> 使用反射 API 来操作这些信息。 
 
+## **获取 Class 对象的 3 种方法**
 
+调用某个对象的 ***getClass()***方法
 
+```Java
+Person p=new Person(); 
+Class clazz=p.getClass(); 
+```
 
+调用某个类的 ***class*** 属性来获取该类对应的 ***Class*** 对象 
 
+```Java
+Class clazz=Person.class;
+```
 
+使用 ***Class*** 类中的 ***forName()***静态方法***(***最安全***/***性能最好***)*** 
 
+```Java
+Class clazz=Class.forName("类的全路径"); //(最常用) 
+```
 
+当我们获得了想要操作的类的 Class 对象后，可以通过 Class 类中的方法获取并查看该类中的方法 
 
+和属性。 
 
+```Java
+//获取 Person 类的 Class 对象
+Class clazz=Class.forName("reflection.Person");
+//获取 Person 类的所有方法信息
+Method[] method=clazz.getDeclaredMethods(); 
+for(Method m:method){
+	System.out.println(m.toString()); 
+}
+//获取 Person 类的所有成员属性信息
+Field[] field=clazz.getDeclaredFields(); 
+for(Field f:field){
+	System.out.println(f.toString()); 
+}
+//获取 Person 类的所有构造方法信息
+Constructor[] constructor=clazz.getDeclaredConstructors(); 
+for(Constructor c:constructor){
+	System.out.println(c.toString());
+}
+```
 
+## **创建对象的两种方法**
 
+### ***1.Class*** 对象的 ***newInstance()*** 
 
+​	使用 Class 对象的 newInstance()方法来创建该 Class 对象对应类的实例，但是这种方法**要求该 Class 对象对应的类有默认的空构造器。** 
 
+### 2.调用 ***Constructor*** 对象的 ***newInstance()*** 
 
+​	==先使用 Class 对象获取指定的 Constructor 对象，再调用 Constructor 对象的 newInstance()方法来创建 Class 对象对应类的实例,通过这种方法可以选定构造方法创建实例。== 
 
+```Java
+//获取 Person 类的 Class 对象
+Class clazz=Class.forName("reflection.Person"); 
+//使用newInstane 方法创建对象
+Person p=(Person) clazz.newInstance();
+//获取构造方法并创建对象
+Constructor c=clazz.getDeclaredConstructor(String.class,String.class,int.class);
+//创建对象并设置属性
+ Person p1=(Person) c.newInstance("李四","男",20);
+```
+
+# 57.Java注解
+
+![image-20190415214010696](/Users/jack/Desktop/md/images/image-20190415214010696.png)
 
 
 
