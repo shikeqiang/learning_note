@@ -1501,7 +1501,7 @@ for(int i=0;i<list.size();i++){
 ## 2、servlet是什么
 
 ​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
- 容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。
+ **容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。**
 
 ![image-20190201104605382](/Users/jack/Desktop/md/images/image-20190201104605382.png)
 
@@ -1525,7 +1525,7 @@ for(int i=0;i<list.size();i++){
 
 初始化：
 
-> init方法是在servlet实例创建时调用的方法，用于创建或打开任何与servlet相关的资源和初始 化servlet的状态，Servlet规范保证调用init方法前不会处理任何请求 。
+> init方法是在servlet实例创建时调用的方法，用于创建或打开任何与servlet相关的资源和初始化servlet的状态，Servlet规范保证调用init方法前不会处理任何请求 。
 >
 > 对于每一个Servlet实例，init()方法只被调用一次。在初始化期间，Servlet实例可以使用容器为它准备的
 >
@@ -1537,11 +1537,11 @@ for(int i=0;i<list.size();i++){
 
 > **service方法是servlet真正处理客户端传过来的请求的方法，由web容器调用， 根据HTTP请求方法（GET、POST等），将请求分发到doGet、doPost等方法** 。
 >
-> 要注意的是，在service()方法调用之前，init()方法必须成功执行。
+> ==要注意的是，在service()方法调用之前，init()方法必须成功执行。==
 
 服务终止：
 
-> destory方法是在servlet实例被销毁时由web容器调用。Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态。
+> destory方法是在servlet实例被销毁时由web容器调用。**Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态。**
 >
 > 在destroy()方法调用之后，容器会释放这个Servlet实例，该实例随后会被Java的垃圾收集器所回收。如果再次需要这个Servlet处理请求，Servlet容器会创建一个新的Servlet实例。
 

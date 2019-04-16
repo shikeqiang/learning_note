@@ -1,4 +1,10 @@
+![image-20190416164514391](/Users/jack/Desktop/md/images/image-20190416164514391.png)
+
+![image-20190416164642115](/Users/jack/Desktop/md/images/image-20190416164642115.png)
+
 # 一、IoC
+
+![image-20190416172122134](/Users/jack/Desktop/md/images/image-20190416172122134.png)
 
 ## 1、IoC 容器
 
@@ -64,7 +70,7 @@
 
 - 实际场景下，setter 注入使用的更多。
 
-## 4、Spring中的IoC 容器
+## 4、Spring中的IoC 容器(***ApplicationContext*** 面向开发应用)
 
 Spring 提供了两种IoC 容器，分别是 BeanFactory、ApplicationContext 。
 
@@ -82,14 +88,16 @@ BeanFactory ，就像一个包含 Bean 集合的工厂类。它会在客户端�
 
 **ApplicationContext可以称之为 “高级容器”,因为他 接口扩展了 BeanFactory 接口，它在 BeanFactory 基础上提供了一些额外的功能。内置如下功能**：
 
-- MessageSource ：管理 message ，实现国际化等功能。
-- ApplicationEventPublisher ：事件发布。
-- ResourcePatternResolver ：多资源加载。
+- MessageSource ：管理 message ，实现国际化等功能，为应用提供 i18n 国际化消息访问的功能;
+- ApplicationEventPublisher ：事件发布，让容器拥有发布应用上下文事件的功能，包括容器启动事件、关闭事件等。
+- ResourcePatternResolver ：多资源加载，所有ApplicationContext实现类都实现了类似于
+  PathMatchingResourcePatternResolver 的功能，可以通过带前缀的 Ant 风格的资源文件路径装载 Spring 的配置文件。
 - EnvironmentCapable ：系统 Environment（profile + Properties）相关。
-- Lifecycle ：管理生命周期。
+- Lifecycle ：管理生命周期。该接口提供了 start()和 stop()两个方法，主要用于控制异步处理过程。在具体使用时，该接口同时被 ApplicationContext 实现及具体 Bean 实现， ApplicationContext 会将 start/stop 的信息传递给容器中所有实现了该接 口的 Bean，以达到管理和控制 JMX、任务调度等目的。
 - Closable ：关闭，释放资源
 - InitializingBean：自定义初始化。
 - BeanNameAware：设置 beanName 的 Aware 接口。
+- ConfigurableApplicationContext 扩展于 ApplicationContext，**它新增加了两个主要 的方法: refresh()和 close()，让 ApplicationContext 具有启动、刷新和关闭应用上下 文的能力。**在应用上下文关闭的情况下调用 refresh()即可启动应用上下文，在已经启动 的状态下，调用 refresh()则清除缓存并重新装载配置信息，而调用 close()则可关闭应用 上下文。
 
 另外，ApplicationContext 会自动初始化非懒加载的 Bean 对象们。
 
@@ -124,6 +132,8 @@ BeanFactory ，就像一个包含 Bean 集合的工厂类。它会在客户端�
 
 ​	左边灰色区域的是 “低级容器”， 只负载加载 Bean，获取 Bean。容器其他的高级功能是没有的。例如上图画的 refresh 刷新 Bean 工厂所有配置、生命周期事件回调等。
 
+> ​	WebApplicationContext 是专门为 Web 应用准备的，它允许从相对于 Web 根目录的路径中装载配置文件完成初始化工作。==从 WebApplicationContext 中可以获得ServletContext 的引用，整个 Web 应用上下文对象将作为属性放置到 ServletContext中，以便 Web 应用环境可以访问 Spring 应用上下文。==
+
 ## 5、常用的 ApplicationContext 容器
 
 以下是三种较常见的 ApplicationContext 实现方式：
@@ -145,6 +155,38 @@ BeanFactory ，就像一个包含 Bean 集合的工厂类。它会在客户端�
 当然，目前我们更多的是使用 Spring Boot 为主，所以使用的是第四种 ApplicationContext 容器，**ConfigServletWebServerApplicationContext** 。
 
 ## 6、Spring IoC 的实现机制
+
+### 1.BeanDefinitionRegistry 注册表
+
+​	Spring 配置文件中每一个节点元素在 Spring 容器里都通过一个 BeanDefinition 对象表示， 它描述了 Bean 的配置信息。而 BeanDefinitionRegistry 接口提供了向容器手工注册 BeanDefinition 对象的方法。
+
+### 2.BeanFactory 顶层接口
+
+​	位于类结构树的顶端 ，它最主要的方法就是 getBean(String beanName)，该方法从容器中 返回特定名称的 Bean，BeanFactory 的功能通过其他的接口得到不断扩展；
+
+### 3.ListableBeanFactory
+
+​	该接口定义了访问容器中 Bean 基本信息的若干方法，如查看 Bean 的个数、获取某一类型 Bean 的配置名、查看容器中是否包括某一 Bean 等方法;
+
+### 4.HierarchicalBeanFactory 父子级联
+
+​	父子级联 IoC 容器的接口，子容器可以通过接口方法访问父容器; 通过 HierarchicalBeanFactory 接口， Spring 的 IoC 容器可以建立父子层级关联的容器体系，子 容器可以访问父容器中的 Bean，但父容器不能访问子容器的 Bean。Spring 使用父子容器实 现了很多功能，比如在 Spring MVC 中，展现层 Bean 位于一个子容器中，而业务层和持久 层的 Bean 位于父容器中。这样，展现层 Bean 就可以引用业务层和持久层的 Bean，而业务 层和持久层的 Bean 则看不到展现层的 Bean。
+
+### 5.ConfigurableBeanFactory
+
+​	是一个重要的接口，增强了 IoC 容器的可定制性，它定义了设置类装载器、属性编辑器、容 器初始化后置处理器等方法;
+
+### 6.AutowireCapableBeanFactory 自动装配
+
+​	定义了将容器中的 Bean 按某种规则(如按名字匹配、按类型匹配等)进行自动装配的方法; 
+
+### 7.SingletonBeanRegistry 运行期间注册单例 Bean
+
+​	定义了允许在运行期间向容器注册单实例 Bean 的方法;**对于单实例( singleton)的 Bean 来说，BeanFactory 会缓存 Bean 实例，所以第二次使用 getBean() 获取 Bean 时将直接从 IoC 容器的缓存中获取 Bean 实例。**Spring 在 DefaultSingletonBeanRegistry 类中提供了一 个用于缓存单实例 Bean 的缓存器，它是一个用 HashMap 实现的缓存器，单实例的 Bean 以 beanName 为键保存在这个 HashMap 中。
+
+### 8.依赖日志框框
+
+​	在初始化 BeanFactory 时，必须为其提供一种日志框架，比如使用 Log4J， 即在类路径下提供 Log4J 配置文件，这样启动 Spring 容器才不会报错。
 
 简单来说，Spring 中的 IoC 的实现原理，就是**工厂模式**加**反射机制**。代码如下：
 
@@ -190,7 +232,7 @@ class Client {
 - Client 通过 Factory 工厂，获得对应的 Fruit 对象。
 - 实际情况下，Spring IoC 比这个复杂很多很多，例如单例 Bean 对象，Bean 的属性注入，相互依赖的 Bean 的处理，以及等等。
 
-​	IoC 启动过程其实就是ClassPathXmlApplicationContext 这个类，在启动时，都做了啥。
+​	==IoC 启动过程其实就是ClassPathXmlApplicationContext 这个类，在启动时，都做了啥。==
 
 下图是 ClassPathXmlApplicationContext 的构造过程，**实际就是 Spring IoC 的初始化过程**。
 
@@ -261,8 +303,8 @@ public class AllApplicationEventListener implements ApplicationListener<Applicat
 ### Spring 提供了以下五种标准的事件：
 
 1. 上下文更新事件（ContextRefreshedEvent）：该事件会在ApplicationContext 被初始化或者更新时发布。也可以在调用ConfigurableApplicationContext 接口中的 `refresh()` 方法时被触发。
-2. 上下文开始事件（ContextStartedEvent）：当容器调用ConfigurableApplicationContext 的 `#start()` 方法开始/重新开始容器时触发该事件。
-3. 上下文停止事件（ContextStoppedEvent）：当容器调用 ConfigurableApplicationContext 的 `#stop()` 方法停止容器时触发该事件。
+2. 上下文开始事件（ContextStartedEvent）：当容器调用ConfigurableApplicationContext 的 `start()` 方法开始/重新开始容器时触发该事件。
+3. 上下文停止事件（ContextStoppedEvent）：当容器调用 ConfigurableApplicationContext 的 `stop()` 方法停止容器时触发该事件。
 4. 上下文关闭事件（ContextClosedEvent）：当ApplicationContext 被关闭时触发该事件。容器被关闭时，其管理的所有单例 Bean 都被销毁。
 5. 请求处理事件（RequestHandledEvent）：在 We b应用中，当一个HTTP 请求（request）结束触发该事件。
 
@@ -370,7 +412,7 @@ applicationContext.publishEvent(customEvent);
     	<dubbo:protocol name="dubbo" port="20884"></dubbo:protocol>
         <dubbo:application name="lehuan-search-service"/>
         <dubbo:registry address="zookeeper://192.168.98.135:2181"/>
-    	<!--相当于包扫描-->
+      	<!--相当于包扫描-->
         <dubbo:annotation package="com.lehuan.search.service.impl"/>
         <dubbo:provider delay="-1" timeout="10000"/>
     ```
@@ -383,14 +425,22 @@ applicationContext.publishEvent(customEvent);
 
 另外，现在已经是 Spring Boot 的天下，所以更加是 **Java Config** 配置为主。
 
-## 2、Bean Scope作用域有哪些
+## 2、Bean Scope作用域
 
 Spring Bean 支持 5 种 Scope ，分别如下：
 
 - Singleton - 每个 Spring IoC 容器仅有一个单 Bean 实例。**默认**
+
+  > Spring IoC 容器中只会存在一个共享的 Bean 实例，无论有多少个 Bean 引用它，始终指向同一对象。该模式在多线程下是不安全的。Singleton 作用域是 Spring 中的缺省作用域，也可以显示的将 Bean 定义为 singleton 模式，配置为: 
+  >
+  > <bean id="userDao" class="com.ioc.UserDaoImpl" scope="singleton"/>
+
 - Prototype - 每次通过 Spring 容器获取 prototype 定义的 bean 时，容器都将创建一个新的 Bean 实例，
+
 - Request - 每一次 HTTP 请求都会产生一个新的 Bean 实例，并且该 Bean 仅在当前 HTTP 请求内有效。
+
 - Session - 每一个的 Session 都会产生一个新的 Bean 实例，同时该 Bean 仅在当前 HTTP Session 内有效。
+
 - Application - 每一个 Web Application 都会产生一个新的 Bean ，同时该 Bean 仅在当前 Web Application 内有效。
 
 ==仅当用户使用支持 Web 的 ApplicationContext 时，**最后三个才可用**。==
@@ -860,9 +910,11 @@ protected void addSingleton(String beanName, Object singletonObject) {
 
 # 三、注解
 
+![image-20190416165220081](/Users/jack/Desktop/md/images/image-20190416165220081.png)
+
 ## 1、@Component, @Controller, @Repository, @Service 的区别
 
-- `@Component` ：它将 Java 类标记为 Bean 。它是任何 Spring 管理组件的**通用**构造型。
+- `@Component` ：==它将 Java 类标记为 Bean 。它是任何 Spring 管理组件的**通用**构造型。==
 
 - `@Controller` ：它将一个类标记为 Spring Web MVC **控制器**。
 
@@ -877,32 +929,81 @@ protected void addSingleton(String beanName, Object singletonObject) {
     @Scope("prototype")
     ```
 
-- `@Repository` ：这个注解是具有类似用途和功能的 `@Component` 注解的特化。它为 **DAO** 提供了额外的好处。它将 DAO 导入 IoC 容器，并使未经检查的异常有资格转换为 Spring DataAccessException 。对应数据访问层Bean。**@Repository(value="userDao")注解是告诉Spring，让Spring创建一个名字叫"userDao"的UserDaoImpl实例。**
+- @Repository ：这个注解是具有类似用途和功能的 `@Component` 注解的特化。它为 **DAO** 提供了额外的好处。它将 DAO 导入 IoC 容器，并使未经检查的异常有资格转换为 Spring DataAccessException 。对应数据访问层Bean。**@Repository(value="userDao")注解是告诉Spring，让Spring创建一个名字叫"userDao"的UserDaoImpl实例。**
 
-- @Configuration把一个类作为一个IoC容器，它的某个方法头上如果注册了@Bean，就会作为这个Spring容器中的Bean。
+- @Configuration  把一个类作为一个IoC容器，它的某个方法头上如果注册了@Bean，就会作为这个Spring容器中的Bean。
+
+  > **@configruation和@component注解的作用都是把配置类交給spring容器管理，然后通过@bean注解的方法动态代理，生成一个被spring容器管理的实例，相当于\<bean id=""  class="url">\</bean>**
+
+- ==@Bean  注解在方法上使用，声明当前方法的返回值是一个Bean。==
+
+  > @Bean是一个方法级别上的注解，主要用在@Configuration注解的类里，也可以用在@Component注解的类里，添加的bean的id为方法名。
+
 - @Scope注解 作用域
+
 - @Lazy(true) 表示延迟初始化
+
 - @Service    用于标注业务层组件、 
+
 - @Controller用于标注控制层组件（如struts中的action）
+
 - @Repository用于标注数据访问组件，即DAO组件。
+
 - @Component泛指组件，当组件不好归类的时候，我们可以使用这个注解进行标注。
+
 - @Scope用于指定scope作用域的（用在类上）
+
 - @PostConstruct用于指定初始化方法（用在方法上）
+
 - @PreDestory用于指定销毁方法（用在方法上）
+
 - @DependsOn：定义Bean初始化及销毁时的顺序
+
 - @Primary：自动装配时当出现多个Bean候选者时，被注解为@Primary的Bean将作为首选者，否则将抛出异常
+
 - @Autowired 默认按类型装配，如果我们想使用按名称装配，可以结合@Qualifier注解一起使用。如下：
+
 - @Autowired @Qualifier("personDaoBean") 存在多个实例配合使用
+
 - @Resource   **默认按名称装配，当找不到与名称匹配的bean才会按类型装配。**
   - 装配顺序：
     - (1)、@Resource后面没有任何内容，默认通过name属性去匹配bean，找不到再按type去匹配
     - (2)、指定了name或者type则根据指定的类型去匹配bean
     - (3)、指定了name和type则根据指定的name和type去匹配bean，任何一个不匹配都将报错
+
 - @PostConstruct 初始化注解
+
 - @PreDestroy 摧毁注解 默认 单例  启动就加载
+
 - @Async异步方法调用
 
 参照：[Spring系列之Spring常用注解总结](https://www.cnblogs.com/xiaoxi/p/5935009.html)
+
+## 2、@RequestParam与@PathVariable的区别
+
+ **@RequestParam与@PathVariable为Spring的注解，都可以用于在Controller层接收前端传递的数据，不过两者的应用场景不同。**
+
+@PathVariable主要用于接收http://host:port/path/{参数值}数据。
+
+@RequestParam主要用于接收http://host:port/path?参数名=参数值数据，这里后面也可以不跟参数值。
+
+```Java
+//@PathVariable用法
+@RequestMapping(value = "/test/{id}",method = RequestMethod.DELETE)
+public Result test(@PathVariable("id")String id) 
+    
+//@RequestParam用法,注意这里请求后面没有添加参数
+@RequestMapping(value = "/test",method = RequestMethod.POST)
+    public Result test(@RequestParam(value="id",required=false,defaultValue="0")String id) 
+```
+
+注意上面@RequestParam用法当中的参数。
+
+> value表示接收数据的名称。
+>
+> required表示接收的参数值是否必须，默认为true，既默认参数必须不为空，当传递过来的参数可能为空的时候可以设置required=false。
+>
+> 此外还有一个参数defaultValue 表示如果此次参数未空则为其设置一个默认值。
 
 # 四、AOP
 
