@@ -196,7 +196,37 @@ from temp
 group by sname;
 ```
 
+# 二、从百万数据中随机查询10条
 
+一般做法是：
 
+```sql
+SELECT * FROM tablename ORDER BY RAND() LIMIT 10
+```
 
+但是，在MYSQL的官方手册，里面针对RAND()的提示大概意思就是，**在ORDER BY从句里面不能使用RAND()函数，因为这样会导致数据列被多次扫描。**但是在MYSQL 3.23版本中，仍然可以通过ORDER BY RAND()来实现随机。这样做的效率非常低，因为rand()放在ORDER BY 子句中会被执行多次，自然效率很低。
 
+**基本上都是查询max(id) * rand()来随机获取数据。**
+
+```sql
+SELECT name
+  FROM random AS r1 JOIN
+       (SELECT CEIL(RAND() *
+                     (SELECT MAX(id)
+                        FROM random)) AS id)
+        AS r2
+ WHERE r1.id >= r2.id
+ ORDER BY r1.id ASC
+ LIMIT 10
+```
+
+```sql
+SELECT *
+FROM random, (
+        SELECT id AS sid
+        FROM random
+        ORDER BY RAND( )
+        LIMIT 10
+    ) tmp
+WHERE random.id = tmp.sid;
+```

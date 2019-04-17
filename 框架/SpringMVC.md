@@ -408,6 +408,8 @@ Handler(Controller) 执行完成后，向 DispatcherServlet 返回一个 ModelAn
 
 # 三、相关注解
 
+![image-20190417190824494](/Users/jack/Desktop/md/images/image-20190417190824494.png)
+
 ## @Controller 
 
 `@Controller` 注解，它将一个类标记为 Spring Web MVC **控制器** Controller 。
