@@ -469,6 +469,14 @@ Handler(Controller) 执行完成后，向 DispatcherServlet 返回一个 ModelAn
 
 参照 [《Spring MVC 的 @RequestParam 注解和 @PathVariable 注解的区别》](https://blog.csdn.net/cx361006796/article/details/52829759) 。
 
+## @RequestBody
+
+​	@requestBody注解常用来处理content-type不是默认的application/x-www-form-urlcoded编码的内容，比如说：application/json或者是application/xml等。一般情况下来说常用其来处理application/json类型。
+
+​	通过@requestBody可以将请求体中的JSON字符串绑定到相应的bean上，当然，也可以将其分别绑定到对应的字符串上。
+
+​	前端通过post传数据过来,要用RequestBody注解。
+
 #  四、WebApplicationContext 
 
 **WebApplicationContext 是实现ApplicationContext接口的子类，专门为 WEB 应用准备的。**
