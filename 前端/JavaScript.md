@@ -634,37 +634,116 @@ document.getElementById("demo").innerHTML = obj.sites[2].name + " " + obj.sites[
 
 # 二、HTML DOM
 
+当网页被加载时，浏览器会创建页面的文档对象模型（Document Object Model）。
 
+**HTML DOM** 模型被构造为**对象**的树：
 
+![DOM HTML tree](/Users/jack/Desktop/md/images/pic_htmltree.gif)
 
+通过可编程的对象模型，JavaScript 获得了足够的能力来创建动态的 HTML。
 
+- JavaScript 能够改变页面中的所有 HTML 元素
+- JavaScript 能够改变页面中的所有 HTML 属性
+- JavaScript 能够改变页面中的所有 CSS 样式
+- JavaScript 能够对页面中的所有事件做出反应
 
+## 查找 HTML 元素
 
+有三种查找HTML元素的方法：
 
+- 通过 id 找到 HTML 元素
+- 通过标签名找到 HTML 元素
+- 通过类名找到 HTML 元素
 
+### 通过 id 查找 HTML 元素
 
+在 DOM 中查找 HTML 元素的最简单的方法，是通过使用元素的 id。
 
+本例查找 id="intro" 元素：var x=document.getElementById("intro");
 
+> 如果找到该元素，则该方法将以对象（在 x 中）的形式返回该元素。如果未找到该元素，则 x 将包含 null。
 
+### 通过标签名查找 HTML 元素
 
+本例查找 id="main" 的元素，然后查找 id="main" 元素中的所有\<p> 元素：
 
+> var x=document.getElementById("main");
+> var y=x.getElementsByTagName("p");
 
+### 通过类名找到 HTML 元素
 
+本例通过 **getElementsByClassName** 函数来查找 class="intro" 的元素：
 
+var x=document.getElementsByClassName("intro");
 
+## 改变HTML
 
+### 改变HTML标签的内容：
 
+document.getElementById(*id*Name).innerHTML=*新的 HTML*
 
+### 改变HTML属性：
 
+document.getElementById(*id*).*attribute=新属性值*
 
+> 比如改变图片的属性：
+>
+> ```HTML
+> <img id="image" src="smiley.gif">
+> <script>
+> document.getElementById("image").src="landscape.jpg";
+> </script>
+> ```
 
+## 改变CSS
 
+### 改变HTML样式：
 
+document.getElementById(*id*).style.*property*=*新样式*
 
+如下面改变p标签的颜色，字体和大小
 
+```HTML
+<body>
+<p id="p1">Hello World!</p>
+<p id="p2">Hello World!</p>
+<script>
+document.getElementById("p2").style.color="blue";
+document.getElementById("p2").style.fontFamily="Arial";
+document.getElementById("p2").style.fontSize="larger";
+</script>
+<p>以上段落通过脚本修改。</p>
+</body>
+```
 
+## HTML DOM事件
 
+在事件发生时执行 JavaScript，比如当用户在 HTML 元素上点击时。如需在用户点击某个元素时执行代码，请向一个 HTML 事件属性添加 JavaScript 代码：
 
+onclick=*JavaScript*
+
+HTML 事件的例子：
+
+- 当用户点击鼠标时
+- 当网页已加载时
+- 当图像已加载时
+- 当鼠标移动到元素上时
+- 当输入字段被改变时
+- 当提交 HTML 表单时
+- 当用户触发按键时
+
+如：\<h1 onclick="this.innerHTML='Ooops!'">点击文本!\</h1>     点击时文本会变成Ooops
+
+## 各种事件
+
+- **onload 和 onunload 事件，它们会在用户进入或离开==页面==时被触发。**
+
+> onload 事件可用于检测访问者的浏览器类型和浏览器版本，并基于这些信息来加载网页的正确版本。
+
+- onload 和 onunload 事件可用于处理 cookie。
+- onchange 事件，常结合对输入字段的验证来使用。
+- onmouseover 和 onmouseout 事件可用于在用户的鼠标移至 HTML 元素上方或移出元素时触发函数。
+- **onmousedown, onmouseup 以及 onclick 构成了鼠标点击事件的所有部分。**首先当点击鼠标按钮时，会触发 onmousedown 事件，当释放鼠标按钮时，会触发 onmouseup 事件，最后，当完成鼠标点击时，会触发 onclick 事件。
 
 
 
