@@ -852,6 +852,63 @@ addEventListener(event, function, useCapture);
 >
 > *element*.removeEventListener("mousemove", myFunction);
 
+#### 创建新的 HTML 元素 (节点) - appendChild()
+
+要创建新的 HTML 元素 (节点)需要先创建一个元素，然后在已存在的元素中添加它。
+
+```js
+<script>
+var para = document.createElement("p");		// 创建 <p> 元素	
+var node = document.createTextNode("这是一个新的段落。");	//为 <p> 元素添加文本节点
+para.appendChild(node);		// 将文本节点添加到 <p> 元素中,在一个已存在的元素中添加 p 元素。
+ 
+var element = document.getElementById("div1");	//查找已存在的元素
+element.appendChild(para);	//添加到已存在的元素中
+</script>
+```
+
+#### 创建新的 HTML 元素 (节点) - insertBefore()
+
+将新元素添加到开始位置，可以使用 **insertBefore()** 方法:
+
+#### 移除已存在的元素
+
+要移除一个元素，你需要知道该元素的父元素,removeChild()方法
+
+#### 替换 HTML 元素 - replaceChild()
+
+### DOM集合
+
+getElementsByTagName() 方法返回 [HTMLCollection](https://www.runoob.com/jsref/dom-htmlcollection.html) 对象。
+
+```js
+//获取文档所有的 <p> 元素：
+var x = document.getElementsByTagName("p");
+//集合中的元素可以通过索引(以 0 为起始位置)来访问,访问第二个 <p> 元素:
+y = x[1];
+//HTMLCollection 对象的 length 属性定义了集合中元素的数量，如：x.length表示<p> 元素的数量
+```
+
+修改所有\<p>元素的背景颜色：
+
+```js
+var myCollection = document.getElementsByTagName("p");
+var i;
+for (i = 0; i < myCollection.length; i++) {
+    myCollection[i].style.backgroundColor = "red";
+}
+```
+
+# 二、高级
+
+
+
+
+
+
+
+
+
 
 
 
