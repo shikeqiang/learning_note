@@ -901,6 +901,634 @@ for (i = 0; i < myCollection.length; i++) {
 
 # 二、高级
 
+## JavaScript 对象
+
+JavaScript 提供多个内建对象，比如 String、Date、Array 等等。 对象只是带有属性和方法的特殊数据类型。
+
+- 布尔型可以是一个对象。
+- 数字型可以是一个对象。
+- 字符串也可以是一个对象
+- 日期是一个对象
+- 数学和正则表达式也是对象
+- 数组是一个对象
+- 甚至函数也可以是对象
+
+==对象只是一种特殊的数据。对象拥有**属性**和**方法**==。
+
+### 创建 JavaScript 对象
+
+通过 JavaScript，您能够定义并创建自己的对象。创建新对象有两种不同的方法：
+
+- 定义并创建对象的实例
+
+  ```
+  person=new Object();
+  person.firstname="John";
+  person.lastname="Doe";
+  person.age=50;
+  person.eyecolor="blue";
+  ```
+
+- 使用函数来定义对象，然后创建新的对象实例
+
+  ```js
+  function person(firstname,lastname,age,eyecolor)
+  {
+      this.firstname=firstname;
+      this.lastname=lastname;
+      this.age=age;
+      this.eyecolor=eyecolor;
+  }
+  ```
+
+### prototype（原型对象）
+
+所有的 JavaScript 对象都会从一个 prototype（原型对象）中继承属性和方法。
+
+#### prototype 继承
+
+所有的 JavaScript 对象都会从一个 prototype（原型对象）中继承属性和方法：
+
+- `Date` 对象从 `Date.prototype` 继承。
+- `Array` 对象从 `Array.prototype` 继承。
+- `Person` 对象从 `Person.prototype` 继承。
+
+所有 JavaScript 中的对象都是位于原型链顶端的 Object 的实例。
+
+JavaScript 对象有一个指向一个原型对象的链。当试图访问一个对象的属性时，它不仅仅在该对象上搜寻，还会搜寻该对象的原型，以及该对象的原型的原型，依次层层向上搜索，直到找到一个名字匹配的属性或到达原型链的末尾。
+
+`Date` 对象, `Array` 对象, 以及 `Person` 对象从 `Object.prototype` 继承。
+
+#### 添加属性和方法
+
+在所有已经存在的对象添加新的属性或方法，可以通过prototype实现。
+
+使用 prototype 属性就可以给对象的构造函数添加新的属性：
+
+```js
+function Person(first, last, age, eyecolor) {
+  this.firstName = first;
+  this.lastName = last;
+  this.age = age;
+  this.eyeColor = eyecolor;
+}
+Person.prototype.nationality = "English";
+//添加方法
+Person.prototype.name = function() {
+  return this.firstName + " " + this.lastName;
+};
+```
+
+### Number 对象
+
+JavaScript 只有一种数字类型，可以使用也可以不使用小数点来书写数字，极大或极小的数字可通过科学（指数）计数法来写。
+
+**所有 JavaScript 数字均为 64 位。**
+
+#### NaN - 非数字值
+
+NaN 属性是代表非数字值的特殊值。该属性用于指示某个值不是数字。可以把 Number 对象设置为该值，来指示其不是数字值。可以使用 isNaN() 全局函数来判断一个值是否是 NaN 值。
+
+### 字符串（String） 对象
+
+字符串的属性和方法与Java中的大多数一样，一个字符串可以使用单引号或双引号。
+
+- **match()**函数用来查找字符串中特定的字符，并且如果找到的话，则返回这个字符。
+
+- **replace()** 方法在字符串中用某些字符替换另一些字符。
+
+- 字符串大小写转换使用函数 **toUpperCase()** / **toLowerCase()。**
+
+- 字符串使用**split()**函数转为数组:
+
+  ```js
+  <script>
+  function myFunction(){
+  	var str="a,b,c,d,e,f";
+  	var n=str.split(",");
+  	document.getElementById("demo").innerHTML=n[0];
+  }
+  </script>
+  ```
+
+- 特殊字符
+
+  | 代码 | 输出   |
+  | ---- | ------ |
+  | \'   | 单引号 |
+  | \"   | 双引号 |
+  | \\   | 斜杆   |
+  | \n   | 换行   |
+  | \r   | 回车   |
+  | \t   | tab    |
+  | \b   | 空格   |
+  | \f   | 换页   |
+
+### Date（日期） 对象
+
+#### 在线实例
+
+```js
+// 显示当前日期
+<script>
+var d=new Date();
+document.write(d);
+</script>
+//使用 getFullYear() 获取年份。
+<script>
+function myFunction(){
+	var d = new Date();
+	var x = document.getElementById("demo");
+	x.innerHTML=d.getFullYear();
+    d.getTime();	//getTime() 返回从 1970 年 1 月 1 日至今的毫秒数。
+    x.innerHTML=d.toUTCString();	//使用 toUTCString() 将当日的日期（根据 UTC）转换为字符串。
+}
+</script>
+```
+
+使用 getDay() 和数组来显示星期，而不仅仅是数字。
+
+```js
+<script>
+function myFunction(){
+	var d = new Date();
+	var weekday=new Array(7);
+	weekday[0]="周日";
+	weekday[1]="周一";
+	weekday[2]="周二";
+	weekday[3]="周三";
+	weekday[4]="周四";
+	weekday[5]="周五";
+	weekday[6]="周六";
+	var x = document.getElementById("demo");
+	x.innerHTML=weekday[d.getDay()];
+}
+</script>
+```
+
+在网页上显示一个钟表。
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>菜鸟教程(runoob.com)</title>
+<script>
+function startTime(){
+	var today=new Date();
+	var h=today.getHours();
+	var m=today.getMinutes();
+	var s=today.getSeconds();// 在小于10的数字前加一个‘0’
+	m=checkTime(m);
+	s=checkTime(s);
+	document.getElementById('txt').innerHTML=h+":"+m+":"+s;
+	t=setTimeout(function(){startTime()},500);
+}
+function checkTime(i){
+	if (i<10){
+		i="0" + i;
+	}
+	return i;
+}
+</script>
+</head>
+<body onload="startTime()">
+```
+
+### Array（数组） 对象
+
+#### 在线实例
+
+```js
+//合并两个数组,如下输出：Cecilie,Lone,Emil,Tobias,Linus
+<script>
+var hege = ["Cecilie", "Lone"];
+var stale = ["Emil", "Tobias", "Linus"];
+var children = hege.concat(stale);
+var family = parents.concat(brothers, children);	// 合并三个数组，其中brothers,children和parents都是数组
+document.write(children);
+</script>
+```
+
+##### 用数组元素组成字符串
+
+```js
+<script>
+function myFunction(){
+	var fruits = ["Banana", "Orange", "Apple", "Mango"];
+    fruits.toString();	// 将数组转换为字符串
+    fruits.pop();	// 删除最后一个元素
+    fruits.shift();	// 删除第一个元素
+    var citrus = fruits.slice(1,3);		// 截取数组下标 1 到 2 的元素，从一个数组中选择元素
+    fruits.push("Kiwi")		// 在数组末尾添加新的元素
+    fruits.unshift("Lemon","Pineapple");	// 在数组的开头添加新元素
+    fruits.splice(2,0,"Lemon","Kiwi");	// 在第二个位置添加两个元素
+    fruits.reverse();		//将一个数组中的元素的顺序反转排序
+	var x=document.getElementById("demo");
+	x.innerHTML=fruits.join();
+}
+</script>
+```
+
+##### 数组排序
+
+```js
+// 按字母升序排序
+<script>
+function myFunction(){
+	var fruits = ["Banana", "Orange", "Apple", "Mango"];
+	fruits.sort();
+	var x=document.getElementById("demo");
+	x.innerHTML=fruits;
+}
+</script>
+// 按数字升/降序排序
+<script>
+function myFunction(){
+	var points = [40,100,1,5,25,10];
+	points.sort(function(a,b){return a-b});		// 升序
+    points.sort(function(a,b){return b-a});		// 降序	
+	var x=document.getElementById("demo");
+	x.innerHTML=points;
+}
+</script>
+```
+
+### RegExp 对象
+
+#### 语法
+
+> var patt=new RegExp(pattern,modifiers);  或
+>
+> var patt=/pattern/modifiers;
+>
+> 如：var patt1 = /runoob/i;
+
+- 模式描述了一个表达式模型。
+- 修饰符(modifiers)描述了检索是否是全局，区分大小写等。
+
+> **注意：**当使用构造函数创造正则对象时，需要常规的字符转义规则（在前面加反斜杠 \）。比如，以下是等价的：
+>
+> ```
+> var re = new RegExp("\\w+");
+> var re = /\w+/;
+> ```
+
+exec() 方法检索字符串中的指定值。返回值是被找到的值。如果没有发现匹配，则返回 null。
+
+#### 修饰符
+
+修饰符用于执行区分大小写和全局匹配:
+
+| 修饰符                                             | 描述                                                     |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| [i](https://www.runoob.com/js/jsref-regexp-i.html) | 执行对大小写不敏感的匹配。                               |
+| [g](https://www.runoob.com/js/jsref-regexp-g.html) | 执行全局匹配（查找所有匹配而非在找到第一个匹配后停止）。 |
+| m                                                  | 执行多行匹配。                                           |
+
+#### 方括号
+
+方括号用于查找某个范围内的字符：
+
+| 表达式                                                       | 描述                               |
+| ------------------------------------------------------------ | ---------------------------------- |
+| [[abc\]](https://www.runoob.com/jsref/jsref-regexp-charset.html) | 查找方括号之间的任何字符。         |
+| [[^abc\]](https://www.runoob.com/jsref/jsref-regexp-charset-not.html) | 查找任何不在方括号之间的字符。     |
+| [0-9]                                                        | 查找任何从 0 至 9 的数字。         |
+| [a-z]                                                        | 查找任何从小写 a 到小写 z 的字符。 |
+| [A-Z]                                                        | 查找任何从大写 A 到大写 Z 的字符。 |
+| [A-z]                                                        | 查找任何从大写 A 到小写 z 的字符。 |
+| [adgk]                                                       | 查找给定集合内的任何字符。         |
+| [^adgk]                                                      | 查找给定集合外的任何字符。         |
+| (red\|blue\|green)                                           | 查找任何指定的选项。               |
+
+#### 元字符
+
+元字符（Metacharacter）是拥有特殊含义的字符：
+
+| 元字符                                                       | 描述                                        |
+| ------------------------------------------------------------ | ------------------------------------------- |
+| [.](https://www.runoob.com/jsref/jsref-regexp-dot.html)      | 查找单个字符，除了换行和行结束符。          |
+| [\w](https://www.runoob.com/jsref/jsref-regexp-wordchar.html) | 查找单词字符。                              |
+| [\W](https://www.runoob.com/jsref/jsref-regexp-wordchar-non.html) | 查找非单词字符。                            |
+| [\d](https://www.runoob.com/jsref/jsref-regexp-digit.html)   | 查找数字。                                  |
+| [\D](https://www.runoob.com/jsref/jsref-regexp-digit-non.html) | 查找非数字字符。                            |
+| [\s](https://www.runoob.com/jsref/jsref-regexp-whitespace.html) | 查找空白字符。                              |
+| [\S](https://www.runoob.com/jsref/jsref-regexp-whitespace-non.html) | 查找非空白字符。                            |
+| [\b](https://www.runoob.com/jsref/jsref-regexp-begin.html)   | 匹配单词边界。                              |
+| [\B](https://www.runoob.com/jsref/jsref-regexp-begin-not.html) | 匹配非单词边界。                            |
+| \0                                                           | 查找 NULL 字符。                            |
+| [\n](https://www.runoob.com/jsref/jsref-regexp-newline.html) | 查找换行符。                                |
+| \f                                                           | 查找换页符。                                |
+| \r                                                           | 查找回车符。                                |
+| \t                                                           | 查找制表符。                                |
+| \v                                                           | 查找垂直制表符。                            |
+| [\xxx](https://www.runoob.com/jsref/jsref-regexp-octal.html) | 查找以八进制数 xxx 规定的字符。             |
+| [\xdd](https://www.runoob.com/jsref/jsref-regexp-hex.html)   | 查找以十六进制数 dd 规定的字符。            |
+| [\uxxxx](https://www.runoob.com/jsref/jsref-regexp-unicode-hex.html) | 查找以十六进制数 xxxx 规定的 Unicode 字符。 |
+
+#### 量词
+
+| 量词                                                         | 描述                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [n+](https://www.runoob.com/jsref/jsref-regexp-onemore.html) | 匹配任何包含至少一个 n 的字符串。例如，/a+/ 匹配 "candy" 中的 "a"，"caaaaaaandy" 中所有的 "a"。 |
+| [n*](https://www.runoob.com/jsref/jsref-regexp-zeromore.html) | 匹配任何包含零个或多个 n 的字符串。例如，/bo*/ 匹配 "A ghost booooed" 中的 "boooo"，"A bird warbled" 中的 "b"，但是不匹配 "A goat grunted"。 |
+| [n?](https://www.runoob.com/jsref/jsref-regexp-zeroone.html) | 匹配任何包含零个或一个 n 的字符串。例如，/e?le?/ 匹配 "angel" 中的 "el"，"angle" 中的 "le"。 |
+| [n{X}](https://www.runoob.com/jsref/jsref-regexp-nx.html)    | 匹配包含 X 个 n 的序列的字符串。例如，/a{2}/ 不匹配 "candy," 中的 "a"，但是匹配 "caandy," 中的两个 "a"，且匹配 "caaandy." 中的前两个 "a"。 |
+| [n{X,}](https://www.runoob.com/jsref/jsref-regexp-nxcomma.html) | X 是一个正整数。前面的模式 n 连续出现至少 X 次时匹配。例如，/a{2,}/ 不匹配 "candy" 中的 "a"，但是匹配 "caandy" 和 "caaaaaaandy." 中所有的 "a"。 |
+| [n{X,Y}](https://www.runoob.com/jsref/jsref-regexp-nxy.html) | X 和 Y 为正整数。前面的模式 n 连续出现至少 X 次，至多 Y 次时匹配。例如，/a{1,3}/ 不匹配 "cndy"，匹配 "candy," 中的 "a"，"caandy," 中的两个 "a"，匹配 "caaaaaaandy" 中的前面三个 "a"。注意，当匹配 "caaaaaaandy" 时，即使原始字符串拥有更多的 "a"，匹配项也是 "aaa"。 |
+| [n$](https://www.runoob.com/jsref/jsref-regexp-ndollar.html) | 匹配任何结尾为 n 的字符串。                                  |
+| [^n](https://www.runoob.com/jsref/jsref-regexp-ncaret.html)  | 匹配任何开头为 n 的字符串。                                  |
+| [?=n](https://www.runoob.com/jsref/jsref-regexp-nfollow.html) | 匹配任何其后紧接指定字符串 n 的字符串。                      |
+| [?!n](https://www.runoob.com/jsref/jsref-regexp-nfollow-not.html) | 匹配任何其后没有紧接指定字符串 n 的字符串。                  |
+
+#### RegExp 对象方法
+
+| 方法                                                         | 描述                                               |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| [compile](https://www.runoob.com/jsref/jsref-regexp-compile.html) | 在 1.5 版本中已废弃。 编译正则表达式。             |
+| [exec](https://www.runoob.com/jsref/jsref-exec-regexp.html)  | 检索字符串中指定的值。返回找到的值，并确定其位置。 |
+| [test](https://www.runoob.com/jsref/jsref-test-regexp.html)  | 检索字符串中指定的值。返回 true 或 false。         |
+| [toString](https://www.runoob.com/jsref/jsref-regexp-tostring.html) | 返回正则表达式的字符串。                           |
+
+#### 支持正则表达式的 String 对象的方法
+
+| 方法                                                    | 描述                             | FF   | IE   |
+| ------------------------------------------------------- | -------------------------------- | ---- | ---- |
+| [search](https://www.runoob.com/js/jsref-search.html)   | 检索与正则表达式相匹配的值。     | 1    | 4    |
+| [match](https://www.runoob.com/js/jsref-match.html)     | 找到一个或多个正则表达式的匹配。 | 1    | 4    |
+| [replace](https://www.runoob.com/js/jsref-replace.html) | 替换与正则表达式匹配的子串。     | 1    | 4    |
+| [split](https://www.runoob.com/js/jsref-split.html)     | 把字符串分割为字符串数组。       | 1    | 4    |
+
+------
+
+#### RegExp 对象属性
+
+| 属性                                                         | 描述                                               |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| [constructor](https://www.runoob.com/jsref/jsref-regexp-constructor.html) | 返回一个函数，该函数是一个创建 RegExp 对象的原型。 |
+| [global](https://www.runoob.com/jsref/jsref-regexp-global.html) | 判断是否设置了 "g" 修饰符                          |
+| [ignoreCase](https://www.runoob.com/jsref/jsref-regexp-ignorecase.html) | 判断是否设置了 "i" 修饰符                          |
+| [lastIndex](https://www.runoob.com/jsref/jsref-lastindex-regexp.html) | 用于规定下次匹配的起始位置                         |
+| [multiline](https://www.runoob.com/jsref/jsref-multiline-regexp.html) | 判断是否设置了 "m" 修饰符                          |
+| [source](https://www.runoob.com/jsref/jsref-source-regexp.html) | 返回正则表达式的匹配模式                           |
+
+## Window - 浏览器对象模型
+
+### Window Location
+
+==window.location 对象用于获得当前页面的地址 (URL)，并把浏览器重定向到新的页面。==
+
+**window.location** 对象在编写时可不使用 window 这个前缀。 
+
+- location.hostname 返回 web 主机的域名
+- location.pathname 返回当前页面的路径和文件名
+- location.port 返回 web 主机的端口 （80 或 443）
+- location.protocol 返回所使用的 web 协议（http:// 或 https://）
+
+### Window History
+
+window.history 对象包含浏览器的历史,在编写时可不使用 window 这个前缀。
+
+- history.back() - 与在浏览器点击后退按钮相同，加载历史列表中的前一个 URL。
+- history.forward() - 与在浏览器中点击向前按钮相同，加载历史列表中的下一个 URL。
+
+### 弹窗
+
+可以在 JavaScript 中创建三种消息框：警告框、确认框、提示框。
+
+#### 警告框
+
+警告框经常用于确保用户可以得到某些信息。当警告框出现后，用户需要点击确定按钮才能继续进行操作。
+
+window.alert("*sometext*");
+
+**window.alert()** 方法可以不带上window对象，直接使用**alert()**方法。
+
+#### 确认框
+
+确认框通常用于验证是否接受用户操作。
+
+> 当确认卡弹出时，用户可以点击 "确认" 或者 "取消" 来确定用户操作。
+>
+> 当你点击 "确认", 确认框返回 true， 如果点击 "取消", 确认框返回 false。
+
+**window.confirm()** 方法可以不带上window对象，直接使用**confirm()**方法。
+
+#### 提示框
+
+提示框经常用于提示用户在进入页面前输入某个值。
+
+> 当提示框出现后，用户需要输入某个值，然后点击确认或取消按钮才能继续操纵。
+>
+> 如果用户点击确认，那么返回值为输入的值。如果用户点击取消，那么返回值为 null。
+
+window.prompt("*sometext*","*defaultvalue*");
+
+```js
+<script>
+function myFunction(){
+	var x;
+	var person=prompt("请输入你的名字","Harry Potter");
+	if (person!=null && person!=""){
+	    x="你好 " + person + "! 今天感觉如何?";
+	    document.getElementById("demo").innerHTML=x;
+	}
+}
+</script>
+```
+
+### 计时事件
+
+- setInterval() - 间隔指定的毫秒数不停地执行指定的代码。(多次)
+- setTimeout() - 在指定的毫秒数后执行指定代码。(一次)
+
+**注意:** setInterval() 和 setTimeout() 是 HTML DOM Window对象的两个方法。
+
+#### setInterval() 方法
+
+==setInterval() 间隔指定的毫秒数不停地执行指定的代码==
+
+window.setInterval("*javascript function*",*milliseconds*);
+
+**window.setInterval()** 方法可以不使用 window 前缀，直接使用函数 **setInterval()**。
+
+> setInterval() 第一个参数是函数（function）。第二个参数间隔的毫秒数。**注意:** 1000 毫秒是一秒。
+
+```html
+<p>在页面显示一个时钟</p>
+<p id="demo"></p>
+<script>
+var myVar=setInterval(function(){myTimer()},1000);
+function myTimer(){
+	var d=new Date();
+	var t=d.toLocaleTimeString();
+	document.getElementById("demo").innerHTML=t;
+}
+</script>
+```
+
+##### clearInterval() 方法用于停止 setInterval() 方法执行的函数代码。
+
+window.clearInterval(*intervalVariable*)
+
+**window.clearInterval()** 方法可以不使用window前缀，直接使用函数**clearInterval()**。
+
+> 要使用 clearInterval() 方法, 在创建计时方法时你必须使用全局变量：
+>
+> myVar=setInterval("*javascript function*",*milliseconds*);
+
+#### setTimeout() 方法
+
+myVar= window.setTimeout("*javascript function*", *milliseconds*);
+
+setTimeout() 方法会返回某个值。在上面的语句中，值被储存在名为 myVar 的变量中。假如你希望取消这个 setTimeout()，你可以使用这个变量名来指定它。
+
+setTimeout() 的第一个参数是含有 JavaScript 语句的字符串。这个语句可能诸如 "alert('5 seconds!')"，或者对函数的调用，诸如 alertMsg。
+
+第二个参数指示从当前起多少毫秒后执行第一个参数。
+
+提示：1000 毫秒等于一秒。
+
+```js
+//等待3秒，然后弹出 "Hello":
+setTimeout(function(){alert("Hello")},3000);
+```
+
+##### clearTimeout() 方法用于停止执行setTimeout()方法的函数代码。
+
+window.clearTimeout(*timeoutVariable*)
+
+> **window.clearTimeout()** 方法可以不使用window 前缀。
+>
+> 要使用clearTimeout() 方法, 你必须在创建超时方法中（setTimeout）使用全局变量:
+>
+> myVar=setTimeout("*javascript function*",*milliseconds*);
+>
+> 如果函数还未被执行，你可以使用 clearTimeout() 方法来停止执行函数代码。
+
+## Cookie
+
+​	Cookie 是一些数据, 用于存储 web 页面的用户信息，存储于你电脑上的文本文件中。当 web 服务器向浏览器发送 web 页面时，在连接关闭后，服务端不会记录用户的信息。
+
+Cookie 的作用就是用于解决 "如何记录客户端的用户信息":
+
+- 当用户访问 web 页面时，他的名字可以记录在 cookie 中。
+- 在用户下一次访问该页面时，可以在 cookie 中读取用户访问记录。
+
+Cookie 以名/值对形式存储，如: username=John Doe
+
+当浏览器从服务器上请求 web 页面时， 属于该页面的 cookie 会被添加到该请求中。服务端通过这种方式来获取用户的信息。
+
+### 创建Cookie
+
+可以使用 **document.cookie** 属性来创建 、读取、及删除 cookie。
+
+JavaScript 中，创建 cookie 如下所示：
+
+> document.cookie="username=John Doe";
+
+为 cookie 添加一个过期时间（以 UTC 或 GMT 时间）。默认情况下，cookie 在浏览器关闭时删除：
+
+> document.cookie="username=John Doe; expires=Thu, 18 Dec 2043 12:00:00 GMT";
+
+使用 path 参数告诉浏览器 cookie 的路径。默认情况下，cookie 属于当前页面。
+
+> document.cookie="username=John Doe; expires=Thu, 18 Dec 2043 12:00:00 GMT; path=/";
+
+**读取 cookie：	var x = document.cookie;**
+
+> document.cookie 将以字符串的方式返回所有的 cookie，类型格式： cookie1=value; cookie2=value; cookie3=value;
+
+**修改 cookie 类似于创建 cookie，如下所示：**
+
+> document.cookie="username=John Smith; expires=Thu, 18 Dec 2043 12:00:00 GMT; path=/";
+>
+> 旧的 cookie 将被覆盖。
+
+删除 cookie 非常简单，只需要设置 expires 参数为以前的时间即可，如下所示，设置为 Thu, 01 Jan 1970 00:00:00 GMT:
+
+> document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+>
+> 注意，当您删除时不必指定 cookie 的值。
+
+### 实例
+
+创建 cookie 来存储访问者名称。
+
+首先，访问者访问 web 页面, 他将被要求填写自己的名字。该名字会存储在 cookie 中。访问者下一次访问页面时，他会看到一个欢迎的消息。在这个实例中我们会创建 3 个 JavaScript 函数:
+
+1. 设置 cookie 值的函数
+2. 获取 cookie 值的函数
+3. 检测 cookie 值的函数
+
+```js
+<script>
+//创建一个函数用于存储访问者的名字，cookie 的名称为 cname，cookie 的值为 cvalue，并设置了 cookie 的过期时间 expires。
+//该函数设置了 cookie 名、cookie 值、cookie过期时间。 
+function setCookie(cname,cvalue,exdays){
+	var d = new Date();
+	d.setTime(d.getTime()+(exdays*24*60*60*1000));
+	var expires = "expires="+d.toGMTString();
+	document.cookie = cname+"="+cvalue+"; "+expires;
+}
+/*创建一个函数用户返回指定 cookie 的值，cookie 名的参数为 cname。创建一个文本变量用于检索指定 cookie :cname + "="；使用分号来分割 document.cookie 字符串，并将分割后的字符串数组赋值给 ca (ca = document.cookie.split(';'))。
+循环 ca 数组 (i=0;i<ca.length;i++)，然后读取数组中的每个值，并去除前后空格 (c=ca[i].trim())。
+如果找到 cookie(c.indexOf(name) == 0)，返回 cookie 的值 (c.substring(name.length,c.length)。
+如果没有找到 cookie, 返回 ""。
+*/
+function getCookie(cname){
+	var name = cname + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0; i<ca.length; i++) {
+		var c = ca[i].trim();
+		if (c.indexOf(name)==0) { return c.substring(name.length,c.length); }
+	}
+	return "";
+}
+//创建一个检测 cookie 是否创建的函数。如果设置了 cookie，将显示一个问候信息。如果没有设置 cookie，将会显示一个弹窗用于询问访问者的名字，并调用 setCookie 函数将访问者的名字存储 365 天：
+function checkCookie(){
+	var user=getCookie("username");
+	if (user!=""){
+		alert("欢迎 " + user + " 再次访问");
+	}
+	else {
+		user = prompt("请输入你的名字:","");
+  		if (user!="" && user!=null){
+    		setCookie("username",user,30);
+    	}
+	}
+}
+</script>
+</head>
+<body onload="checkCookie()"></body>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
