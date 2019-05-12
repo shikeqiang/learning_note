@@ -362,6 +362,907 @@ public interface Cache {
 }
 ```
 
+## 动态SQL
+
+- Mybatis 动态 SQL ，可以让我们在 XML 映射文件内，**以 XML 标签的形式编写动态 SQL ，完成逻辑判断和动态拼接 SQL 的功能。**
+- Mybatis 提供了 9 种动态 SQL 标签：`<if />`、`<choose />`、`<when />`、`<otherwise />`、`<trim />`、`<where />`、`<set />`、`<foreach />`、`<bind />` 。
+- 其执行原理为，使用 **OGNL** 的表达式，从 SQL 参数对象中计算表达式的值，根据表达式的值动态拼接 SQL ，以此来完成动态 SQL 的功能。
+
+### if
+
+动态 SQL 通常要做的事情是根据条件包含 where 子句的一部分。比如：
+
+```xml
+<select id="findActiveBlogWithTitleLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  WHERE state = ‘ACTIVE’
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+</select>
+```
+
+​	这条语句提供了一种可选的查找文本功能。**如果没有传入“title”，那么所有处于“ACTIVE”状态的BLOG都会返回；反之若传入了“title”，那么就会对“title”一列进行模糊查找并返回 BLOG 结果**（“title”参数值是可以包含一些掩码或通配符的）。
+
+通过“title”和“author”两个参数进行可选搜索:
+
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <if test="title != null">
+    AND title like #{title}
+  </if>
+  <if test="author != null and author.name != null">
+    AND author_name like #{author.name}
+  </if>
+</select>
+```
+
+### choose, when, otherwise
+
+​	有时我们不想应用到所有的条件语句，而只想从中择其一项。针对这种情况，MyBatis 提供了 choose 元素，它有点像 Java 中的 switch 语句。 
+
+​	这次变为提供了“title”就按“title”查找，提供了“author”就按“author”查找的情形，若两者都没有提供，就返回所有符合条件的 BLOG（实际情况可能是由管理员按一定策略选出 BLOG 列表，而不是返回大量无意义的随机结果）。
+
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+  <choose>
+    <when test="title != null">
+      AND title like #{title}
+    </when>
+    <when test="author != null and author.name != null">
+      AND author_name like #{author.name}
+    </when>
+    <otherwise>
+      AND featured = 1
+    </otherwise>
+  </choose>
+</select>
+```
+
+### trim, where, set
+
+​	上面的几个例子，如果条件不满足的话，会拼凑成不成一条sql语句，导致无法查询，如：SELECT * FROM BLOG  WHERE
+
+```xml
+<select id="findActiveBlogLike"
+     resultType="Blog">
+  SELECT * FROM BLOG
+  <where>
+    <if test="state != null">
+         state = #{state}
+    </if>
+    <if test="title != null">
+        AND title like #{title}
+    </if>
+    <if test="author != null and author.name != null">
+        AND author_name like #{author.name}
+    </if>
+  </where>
+</select>
+```
+
+​	==*where* 元素只会在至少有一个子元素的条件返回 SQL 子句的情况下才去插入“WHERE”子句。而且，若语句的开头为“AND”或“OR”，*where* 元素也会将它们去除。==
+
+​	如果 *where* 元素没有按正常套路出牌，我们可以**通过自定义 trim 元素来定制 *where* 元素的功能**。比如，和 *where* 元素等价的自定义 trim 元素为：
+
+```xml
+<trim prefix="WHERE" prefixOverrides="AND |OR ">
+  ...
+</trim>
+```
+
+​	*prefixOverrides* 属性会忽略通过管道分隔的文本序列（注意此例中的空格也是必要的）。它的作用是移除所有指定在 *prefixOverrides* 属性中的内容，并且插入 *prefix* 属性中指定的内容。
+
+类似的用于动态更新语句的解决方案叫做 *set*。*set* 元素可以用于动态包含需要更新的列，而舍去其它的。比如：
+
+```xml
+<update id="updateAuthorIfNecessary">
+  update Author
+    <set>
+      <if test="username != null">username=#{username},</if>
+      <if test="password != null">password=#{password},</if>
+      <if test="email != null">email=#{email},</if>
+      <if test="bio != null">bio=#{bio}</if>
+    </set>
+  where id=#{id}
+</update>
+```
+
+​	这里，*set* 元素会动态前置 SET 关键字，同时也会删掉无关的逗号，因为用了条件语句之后很可能就会在生成的 SQL 语句的后面留下这些逗号。（译者注：**因为用的是“if”元素，若最后一个“if”没有匹配上而前面的匹配上，SQL 语句的最后就会有一个逗号遗留**）
+
+若你对 *set* 元素等价的自定义 trim 元素的代码感兴趣，那这就是它的真面目：
+
+```xml
+<trim prefix="SET" suffixOverrides=",">
+  ...
+</trim>
+```
+
+​	**注意这里我们删去的是后缀值，同时添加了前缀值。**
+
+### foreach
+
+​	动态 SQL 的另外一个常用的操作需求是对一个集合进行遍历，通常是在构建 IN 条件语句的时候。比如：
+
+```xml
+<select id="selectPostIn" resultType="domain.blog.Post">
+  SELECT *
+  FROM POST P
+  WHERE ID in
+  <foreach item="item" index="index" collection="list"
+      open="(" separator="," close=")">
+        #{item}
+  </foreach>
+</select>
+```
+
+​	*foreach* 元素的功能非常强大，它允许你指定一个集合，声明可以在元素体内使用的集合项（item）和索引（index）变量。它也允许你指定开头与结尾的字符串以及在迭代结果之间放置分隔符。这个元素是很智能的，因此它不会偶然地附加多余的分隔符。
+
+> **注意** 
+>
+> 可以将任何可迭代对象（如 List、Set 等）、Map 对象或者数组对象传递给 *foreach* 作为集合参数。**==当使用可迭代对象或者数组时，index 是当前迭代的次数，item 的值是本次迭代获取的元素。当使用 Map 对象（或者 Map.Entry 对象的集合）时，index 是键，item 是值。==**
+
+### bind
+
+`bind` 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文。比如：
+
+```xml
+<select id="selectBlogsLike" resultType="Blog">
+  <bind name="pattern" value="'%' + _parameter.getTitle() + '%'" />
+  SELECT * FROM BLOG
+  WHERE title LIKE #{pattern}
+</select>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
