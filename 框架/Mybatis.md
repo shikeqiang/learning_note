@@ -519,61 +519,263 @@ public interface Cache {
 </select>
 ```
 
+# 五、Mybatis工作原理如下：
 
+![image-20190513182031415](/Users/jack/Desktop/md/images/image-20190513182031415.png)
 
+# 六、Mapper接口的工作原理
 
+Mapper 接口，对应的关系如下：
 
+- 接口的全限名，就是映射文件中的 `"namespace"` 的值。
+- 接口的方法名，就是映射文件中 MappedStatement 的 `"id"` 值。
+- 接口方法内的参数，就是传递给 SQL 的参数。
 
+Mapper 接口是没有实现类的，当调用接口方法时，接口全限名 + 方法名拼接字符串作为 key 值，可唯一定位一个对应的 MappedStatement 。举例：`com.mybatis3.mappers.StudentDao.findStudentById` ，可以唯一找到 `"namespace"` 为 `com.mybatis3.mappers.StudentDao` 下面 `"id"` 为 `findStudentById` 的 MappedStatement 。
 
+总结来说，在 Mybatis 中，每一个 `<select />`、`<insert />`、`<update />`、`<delete />` 标签，都会被解析为一个 MappedStatement 对象。
 
+Mapper 接口的实现类，通过 MyBatis 使用 **JDK Proxy** 自动生成其代理对象 Proxy ，而代理对象 Proxy 会拦截接口方法，从而“调用”对应的 MappedStatement 方法，最终执行 SQL ，返回执行结果。整体流程如下图：![流程](/Users/jack/Desktop/md/images/02-7742725.png)
 
+​	其中，SqlSession 在调用 Executor 之前，会获得对应的 MappedStatement 方法。例如：`DefaultSqlSession#select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler)` 方法，代码如下：
 
+```java
+// DefaultSqlSession.java
+@Override
+public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
+    try {
+        // 获得 MappedStatement 对象
+        MappedStatement ms = configuration.getMappedStatement(statement);
+        // 执行查询
+        executor.query(ms, wrapCollection(parameter), rowBounds, handler);
+    } catch (Exception e) {
+        throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
+    } finally {
+        ErrorContext.instance().reset();
+    }
+}
+```
 
+==Mapper 接口里的方法，是不能重载的，因为是**全限名 + 方法名**的保存和寻找策略。==
 
+# 七、Mapper接口绑定的实现方式
 
+接口绑定有三种实现方式：
 
+第一种，通过 **XML Mapper** 里面写 SQL 来绑定。在这种情况下，要指定 XML 映射文件里面的 `"namespace"` 必须为接口的全路径名。
 
+> 如：**\<mapper namespace="com.taotao.mapper.TbContentCategoryMapper" >**
 
+第二种，通过**注解**绑定，就是在接口的方法上面加上 `@Select`、`@Update`、`@Insert`、`@Delete` 注解，里面包含 SQL 语句来绑定。
 
+第三种，是第二种的特例，也是通过**注解**绑定，在接口的方法上面加上 `@SelectProvider`、`@UpdateProvider`、`@InsertProvider`、`@DeleteProvider` 注解，通过 Java 代码，生成对应的动态 SQL 。
 
+# 八、获取自动生成的(主)键值
 
+不同的数据库，获取自动生成的(主)键值的方式是不同的。
 
+MySQL 有两种方式，但是**自增主键**，代码如下：
 
+```xml
+<!--方式一，使用 useGeneratedKeys + keyProperty 属性-->
+<insert id="insert" parameterType="Person" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO person(name, pswd)
+    VALUE (#{name}, #{pswd})
+</insert>
+    
+<!--方式二，使用 <selectKey /> 标签,返回主键-->
+<insert id="insert" parameterType="Person" useGeneratedKeys="true" keyProperty="id">
+    <selectKey keyProperty="id" resultType="long" order="AFTER">
+        SELECT LAST_INSERT_ID()
+    </selectKey>
+    INSERT INTO person(name, pswd)
+    VALUE (#{name}, #{pswd})
+</insert>
+```
 
+Oracle 有两种方式，**序列**和**触发器**。基于**序列**，根据 `<selectKey />` 执行的时机，也有两种方式，代码如下：
 
+```xml
+<!--这个是创建表的自增序列
+CREATE SEQUENCE student_sequence
+INCREMENT BY 1
+NOMAXVALUE
+NOCYCLE
+CACHE 10;
+-->
+<!--方式一，使用 `<selectKey />` 标签 + BEFORE-->
+<insert id="add" parameterType="Student">
+　　<selectKey keyProperty="student_id" resultType="int" order="BEFORE">
+      select student_sequence.nextval FROM dual
+    </selectKey>
+    
+     INSERT INTO student(student_id, student_name, student_age)
+     VALUES (#{student_id},#{student_name},#{student_age})
+</insert>
 
+<!--方式二，使用 `<selectKey />` 标签 + AFTER-->
+<insert id="save" parameterType="com.threeti.to.ZoneTO" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT SEQ_ZONE.CURRVAL AS id FROM dual
+    </selectKey>
+    
+    INSERT INTO TBL_ZONE (ID, NAME ) 
+    VALUES (SEQ_ZONE.NEXTVAL, #{name,jdbcType=VARCHAR})
+</insert>
+```
 
+# 九、在 Mapper 中如何传递多个参数
 
+第一种，直接使用 Map 集合封装，装载多个参数进行传递。代码如下：
 
+```Java
+// 调用方法
+Map<String, Object> map = new HashMap();
+map.put("start", start);
+map.put("end", end);
+return studentMapper.selectStudents(map);
 
+// Mapper 接口
+List<Student> selectStudents(Map<String, Object> map);
 
+// Mapper XML 代码
+<select id="selectStudents" parameterType="Map" resultType="Student">
+    SELECT * 
+    FROM students 
+    LIMIT #{start}, #{end}
+</select>
+```
 
+第二种，**保持传递多个参数，使用 `@Param` 注解。(推荐使用)**代码如下：
 
+```Java
+// 调用方法
+return studentMapper.selectStudents(0, 10);
 
+// Mapper 接口
+List<Student> selectStudents(@Param("start") Integer start, @Param("end") Integer end);
 
+// Mapper XML 代码
+<select id="selectStudents" resultType="Student">
+    SELECT * 
+    FROM students 
+    LIMIT #{start}, #{end}
+</select>
+```
 
+第三种，保持传递多个参数，不使用 `@Param` 注解。代码如下：
 
+```Java
+// 调用方法
+return studentMapper.selectStudents(0, 10);
 
+// Mapper 接口
+List<Student> selectStudents(Integer start, Integer end);
 
+// Mapper XML 代码
+<select id="selectStudents" resultType="Student">
+    SELECT * 
+    FROM students 
+    LIMIT #{param1}, #{param2}
+</select>
+```
 
+​	其中，按照参数在方法方法中的位置，从 1 开始，逐个为 `#{param1}`、`#{param2}`、`#{param3}` 不断向下排列，即通过#{param1}对应Mapper接口方法中的参数位置。
 
+# 十、映射 Enum 枚举类
 
+Mybatis 可以映射枚举类，对应的实现类为 EnumTypeHandler 或 EnumOrdinalTypeHandler 。
 
+- EnumTypeHandler ，基于 `Enum.name` 属性( String )。**默认**。
+- EnumOrdinalTypeHandler ，基于 `Enum.ordinal` 属性( `int` )。可通过 `<setting name="defaultEnumTypeHandler" value="EnumOrdinalTypeHandler" />` 来设置。
 
+```Java
+public class Dog {
+    public static final int STATUS_GOOD = 1;
+    public static final int STATUS_BETTER = 2;
+    public static final int STATUS_BEST = 3；
+    private int status;
+}
+```
 
+并且，不单可以映射枚举类，Mybatis 可以映射任何对象到表的一列上。映射方式为自定义一个 TypeHandler 类，实现 TypeHandler 的`#setParameter(...)` 和 `#getResult(...)` 接口方法。
 
+### TypeHandler 有两个作用：
 
+- 一是，完成从 javaType 至 jdbcType 的转换。
+- 二是，完成 jdbcType 至 javaType 的转换。
 
+==具体体现为 `#setParameter(...)` 和 `#getResult(..)` 两个方法，分别代表设置 SQL 问号占位符参数和获取列查询结果。==
 
+# 十一、Executor 执行器
 
+​	Mybatis 有四种 Executor 执行器，分别是 SimpleExecutor、ReuseExecutor、BatchExecutor、CachingExecutor 。
 
+- SimpleExecutor ：每执行一次 update 或 select 操作，就创建一个 Statement 对象，用完立刻关闭 Statement 对象。
+- ReuseExecutor ：执行 update 或 select 操作，以 SQL 作为key 查找**缓存**的 Statement 对象，存在就使用，不存在就创建；==用完后，不关闭 Statement 对象，而是放置于缓存 `Map<String, Statement>` 内，供下一次使用。简言之，就是重复使用 Statement 对象。==
+- BatchExecutor(批处理) ：==执行 update 操作（没有 select 操作，因为 JDBC 批处理不支持 select 操作），将所有 SQL 都添加到批处理中（通过 addBatch 方法），等待统一执行（使用 executeBatch 方法）==。它缓存了多个 Statement 对象，每个 Statement 对象都是调用 addBatch 方法完毕后，等待一次执行 executeBatch 批处理。**实际上，整个过程与 JDBC 批处理是相同**。
+- CachingExecutor ：在上述的三个执行器之上，增加**二级缓存**的功能。
 
+通过设置 `<setting name="defaultExecutorType" value="">` 的 `"value"` 属性，可传入 SIMPLE、REUSE、BATCH 三个值，分别使用 SimpleExecutor、ReuseExecutor、BatchExecutor 执行器。
 
+通过设置 `<setting name="cacheEnabled" value=""` 的 `"value"` 属性为 `true` 时，创建 CachingExecutor 执行器。
 
+# 十二、批量插入
 
+mapper xml：
 
+```xml
+<insert id="insertUser" parameterType="String"> 
+    INSERT INTO users(name) 
+    VALUES (#{value}) 
+</insert>
+```
 
+```Java
+// mapper接口
+public interface UserMapper {
+    void insertUser(@Param("name") String name);
+}
 
+//调用接口
+private static SqlSessionFactory sqlSessionFactory;
+@Test
+public void testBatch() {
+    // 创建要插入的用户的名字的数组
+    List<String> names = new ArrayList<>();
+    names.add("占小狼");
+    names.add("朱小厮");
+    names.add("徐妈");
+    names.add("飞哥");
+    // 获得执行器类型为 Batch 的 SqlSession 对象，并且 autoCommit = false ，禁止事务自动提交
+    try (SqlSession session = sqlSessionFactory.openSession(ExecutorType.BATCH, false)) {
+        // 获得 Mapper 对象
+        UserMapper mapper = session.getMapper(UserMapper.class);
+        // 循环插入
+        for (String name : names) {
+            mapper.insertUser(name);
+        }
+        // 提交批量操作
+        session.commit();
+    }
+}
+```
+
+另一种方式：
+
+```xml
+INSERT INTO [表名]([列名],[列名]) 
+VALUES
+([列值],[列值])),
+([列值],[列值])),
+([列值],[列值]));
+```
+
+- 对于这种方式，需要保证单条 SQL 不超过语句的最大限制 `max_allowed_packet` 大小，默认为 1 M 。
+
+结论：少量插入请使用反复插入单条数据，方便。数量较多请使用批处理方式。（可以考虑以有需求的插入数据量20条左右为界吧，在我的测试和数据库环境下耗时都是百毫秒级的，方便最重要）。**无论何时都不用xml拼接sql的方式**。
+
+这两种方式的性能对比，可以看看 [《[实验\]mybatis批量插入方式的比较》](https://www.jianshu.com/p/cce617be9f9e) 。
 
 
 

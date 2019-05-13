@@ -454,5 +454,371 @@ jQuery 提供多个处理尺寸的重要方法：
 - outerWidth()              返回元素的宽度（包括内边距和边框）。
 - outerHeight()             返回元素的高度（包括内边距和边框）。
 
+# 四、遍历
+
+​	下图展示了一个家族树。通过 jQuery 遍历，您能够从被选（当前的）元素开始，轻松地在家族树中向上移动（祖先），向下移动（子孙），水平移动（同胞）。这种移动被称为对 DOM 进行遍历。
+
+![jQuery Dimensions](/Users/jack/Desktop/md/images/img_travtree.png)
+
+- <div> 元素是 <ul> 的父元素，同时是其中所有内容的祖先。
+- <ul> 元素是 <li> 元素的父元素，同时是 <div> 的子元素
+- 左边的 <li> 元素是 <span> 的父元素，<ul> 的子元素，同时是 <div> 的后代。
+- <span> 元素是 <li> 的子元素，同时是 <ul> 和 <div> 的后代。
+- 两个 <li> 元素是同胞（拥有相同的父元素）。
+- 右边的 <li> 元素是 <b> 的父元素，<ul> 的子元素，同时是 <div> 的后代。
+- <b> 元素是右边的 <li> 的子元素，同时是 <ul> 和 <div> 的后代。
+
+> 祖先是父、祖父、曾祖父等等。后代是子、孙、曾孙等等。同胞拥有相同的父。
+
+## 祖先
+
+向上遍历 DOM 树
+
+- parent()	返回被选元素的直接父元素，只会向**上一级**对 DOM 树进行遍历。
+
+- parents()       返回被选元素的所有祖先元素，它一路向上直到文档的根元素 (\<html>)。也可以使用可选参数来过滤对祖先元素的搜索。
+
+  > 如：返回所有 \<span> 元素的所有祖先，并且它是 \<ul> 元素：$("span").parents("ul");
+
+- parentsUntil()        返回介于两个给定元素之间的所有祖先元素。
+
+  > 如：返回介于 \<span> 与 \<div> 元素之间的所有祖先元素：
+  >
+  > $("span").parentsUntil("div");
+
+## 后代
+
+后代是子、孙、曾孙等等。
+
+- children()	返回被选元素的**所有**直接子元素，只会向**下一级**对 DOM 树进行遍历。也可以使用可选参数来过滤对子元素的搜索。
+
+  > 如：返回类名为 "1" 的所有 <p> 元素，并且它们是 <div> 的直接子元素：
+  >
+  >  $("div").children("p.1");
+
+- find()               返回被选元素的后代元素，一路向下直到最后一个后代。
+
+  > 返回属于 \<div> 后代的所有 \<span> 元素：$("div").find("span");
+  >
+  > 返回 \<div> 的所有后代：$("div").find("*");
+
+## 同胞(siblings)
+
+同胞拥有相同的父元素。
+
+## 在 DOM 树中水平遍历
+
+- siblings()		返回被选元素的所有同胞元素，也可以使用可选参数来过滤对同胞元素的搜索。
+- next()                      返回被选元素的下一个同胞元素,只返回一个元素,即返回同级元素中的下一个。
+- nextAll()                  返回被选元素的所有跟随的同胞元素，即被选元素下面所有同胞。
+- nextUntil()              介于两个给定参数之间的**所有跟随的同胞元素**。
+- prev()
+- prevAll()
+- prevUntil()
+
+> 后面这三个prev方法与上面效果一样，只是方向相反。
+
+## 过滤
+
+三个最基本的过滤方法是：**first(), last() 和 eq()**，它们允许您基于其在一组元素中的位置来选择一个特定的元素。
+
+其他过滤方法，比如 **filter() 和 not()** 允许您选取匹配或不匹配某项指定标准的元素。
+
+- first() 方法返回被选元素的首个元素。
+
+  > 选取首个 \<div> 元素内部的第一个 \<p> 元素：$("div p").first();
+
+- last() 方法返回被选元素的最后一个元素。
+
+- eq() 方法返回被选元素中带有指定索引号的元素。
+
+  > 索引号从 0 开始，因此首个元素的索引号是 0 而不是 1。下面的例子选取第二个 \<p> 元素（索引号 1）：$("p").eq(1);
+
+- filter() 方法允许规定一个标准，不匹配这个标准的元素会被从集合中删除，匹配的元素会被返回。
+
+  > 返回带有类名 "url" 的所有 \<p> 元素：$("p").filter(".url");
+
+- not() 方法返回不匹配标准的所有元素,not() 方法与 filter() 相反。
+
+# 五、AJAX
+
+## load() 
+
+从服务器加载数据，并把返回的数据放入被选元素中。
+
+语法：$(selector).load(URL,data,callback);
+
+必需的 *URL* 参数规定您希望加载的 URL。
+
+可选的 *data* 参数规定与请求一同发送的查询字符串键/值对集合。
+
+可选的 *callback* 参数是 load() 方法完成后所执行的函数名称。
+
+> 实例：
+>
+> 文件**"demo_test.txt"**的内容：
+>
+> ```HTML
+> <h2>jQuery AJAX 是个非常棒的功能！</h2>
+> <p id="p1">这是段落的一些文本。</p>
+> ```
+>
+> 把文件 "demo_test.txt" 的内容加载到指定的 \<div> 元素中：$("#div1").load("demo_test.txt");
+>
+> 可以把 jQuery 选择器添加到 URL 参数，把 "demo_test.txt" 文件中 id="p1" 的元素的内容，加载到指定的 \<div> 元素中：$("#div1").load("demo_test.txt #p1");
+
+可选的 callback 参数规定当 load() 方法完成后所要允许的回调函数。回调函数可以设置不同的参数：
+
+- *responseTxt* - 包含调用成功时的结果内容
+- *statusTXT* - 包含调用的状态
+- *xhr* - 包含 XMLHttpRequest 对象
+
+在 load() 方法完成后显示一个提示框。如果 load() 方法已成功，则显示"外部内容加载成功！"，而如果失败，则显示错误消息：
+
+```js
+// 先加载，如果加载成功就弹出消息框，然后再更改对应的HTML内容
+$("button").click(function(){
+  $("#div1").load("demo_test.txt",function(responseTxt,statusTxt,xhr){
+    if(statusTxt=="success")
+      alert("外部内容加载成功!");
+    if(statusTxt=="error")
+      alert("Error: "+xhr.status+": "+xhr.statusText);
+  });
+});
+```
+
+## get() 和 post() 方法
+
+​	**get() 和 post() 方法用于通过 HTTP GET 或 POST 请求从服务器请求数据。**
+
+$.get() 方法通过 HTTP GET 请求从服务器上请求数据。
+
+> $.get(*URL*,*callback*);
+>
+> 必需的 *URL* 参数规定您希望请求的 URL。
+>
+> 可选的 *callback* 参数是请求成功后所执行的函数名。
+>
+> 下面的例子使用 $.get() 方法从服务器上的一个文件中取回数据：
+>
+> ```js
+> $("button").click(function(){
+>   $.get("demo_test.php",function(data,status){
+>     alert("数据: " + data + "\n状态: " + status);
+>   });
+> });
+> ```
+>
+> $.get() 的第一个参数是我们希望请求的 URL（"demo_test.php"）。
+>
+> 第二个参数是回调函数。第一个回调参数存有被请求页面的内容，第二个回调参数存有请求的状态。
+
+$.post() 方法通过 HTTP POST 请求向服务器提交数据。
+
+> $.post(*URL,data,callback*);
+>
+> 必需的 *URL* 参数规定您希望请求的 URL。
+>
+> 可选的 *data* 参数规定连同请求发送的数据。
+>
+> 可选的 *callback* 参数是请求成功后所执行的函数名。
+>
+> 使用 $.post() 连同请求一起发送数据：
+>
+> ```js
+> $("button").click(function(){
+>     $.post("/try/ajax/demo_test_post.php",
+>     {
+>         name:"菜鸟教程",
+>         url:"http://www.runoob.com"
+>     },
+>         function(data,status){
+>         alert("数据: \n" + data + "\n状态: " + status);
+>     });
+> });
+> ```
+>
+> $.post() 的第一个参数是我们希望请求的 URL ("demo_test_post.php")，接着连同请求（name 和 url）一起发送数据。"demo_test_post.php" 中的 PHP 脚本读取这些参数，对它们进行处理，然后返回结果。
+>
+> 第三个参数是回调函数。第一个回调参数存有被请求页面的内容，而第二个参数存有请求的状态。
+
+# 六、noConflict() 方法
+
+noConflict() 方法会释放对 $ 标识符的控制，这样其他脚本就可以使用它了。
+
+> 通过全名替代简写的方式来使用 jQuery：
+>
+> ```js
+> $.noConflict();
+> jQuery(document).ready(function(){
+>   jQuery("button").click(function(){
+>     jQuery("p").text("jQuery 仍然在工作!");
+>   });
+> });
+> ```
+>
+> 以创建自己的简写。noConflict() 可返回对 jQuery 的引用，您可以把它存入变量，以供稍后使用:
+>
+> ```js
+> var jq = $.noConflict();
+> jq(document).ready(function(){
+>   jq("button").click(function(){
+>     jq("p").text("jQuery 仍然在工作!");
+>   });
+> });
+> ```
+>
+> 如果你的 jQuery 代码块使用 $ 简写，并且您不愿意改变这个快捷方式，那么您**可以把 $ 符号作为变量传递给 ready 方法。**这样就可以在函数内使用 $ 符号了 - 而在函数外，依旧不得不使用 "jQuery"：
+>
+> ```js
+> $.noConflict();
+> jQuery(document).ready(function($){
+>   $("button").click(function(){
+>     $("p").text("jQuery 仍然在工作!");
+>   });
+> });
+> ```
+
+# 七、jQuery 选择器
+
+| 选择器                                                       | 实例                          | 选取                                                         |
+| ------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------ |
+| [*](https://www.runoob.com/jquery/jq-sel-all.html)           | $("*")                        | 所有元素                                                     |
+| [#*id*](https://www.runoob.com/jquery/jq-sel-id.html)        | $("#lastname")                | id="lastname" 的元素                                         |
+| [.*class*](https://www.runoob.com/jquery/jq-sel-class.html)  | $(".intro")                   | class="intro" 的所有元素                                     |
+| [.*class,*.*class*](https://www.runoob.com/jquery/sel-multiple-classes.html) | $(".intro,.demo")             | ==class 为 "intro" **或** "demo" 的所有元素==                |
+| [*element*](https://www.runoob.com/jquery/jq-sel-element.html) | $("p")                        | 所有 \<p> 元素                                               |
+| [*el1*,*el2*,*el3*](https://www.runoob.com/jquery/sel-multiple-elements.html) | $("h1,div,p")                 | 所有 \<h1>、\<div> 和 \<p> 元                                |
+| [:first](https://www.runoob.com/jquery/sel-first.html)       | $("p:first")                  | 第一个 <p> 元素                                              |
+| [:last](https://www.runoob.com/jquery/sel-last.html)         | $("p:last")                   | 最后一个 <p> 元素                                            |
+| [:even](https://www.runoob.com/jquery/sel-even.html)         | $("tr:even")                  | **:even 选择器**选取带有偶数索引号的每个元素（比如：0、2、4 等等）。所有偶数 \<tr> 元素，索引值从 0 开始，第一个元素是偶数 (0)，第二个元素是奇数 (1)，以此类推。 |
+| [:odd](https://www.runoob.com/jquery/sel-odd.html)           | $("tr:odd")                   | **:odd 选择器**选取带有奇数索引号的每个元素（比如：1、3、5 等等）。所有奇数 \<tr> 元素，索引值从 0 开始，第一个元素是偶数 (0)，第二个元素是奇数 (1)，以此类推。 |
+| [:first-child](https://www.runoob.com/jquery/jq-sel-firstchild.html) | $("p:first-child")            | 属于其父元素的第一个子元素的所有 \<p> 元素                   |
+| [:first-of-type](https://www.runoob.com/jquery/sel-firstoftype.html) | $("p:first-of-type")          | 选取属于其父元素的特定类型的第一个子元素的所有元素。属于其父元素的第一个 \<p> 元素的所有 \<p> 元素；该选择器与 :nth-of-type(1) 相同。 |
+| [:last-child](https://www.runoob.com/jquery/sel-lastchild.html) | $("p:last-child")             | 属于其父元素的最后一个子元素的所有 \<p> 元素                 |
+| [:last-of-type](https://www.runoob.com/jquery/sel-lastoftype.html) | $("p:last-of-type")           | 属于其父元素的最后一个 \<p> 元素的所有 \<p> 元素             |
+| [:nth-child(*n*)](https://www.runoob.com/jquery/sel-nthchild.html) | $("p:nth-child(2)")           | 属于其父元素的第二个子元素的所有 \<p> 元素                   |
+| [:nth-last-child(*n*)](https://www.runoob.com/jquery/sel-nthlastchild.html) | $("p:nth-last-child(2)")      | 属于其父元素的第二个子元素的所有 \<p> 元素，从最后一个子元素开始计数 |
+| [:nth-of-type(*n*)](https://www.runoob.com/jquery/sel-nthoftype.html) | $("p:nth-of-type(2)")         | 属于其父元素的第二个 \<p> 元素的所有 \<p> 元素               |
+| [:nth-last-of-type(*n*)](https://www.runoob.com/jquery/sel-nthlastoftype.html) | $("p:nth-last-of-type(2)")    | 属于其父元素的第二个 \<p> 元素的所有 \<p> 元素，从最后一个子元素开始计数 |
+| [:only-child](https://www.runoob.com/jquery/sel-onlychild.html) | $("p:only-child")             | 属于其父元素的唯一子元素的所有 \<p> 元素                     |
+| [:only-of-type](https://www.runoob.com/jquery/sel-onlyoftype.html) | $("p:only-of-type")           | 属于其父元素的特定类型的唯一子元素的所有 \<p> 元素           |
+| [parent > child](https://www.runoob.com/jquery/sel-parent-child.html) | $("div > p")                  | \<div> 元素的直接子元素的所有 \<p> 元素                      |
+| [parent descendant](https://www.runoob.com/jquery/sel-parent-descendant.html) | $("div p")                    | \<div> 元素的后代的所有 \<p> 元素                            |
+| [element + next](https://www.runoob.com/jquery/sel-previous-next.html) | $("div + p")                  | 每个 \<div> 元素相邻的下一个 \<p> 元素                       |
+| [element ~ siblings](https://www.runoob.com/jquery/sel-previous-siblings.html) | $("div ~ p")                  | \<div> 元素同级的所有 \<p> 元素                              |
+| [:eq(*index*)](https://www.runoob.com/jquery/sel-eq.html)    | $("ul li:eq(3)")              | 列表中的第四个元素（index 值从 0 开始）                      |
+| [:gt(*no*)](https://www.runoob.com/jquery/sel-gt.html)       | $("ul li:gt(3)")              | 列举 index 大于 3 的元素                                     |
+| [:lt(*no*)](https://www.runoob.com/jquery/sel-lt.html)       | $("ul li:lt(3)")              | 列举 index 小于 3 的元素                                     |
+| [:not(*selector*)](https://www.runoob.com/jquery/jq-sel-not.html) | $("input:not(:empty)")        | 所有不为空的输入元素                                         |
+| [:header](https://www.runoob.com/jquery/sel-header.html)     | $(":header")                  | 所有标题元素 \<h1>, \<h2> ...                                |
+| [:animated](https://www.runoob.com/jquery/sel-animated.html) | $(":animated")                | 所有动画元素                                                 |
+| [:focus](https://www.runoob.com/jquery/jq-sel-focus.html)    | $(":focus")                   | 当前具有焦点的元素                                           |
+| [:contains(*text*)](https://www.runoob.com/jquery/sel-contains.html) | $(":contains('Hello')")       | 所有包含文本 "Hello" 的元素                                  |
+| [:has(*selector*)](https://www.runoob.com/jquery/sel-has.html) | $("div:has(p)")               | 所有包含有 \<p> 元素在其内的 \<div> 元素                     |
+| [:empty](https://www.runoob.com/jquery/jq-sel-empty.html)    | $(":empty")                   | 所有空元素                                                   |
+| [:parent](https://www.runoob.com/jquery/sel-parent.html)     | $(":parent")                  | 匹配所有含有子元素或者文本的父元素。                         |
+| [:hidden](https://www.runoob.com/jquery/sel-hidden.html)     | $("p:hidden")                 | 所有隐藏的 \<p> 元素                                         |
+| [:visible](https://www.runoob.com/jquery/sel-visible.html)   | $("table:visible")            | 所有可见的表格                                               |
+| [:root](https://www.runoob.com/jquery/jq-sel-root.html)      | $(":root")                    | 文档的根元素                                                 |
+| [:lang(*language*)](https://www.runoob.com/jquery/jq-sel-lang.html) | $("p:lang(de)")               | 所有 lang 属性值为 "de" 的 \<p> 元素                         |
+| [[*attribute*\]](https://www.runoob.com/jquery/jq-sel-attribute.html) | $("[href]")                   | 所有带有 href 属性的元素                                     |
+| [[*attribute*=*value*\]](https://www.runoob.com/jquery/sel-attribute-equal-value.html) | $("[href='default.htm']")     | 所有带有 href 属性且值等于 "default.htm" 的元素              |
+| [[*attribute*!=*value*\]](https://www.runoob.com/jquery/sel-attribute-notequal-value.html) | $("[href!='default.htm']")    | 所有带有 href 属性且值不等于 "default.htm" 的元素            |
+| [[*attribute*$=*value*\]](https://www.runoob.com/jquery/sel-attribute-end-value.html) | $("[href$='.jpg']")           | 所有带有 href 属性且值以 ".jpg" 结尾的元素                   |
+| [[*attribute*\|=*value*\]](https://www.runoob.com/jquery/sel-attribute-prefix-value.html) | $("[title\|='Tomorrow']")     | 所有带有 title 属性且值等于 'Tomorrow' 或者以 'Tomorrow' 后跟连接符作为开头的字符串 |
+| [[*attribute*^=*value*\]](https://www.runoob.com/jquery/sel-attribute-beginning-value.html) | $("[title^='Tom']")           | 所有带有 title 属性且值以 "Tom" 开头的元素                   |
+| [[*attribute*~=*value*\]](https://www.runoob.com/jquery/sel-attribute-contains-value.html) | $("[title~='hello']")         | 所有带有 title 属性且值包含单词 "hello" 的元素               |
+| [[*attribute**=*value*\]](https://www.runoob.com/jquery/sel-attribute-contains-string-value.html) | $("[title*='hello']")         | 所有带有 title 属性且值包含字符串 "hello" 的元素             |
+| [[*name*=*value*\][*name2*=*value2*]](https://www.runoob.com/jquery/sel-multipleattribute-equal-value.html) | $( "input[id][name$='man']" ) | 带有 id 属性，并且 name 属性以 man 结尾的输入框              |
+| [:input](https://www.runoob.com/jquery/sel-input.html)       | $(":input")                   | 所有 input 元素                                              |
+| [:text](https://www.runoob.com/jquery/sel-input-text.html)   | $(":text")                    | 所有带有 type="text" 的 input 元素                           |
+| [:password](https://www.runoob.com/jquery/sel-input-password.html) | $(":password")                | 所有带有 type="password" 的 input 元素                       |
+| [:radio](https://www.runoob.com/jquery/sel-input-radio.html) | $(":radio")                   | 所有带有 type="radio" 的 input 元素                          |
+| [:checkbox](https://www.runoob.com/jquery/sel-input-checkbox.html) | $(":checkbox")                | 所有带有 type="checkbox" 的 input 元素                       |
+| [:submit](https://www.runoob.com/jquery/sel-input-submit.html) | $(":submit")                  | 所有带有 type="submit" 的 input 元素                         |
+| [:reset](https://www.runoob.com/jquery/sel-input-reset.html) | $(":reset")                   | 所有带有 type="reset" 的 input 元素                          |
+| [:button](https://www.runoob.com/jquery/sel-input-button.html) | $(":button")                  | 所有带有 type="button" 的 input 元素                         |
+| [:image](https://www.runoob.com/jquery/sel-input-image.html) | $(":image")                   | 所有带有 type="image" 的 input 元素                          |
+| [:file](https://www.runoob.com/jquery/sel-input-file.html)   | $(":file")                    | 所有带有 type="file" 的 input 元素                           |
+| [:enabled](https://www.runoob.com/jquery/sel-input-enabled.html) | $(":enabled")                 | 所有启用的元素                                               |
+| [:disabled](https://www.runoob.com/jquery/sel-input-disabled.html) | $(":disabled")                | 所有禁用的元素                                               |
+| [:selected](https://www.runoob.com/jquery/sel-input-selected.html) | $(":selected")                | 所有选定的下拉列表元素                                       |
+| [:checked](https://www.runoob.com/jquery/sel-input-checked.html) | $(":checked")                 | 所有选中的复选框选项                                         |
+| .selector                                                    | $(selector).selector          | 在jQuery 1.7中已经不被赞成使用。返回传给jQuery()的原始选择器 |
+| [:target](https://www.runoob.com/jquery/jq-sel-target.html)  | $( "p:target" )               | 选择器将选中ID和URI中一个格式化的标识符相匹配的<p>元素       |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
