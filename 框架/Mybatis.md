@@ -1,4 +1,4 @@
-# 一、Mybatis变成步骤
+# 一、Mybatis编程步骤
 
 1. 创建 SqlSessionFactory 对象。
 2. 通过 SqlSessionFactory 获取 SqlSession 对象。
@@ -7,6 +7,8 @@
 5. 执行成功，则使用 SqlSession 提交事务。
 6. 执行失败，则使用 SqlSession 回滚事务。
 7. 最终，关闭会话。
+
+> 当 Java 代码通过 JDBC 的 PreparedStatement 向 DB 发送一条 SQL 语句时，DBMS 会首先编译 SQL 语句，然后**将编译好的 SQL 放入到 DBMS 的数据库缓存池中再执行**。当 DBMS 再次接收到对该数据库操作的 SQL 时，先从 DB 缓存池中查找该语句是否被编译过，若被编译过，则直接执行，否则先编译后将编译结果放入 DB 缓存池，再执行。
 
 # 二、`#{}` 和 `${}` 的区别
 
@@ -20,7 +22,9 @@
 </dataSource>
 ```
 
-`${}` 也可以对传递进来的参数**原样拼接**在 SQL 中(有sql注入的风险)。代码如下：
+`${}` 也可以对传递进来的参数**原样拼接**在 SQL 中(有sql注入的风险)。字符串拼接是将参数值以硬编码的方式直接拼接到了 SQL 语句中。**字符串拼接就会引发两个问题:SQL 注入问题与没有使用预编译所导致的执行效率低下问题。**
+
+代码如下：
 
 ```xml
 <select id="getSubject3" parameterType="Integer" resultType="Subject">
@@ -29,9 +33,13 @@
 </select>
 ```
 
-> **#{}是 SQL 的参数占位符，Mybatis 会将 SQL 中的 `#{}` 替换为 `?` 号，在 SQL 执行前会使用 PreparedStatement 的参数设置方法，按序给 SQL 的 `?` 号占位符设置参数值**，比如 `ps.setInt(0, parameterValue)` 。 所以，==#{}是**预编译处理**，==可以有效防止 SQL 注入，提高系统安全性。
->
-> 另外，`#{}` 和 `${}` 的取值方式非常方便。例如：`#{item.name}` 的取值方式，为使用反射从参数对象中，获取 `item` 对象的 `name` 属性值，相当于 `param.getItem().getName()` 。
+> ==resultType 属性并非指查询结果集最后的类型，而是每查出 DB 中的一条记录，将该记录封装成为的对象的类型。==resultMap 是对 resultType的增强。
+
+**#{}是 SQL 的参数占位符，Mybatis 会将 SQL 中的 `#{}` 替换为 `?` 号，在 SQL 执行前会使用 PreparedStatement 的参数设置方法，按序给 SQL 的 `?` 号占位符设置参数值**，比如 `ps.setInt(0, parameterValue)` 。 所以，==#{}是**预编译处理**，==可以有效防止 SQL 注入，提高系统安全性。
+
+另外，`#{}` 和 `${}` 的取值方式非常方便。例如：`#{item.name}` 的取值方式，为使用反射从参数对象中，获取 `item` 对象的 `name` 属性值，相当于 `param.getItem().getName()` 。
+
+> #{ }:对指定参数类型属性值的引用。其底层是通过反射机制，调用实体类相关属性的 get 方法来获取值的。因为底层使用的是反射，所以这里使用的是类的属性名，而非表的字段名。
 
 # 三、实体类中的属性名与表中的字段名绑定
 
@@ -523,6 +531,10 @@ public interface Cache {
 
 ![image-20190513182031415](/Users/jack/Desktop/md/images/image-20190513182031415.png)
 
+**Dao 实现类：**
+
+![image-20190515000712587](/Users/jack/Desktop/md/images/image-20190515000712587.png)
+
 # 六、Mapper接口的工作原理
 
 Mapper 接口，对应的关系如下：
@@ -592,6 +604,16 @@ MySQL 有两种方式，但是**自增主键**，代码如下：
     VALUE (#{name}, #{pswd})
 </insert>
 ```
+
+> SELECT LAST_INSERT_ID()也可以换成select @@identity
+>
+> - resultType:指出获取的主键的类型。 
+> - keyProperty:指出主键在 Java 类中对应的属性名。此处会将获取的主键值直接封装到被插入的实体类对象中。 
+> - order:指出 id 的生成相对于 insert 语句的执行是在前还是在后。MySql 数据库表 中的 id，均是先执行 insert 语句，而后生成 id，所以需要设置为 AFTER;Oracle 数据库表中 的 id，则是在 insert 执行之前先生成，所以需要设置为 BEFORE。当前的 MyBatis 版本，不指 定 order 属性，则会根据所用 DBMS，自动选择其值。 
+>
+> **无论插入操作是提交还是回滚，DB 均会为 insert 的记录分配 id，即使发生回滚，这个 id 也已经被使用。**后面再插入并提交的记录数据，此 id 已经不能再使用，被分配的 id 是跳 过此 id 后的 id。 
+>
+> 另外，从前面\<selectKey/>中 order 属性值的设置讲解可知，MySql 在 insert 语句执行后 会自动生成该新插入记录的主键值。主键值的生成只与 insert 语句是否执行有关，而与最终 是否提交无关。 
 
 Oracle 有两种方式，**序列**和**触发器**。基于**序列**，根据 `<selectKey />` 执行的时机，也有两种方式，代码如下：
 
@@ -777,7 +799,230 @@ VALUES
 
 这两种方式的性能对比，可以看看 [《[实验\]mybatis批量插入方式的比较》](https://www.jianshu.com/p/cce617be9f9e) 。
 
+# 十三、源码分析
 
+Mybatis的Dao实现类如下：
+
+![image-20190515104350561](/Users/jack/Desktop/md/images/image-20190515104350561.png)
+
+## A、 输入流的关闭
+
+​	在输入流对象使用完毕后，不用手工进行流的关闭。因为在输入流被使用完毕后，**SqlSessionFactoryBuilder 对象的 build()方法会自动将输入流关闭。**
+
+```java
+//SqlSessionFactoryBuilder.java
+public SqlSessionFactory build(InputStream inputStream) {
+  return build(inputStream, null, null);
+}
+public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
+    try {
+      XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, environment, properties);
+      return build(parser.parse());
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error building SqlSession.", e);
+    } finally {
+      ErrorContext.instance().reset();
+      try {	// 关闭输入流
+        inputStream.close();
+      } catch (IOException e) {
+        // Intentionally ignore. Prefer previous error.
+      }
+    }
+  }
+```
+
+## B、 SqlSession 的创建
+
+> ==SqlSession 接口对象用于执行持久化操作。一个 SqlSession 对应着一次数据库会话，一 次会话以 SqlSession 对象的创建开始，以 SqlSession 对象的关闭结束。==
+>
+> **SqlSession 接口对象是线程不安全的，所以每次数据库会话结束前，需要马上调用其 close()方法，将其关闭。**再次需要会话，再次创建。而在关闭时会判断当前的 SqlSession 是否被提交:若没有被提交，则会执行回滚后关闭;若已被提交，则直接将 SqlSession 关闭。 所以，SqlSession 无需手工回滚。 
+>
+> 主要是一些增删改查的方法。
+
+​	SqlSession 对象的创建，需要使用 SqlSessionFactory 接口对象的 openSession()方法。 SqlSessionFactory 接口对象是一个重量级对象(系统开销大的对象)，是线程安全的，所以一个应用只需要一个该对象即可。**创建 SqlSession 需要使用 SqlSessionFactory 接口的的 openSession()方法。** 
+
+- openSession(true):创建一个有自动提交功能的 SqlSession
+
+- openSession(false):创建一个非自动提交功能的 SqlSession，需手动提交 
+- openSession():同 openSession(false) ，即无参的openSession方法默认false是autoCommit的值
+
+**SqlSessionFactory 接口的实现类为 DefaultSqlSessionFactory。** 
+
+![image-20190515104608315](/Users/jack/Desktop/md/images/image-20190515104608315.png)
+
+```java
+// SqlSessionFactory.java
+public interface SqlSessionFactory {
+  SqlSession openSession();
+    // 多个openSession方法
+  Configuration getConfiguration();
+}
+// DefaultSqlSessionFactory.java
+public SqlSession openSession() {
+    // false是autoCommit的值，表示关闭事务的自动提交功能
+    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
+ }
+//autoCommit表示是否自动提交事务
+private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    Transaction tx = null;
+    try {
+        //读取Mybatis的主配置文件
+      final Environment environment = configuration.getEnvironment();
+        // 获取事务管理器transcationManager，比如配置文件中的JDBC
+      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+       // 创建执行器，传入的是事务和执行器类型(SIMPLE, REUSE, BATCH)
+      final Executor executor = configuration.newExecutor(tx, execType);
+      return new DefaultSqlSession(configuration, executor, autoCommit);
+    } catch (Exception e) {
+      closeTransaction(tx); // may have fetched a connection so lets call close()
+      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+//DefaultSqlSession.java
+// 所谓创建SqlSession就是对一个dirty这个变量进行初始化，即是否为脏数据的意思
+public DefaultSqlSession(Configuration configuration, Executor executor, boolean autoCommit) {
+    // 对成员变量进行初始化
+    this.configuration = configuration;
+    this.executor = executor;
+    this.dirty = false;		// 	这个变量为false表示现在DB中的数据还未被修改
+    this.autoCommit = autoCommit;
+  }
+```
+
+​	从以上源码可以看到，**无参的 openSession()方法，将事务的自动提交直接赋值为 false。**而所谓创建 SqlSession，就是加载了主配置文件，创建了一个执行器对象(将来用于执行映射文件中的 SQL 语句)，初始化了一个 DB 数据被修改的标志变量 dirty，关闭了事务的自动提交功能。
+
+## C、 增删改的执行
+
+ 	==对于 SqlSession 的 insert()、delete()、update()方法，其底层均是调用执行了 update()方法==，只要对数据进行了增删改，那么dirty就会变为true，表示数据被修改了。
+
+```java
+// DefaultSqlSession.java
+public int insert(String statement, Object parameter) {
+    return update(statement, parameter);
+  }
+public int delete(String statement, Object parameter) {
+    return update(statement, parameter);
+  }
+public int update(String statement, Object parameter) {
+    try {
+      dirty = true;		//这里要开始修改数据了，所以要将dirty改为true，表示此时是脏数据
+      // statement是获取映射文件中制定的sql语句，即mapper映射文件中的sql id
+      MappedStatement ms = configuration.getMappedStatement(statement);
+      return executor.update(ms, wrapCollection(parameter));
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+```
+
+​	**从以上源码可知，无论执行增、删还是改，均是对数据进行修改，均将 dirty 变量设置为了 true，且在获取到映射文件中指定 id 的 SQL 语句后，由执行器 executor 执行。**
+
+## D、 SqlSession 的提交 commit()
+
+```Java
+// DefaultSqlSession.java
+public void commit() {
+  commit(false);
+}
+public void commit(boolean force) {
+    try {
+        // 执行提交
+      executor.commit(isCommitOrRollbackRequired(force));
+      dirty = false;	// 提交之后把dirty设置为false，表示数据未修改
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+// 提交还是回滚
+/**当autoCommit为true时，返回false；
+   当autoCommit为false，dirty为true时，返回true；
+   当autoCommit为false，dirty为false时，如果force为true则返回true，为false则返回false
+   在这里根据上面方法传过来的参数值，autoCommit为false，所以!false==true，dirty为true，force为false，所以isCommitOrRollbackRequired返回true。
+*/
+private boolean isCommitOrRollbackRequired(boolean force) {
+    return (!autoCommit && dirty) || force;
+  }
+// CachingExecutor.java
+// required根据上面的值是为true
+public void commit(boolean required) throws SQLException {
+    delegate.commit(required);
+    tcm.commit();
+  }
+//BaseExecutor.java
+public void commit(boolean required) throws SQLException {
+    if (closed) throw new ExecutorException("Cannot commit, transaction is already closed");
+    clearLocalCache();
+    flushStatements();
+    if (required) {	// 根据上面返回的结果，required为true，提交事务
+      transaction.commit();
+    }
+  }
+```
+
+​	由以上代码可知，执行 SqlSession 的无参 commit()方法，最终会将事务进行提交。
+
+## E、 SqlSession 的关闭
+
+```java
+//DefaultSqlSession.java
+public void close() {
+  try {
+      // 如果执行了commit方法，那么这里返回的是false，即close方法中传入的是false
+    executor.close(isCommitOrRollbackRequired(false));
+    dirty = false;
+  } finally {
+    ErrorContext.instance().reset();
+  }
+}
+// 这里的force为false，autoCommit在最开始的openSession方法中传入的是为false，dirty在commit之后，而在commit方法中，将dirty设置为false了，所以这里dirty是false，所以这里整体返回的是false
+private boolean isCommitOrRollbackRequired(boolean force) {
+    return (!autoCommit && dirty) || force;
+  }
+//BaseExecutor.java
+public void close(boolean forceRollback) {
+    try {
+      try {
+          // 根据上面传入的值，forceRollback为false
+        rollback(forceRollback);
+      } finally {	// 最后要确认事务关闭，如果前面执行了增删改查方法，说明提交了事务，所以事务不为空
+        if (transaction != null) transaction.close();
+      }
+    } catch (SQLException e) {
+      // Ignore.  There's nothing that can be done at this point.
+      log.warn("Unexpected exception on closing transaction.  Cause: " + e);
+    } finally {	//释放各种资源，并将关闭标志closed重置为true
+      transaction = null;
+      deferredLoads = null;
+      localCache = null;
+      localOutputParameterCache = null;
+      closed = true;
+    }
+  }
+// 根据上面传进来的值，required为false
+public void rollback(boolean required) throws SQLException {
+    if (!closed) {	// 此时还未关闭，所以closed为false，这里!closed为true
+      try {
+        clearLocalCache();
+        flushStatements(true);
+      } finally {
+        if (required) {		// required为false，不会回滚事务
+          transaction.rollback();
+        }
+      }
+    }
+  }
+```
+
+​	从以上代码分析可知，在 SqlSession 进行关闭时，如果执行了commit，那么不会回滚事务；如果没有执行commit方法，那么就会回滚事务，那么数据不会插入到数据库。所以，对于MyBatis 程序，无需通过显式地对 SqlSession 进行回滚，达到事务回滚的目的。
+
+# 十四、一级和二级缓存实现原理
 
 
 

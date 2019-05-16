@@ -748,9 +748,9 @@ noConflict() 方法会释放对 $ 标识符的控制，这样其他脚本就可�
 | .selector                                                    | $(selector).selector          | 在jQuery 1.7中已经不被赞成使用。返回传给jQuery()的原始选择器 |
 | [:target](https://www.runoob.com/jquery/jq-sel-target.html)  | $( "p:target" )               | 选择器将选中ID和URI中一个格式化的标识符相匹配的<p>元素       |
 
+# 八、插件
 
-
-
+菜鸟教程\<https://www.runoob.com/jquery/jquery-plugin-validate.html>
 
 
 
