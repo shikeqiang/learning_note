@@ -414,7 +414,7 @@ Handler(Controller) 执行完成后，向 DispatcherServlet 返回一个 ModelAn
 
 `@Controller` 注解，它将一个类标记为 Spring Web MVC **控制器** Controller 。
 
-## @RestController 和 @Controller 的区别？
+## @RestController 和 @Controller 的区别
 
 `@RestController` 注解，在 `@Controller` 基础上，增加了 `@ResponseBody` 注解，更加适合目前前后端分离的架构下，**提供 Restful API ，返回例如 JSON 数据格式。**当然，返回什么样的数据格式，根据客户端的 `"ACCEPT"` 请求头来决定。
 

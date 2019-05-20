@@ -72,7 +72,15 @@ public final void method1() {
 
 ![image-20181226080651234](/Users/jack/Desktop/md/images/image-20181226080651234-5782811-7514330.png)
 
-##### finally一定会在return之前执行，但是如果finally使用了return语句，将会使trycatch中的return或者throw失效。
+**finally一定会在return之前执行，但是如果finally使用了return语句，将会使trycatch中的return或者throw失效。**
+
+> 在以下4种特殊情况下，finally块不会被执行: 
+>
+> 1. 在finally语句块中发生了异常。
+>
+> 2. 在前面的代码中用了System.exit()退出程序。 
+> 3. 程序所在的线程死亡。
+> 4. 关闭CPU。 
 
 ![img](/Users/jack/Desktop/md/images/70-20181227100908360-7514330.png)
 
@@ -612,11 +620,7 @@ a-b=0Xf000000000000000-0X8000000000000000+1
 
 # 14.抽象类与接口
 
-==一般的应用里，最顶级的是接口，然后是抽象类实现接口，最后才到具体类实现。==
-
-​	如果是抽象类实现接口，可以实现部分方法甚至一个都不实现，具体类才必须实现接口的所有方法。
-
-​	==从设计层面来说，抽象是对类的抽象，是一种模板设计，接口是行为的抽象，是一种行为的规范。==
+==一般的应用里，最顶级的是接口，然后是抽象类实现接口，最后才到具体类实现。==如果是抽象类实现接口，可以实现部分方法甚至一个都不实现，具体类才必须实现接口的所有方法。==从设计层面来说，抽象是对类的抽象，是一种模板设计，接口是行为的抽象，是一种行为的规范。==
 
 ​	含有abstract修饰符的class即为抽象类，abstract类不能创建的实例对象。**含有abstract方法的类必须定义为abstract class，abstract class类中的方法不必是抽象的。**abstract class类中定义抽象方法必须在具体(Concrete)子类中实现，所以，不能有抽象构造方法或抽象静态方法。**如果的子类没有实现抽象父类中的所有抽象方法，那么子类也必须定义为abstract类型。**  子类不一定要全部实现父类的所有abstract方法，子类可以定义为abstract，然后交由它的子类实现。
 
@@ -1389,6 +1393,11 @@ for(i=0;i<n;i++){
 # 38.集合
 
 ![img](/Users/jack/Desktop/md/images/2193220_1487038875892_072774B6B658B3603E1AA7198722775C.png)
+
+### list 的遍历方式选择: 
+
+- 实现了RandomAccess接口的list，优先选择普通for循环 ，其次foreach
+- 未实现RandomAccess接口的list， 优先选择iterator遍历(foreach遍历底层也是通过iterator实现的)，大 size的数据，千万不要使用普通for循环 
 
 # 39.值类型和引用类型
 

@@ -421,8 +421,6 @@ applicationContext.publishEvent(customEvent);
 
 - Spring MVC 拦截器的配置，一般 Java Config 配置。
 
-------
-
 另外，现在已经是 Spring Boot 的天下，所以更加是 **Java Config** 配置为主。
 
 ## 2、Bean Scope作用域
