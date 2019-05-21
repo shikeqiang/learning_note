@@ -1,4 +1,4 @@
-# 一、Mybatis编程步骤
+# 一、MyBatis编程步骤
 
 1. 创建 SqlSessionFactory 对象。
 2. 通过 SqlSessionFactory 获取 SqlSession 对象。
@@ -219,7 +219,7 @@ ps.setInt(1,id);
 
 ## sql
 
-这个元素可以被用来定义可重用的 SQL 代码段，这些 SQL 代码可以被包含在其他语句中。它可以（在加载的时候）被静态地设置参数。 在不同的包含语句中可以设置不同的值到参数占位符上。比如：
+​	**这个元素可以被用来定义可重用的 SQL 代码段，**这些 SQL 代码可以被包含在其他语句中。它可以（在加载的时候）被静态地设置参数。 在不同的包含语句中可以设置不同的值到参数占位符上。比如：
 
 ```xml
 <sql id="userColumns"> ${alias}.id,${alias}.username,${alias}.password </sql>
@@ -799,7 +799,7 @@ VALUES
 
 这两种方式的性能对比，可以看看 [《[实验\]mybatis批量插入方式的比较》](https://www.jianshu.com/p/cce617be9f9e) 。
 
-# 十三、源码分析
+# 十三、MyBatis运行源码分析
 
 Mybatis的Dao实现类如下：
 
@@ -944,7 +944,7 @@ public void commit(boolean force) {
 /**当autoCommit为true时，返回false；
    当autoCommit为false，dirty为true时，返回true；
    当autoCommit为false，dirty为false时，如果force为true则返回true，为false则返回false
-   在这里根据上面方法传过来的参数值，autoCommit为false，所以!false==true，dirty为true，force为false，所以isCommitOrRollbackRequired返回true。
+   在这里根据上面方法传过来的参数值，autoCommit为false，所以!false==true，dirty为true，force为	        	false，所以isCommitOrRollbackRequired返回true。
 */
 private boolean isCommitOrRollbackRequired(boolean force) {
     return (!autoCommit && dirty) || force;
@@ -1022,13 +1022,635 @@ public void rollback(boolean required) throws SQLException {
 
 ​	从以上代码分析可知，在 SqlSession 进行关闭时，如果执行了commit，那么不会回滚事务；如果没有执行commit方法，那么就会回滚事务，那么数据不会插入到数据库。所以，对于MyBatis 程序，无需通过显式地对 SqlSession 进行回滚，达到事务回滚的目的。
 
-# 十四、一级和二级缓存实现原理
+# 十四、延迟加载
 
+​	MyBatis 中的延迟加载，也称为懒加载，是**指在进行关联查询时，按照设置延迟规则推 迟对关联对象的 select 查询。**延迟加载可以有效的减少数据库压力。 需要注意的是，**MyBatis 的延迟加载只是对关联对象的查询有迟延设置，对于主加载对象都是直接执行查询语句的。**
 
+## 1.关联对象加载时机 
 
+​	MyBatis 根据对关联对象查询的 select 语句的执行时机，分为三种类型:直接加载、侵 入式延迟加载与深度延迟加载。
 
+- 直接加载:执行完对主加载对象的 select 语句，马上执行对关联对象的 select 查询。 
+- 侵入式延迟:执行对主加载对象的查询时，不会执行对关联对象的查询。但当要访问主加载对象的详情时，就会马上执行关联对象的 select 查询。即对关联对象的查询执行， 侵入到了主加载对象的详情访问中。也可以这样理解:**将关联对象的详情侵入到了主加 载对象的详情中，即将关联对象的详情作为主加载对象的详情的一部分出现了。** 
+- 深度延迟:执行对主加载对象的查询时，不会执行对关联对象的查询。访问主加载对象 的详情时也不会执行关联对象的 select 查询。只有当真正访问关联对象的详情时，才会 执行对关联对象的 select 查询。 
 
+需要注意的是，延迟加载的应用要求，关联对象的查询与主加载对象的查询必须是分别进行的 select 语句，不能是使用多表连接所进行的 select 查询。因为，多表连接查询，其实 质是对一张表的查询，对由多个表连接后形成的一张表的查询。会一次性将多张表的所有信 息查询出来。 
 
+​	MyBatis 中对于延迟加载设置，可以应用到一对一、一对多、多对一、多对多的所有关 联关系查询中。  
+
+## 2.直接加载
+
+ 修改主配置文件：在主配置文件的\<properties/>与\<typeAliases/>标签之间，添加\<settings/>标签，用于完 成全局参数设置。 
+
+> 延迟加载的相关参数名称及取值：
+>
+> 全局属性 lazyLoadingEnabled 的值只要设置为 false，那么，对于关联对象的查询，将采 用直接加载。即在查询过主加载对象后，会马上查询关联对象。 
+>
+> lazyLoadingEnabled 的默认值为 false，即直接加载。 
+
+![image-20190521100653128](/Users/jack/Desktop/md/images/image-20190521100653128.png)
+
+## 3.深度延迟加载
+
+​	 修改主配置文件的\<settings/>，将延迟加载开关 lazyLoadingEnabled 开启(置为 true)， 将侵入式延迟加载开关 aggressiveLazyLoading 关闭(置为 false)。 
+
+## 4.侵入式延迟加载
+
+​	 修改主配置文件的\<settings/>，将延迟加载开关 lazyLoadingEnabled 开启(置为 true)， 将侵入式延迟加载开关 aggressiveLazyLoading 也开启(置为 true，默认为 true)。 
+
+​	该延迟策略使关联对象的数据侵入到了主加载对象的数据中，所以称为 侵入式延迟加载。 需要注意的是，该延迟策略也是一种延迟加载，需要在延迟加载开关 lazyLoadingEnabled 开启时才会起作用。若 lazyLoadingEnabled 为 false，则 aggressiveLazyLoading 无论取何值， 均不起作用。 
+
+## 5.延迟加载策略总结
+
+![image-20190521100913133](/Users/jack/Desktop/md/images/image-20190521100913133.png)
+
+# 十五、查询缓存
+
+​	查询缓存的使用，主要是为了提高查询访问速度。将用户对同一数据的重复查询过程简化，不再每次均从数据库查询获取结果数据，从而提高访问速度。 
+
+​	**MyBatis 的查询缓存机制，根据缓存区的作用域(生命周期)可划分为两种:一级查询 缓存与二级查询缓存。** 
+
+## 1.一级查询缓存 
+
+​	MyBatis 一级查询缓存是基于 org.apache.ibatis.cache.impl.PerpetualCache 类的 HashMap 本地缓存，其作用域是 SqlSession。**在同一个 SqlSession 中两次执行相同的 sql 查询语句，第一次执行完毕后，会将查询结果写入到缓存中，第二次会从缓存中直接获取数据，而不再到 数据库中进行查询，从而提高查询效率。** 
+
+​	当一个 SqlSession 结束后，该 SqlSession 中的一级查询缓存也就不存在了。myBatis 默认 一级查询缓存是开启状态，且不能关闭。 具体执行过程如下图所示：![img](/Users/jack/Desktop/md/images/6e38df6a.jpg)
+
+> ​	每个SqlSession中持有了Executor，每个Executor中有一个LocalCache。当用户发起查询时，MyBatis根据当前执行的语句生成`MappedStatement`，在Local Cache进行查询，如果缓存命中的话，直接返回结果给用户，如果缓存没有命中的话，查询数据库，结果写入`Local Cache`，最后返回结果给用户。具体实现类的类关系图如下图所示：
+>
+> ![img](/Users/jack/Desktop/md/images/d76ec5fe.jpg)
+
+### 1.1 从缓存读取数据的依据是 Sql 的 id
+
+​	一级缓存缓存的是相同 Sql 映射 id 的查询结果，而非相同 Sql 语句的查询结果。因为MyBatis 内部对于查询缓存，无论是一级查询缓存还是二级查询缓存，其底层均使用一个HashMap 实现:key 为 Sql 的 id 相关内容，value 为从数据库中查询出的结果。
+
+### 1.2 增删改对一级查询缓存的影响
+
+​	增、删、改操作，无论是否进行提交 sqlSession.commit()，均会清空一级查询缓存，使查询再次从 DB 中 select。
+
+### 1.3 一级缓存配置
+
+​	开发者只需在MyBatis的配置文件中，添加如下语句，就可以使用一级缓存。共有两个选项，`SESSION`或者`STATEMENT`，默认是`SESSION`级别，即在一个MyBatis会话中执行的所有语句，都会共享这一个缓存。一种是`STATEMENT`级别，可以理解为缓存只对当前执行的这一个`Statement`有效。
+
+```xml
+<setting name="localCacheScope" value="SESSION"/>
+```
+
+## 2.内置二级查询缓存
+
+​	MyBatis 查询缓存的作用域是根据映射文件 mapper 的 namespace 划分的，相同namespace 的 mapper 查询数据存放在同一个缓存区域。不同 namespace 下的数据互不干扰。
+
+​	无论是一级缓存还是二级缓存，都是按照 namespace 进行分别存放的。 但一、二级缓存的不同之处在于，SqlSession 一旦关闭，则 SqlSession 中的数据将不存在，即一级缓存就不覆存在。而二级缓存的生命周期会与整个应用同步，与 SqlSession 是否 关闭无关。 
+
+​	**使用二级缓存的目的，不是共享数据，因为 MyBatis 从缓存中读取数据的依据是 SQL 的 id，而非查询出的对象。**所以，==二级缓存中的数据不是为了在多个查询之间共享(所有查询中只要查询结果中存在该对象的，就直接从缓存中读取，这是对数据的共享，Hibernate 中的缓存就是为了共享，但 MyBaits 的不是)，而是为了延长该查询结果的保存时间，提高系统性能==。 
+
+​	MyBatis 内置的二级缓存为 org.apache.ibatis.cache.impl.PerpetualCache。  
+
+​	在上文中提到的一级缓存中，其最大的共享范围就是一个SqlSession内部，如果多个SqlSession之间需要共享缓存，则需要使用到二级缓存。开启二级缓存后，会使用CachingExecutor装饰Executor，进入一级缓存的查询流程前，先在CachingExecutor进行二级缓存的查询，具体的工作流程如下所示。
+
+![img](/Users/jack/Desktop/md/images/28399eba.png)
+
+> 二级缓存开启后，同一个namespace下的所有操作语句，都影响着同一个Cache，即二级缓存被多个SqlSession共享，是一个全局的变量。
+>
+> 当开启缓存后，数据的查询执行的流程就是 二级缓存 -> 一级缓存 -> 数据库。
+
+### 2.1 二级缓存用法
+
+#### (1) 实体序列化
+
+​	 要求查询结果所涉及到的实体类要实现 java.io.Serializable 接口。若该实体类存在父类， 或其具有域属性，则父类与域属性类也要实现序列化接口。
+
+#### (2) mapper 映射中添加\<cache/>标签
+
+​	在 mapper 映射文件的\<mapper/>标签中添加\<cache/>子标签。
+
+#### (3) 二级缓存的配置
+
+​	为\<cache/>标签添加一些相关属性设置，可以对二级缓存的运行性能进行控制。当然， 若不指定设置，则均保持默认值。
+
+![image-20190521105320570](/Users/jack/Desktop/md/images/image-20190521105320570.png)
+
+- eviction:逐出策略。当二级缓存中的对象达到最大值时，就需要通过逐出策略将缓存 中的对象移出缓存。默认为 LRU。常用的策略有:
+  - FIFO:First In First Out，先进先出
+  - LRU:Least Recently Used，未被使用时间最长的 
+
+- flushInterval:刷新缓存的时间间隔，单位毫秒。这里的刷新缓存即清空缓存。一般不指 定，即当执行增删改时刷新缓存。 
+- readOnly:设置缓存中数据是否只读。只读的缓存会给所有调用者返回缓存对象的相同 实例，因此这些对象不能被修改，这提供了很重要的性能优势。但读写的缓存会返回缓 存对象的拷贝。这会慢一些，但是安全，因此默认是 false。 
+- size:二级缓存中可以存放的最多对象个数。默认为 1024 个。 
+
+### 2.2 二级缓存效果
+
+​	对于映射文件中的同一个查询，肯定是同一个 namespace 中的查询(因为就是同一个查询)。在一次查询后，将 SqlSession 关闭，再进行一次相同查询，发现并没有到 DB 中进行select 查询。说明二级查询缓存是存在的。
+
+​	Cache Hit Ratio 表示缓存命中率。开启二级缓存后，每执行一次查询，系统都会计算一次二级缓存的命中率。第一次查询也是先从缓存中查询，只不过缓存中一定是没有的。所以会再从 DB 中查询。由于二级缓存中不存在该数据，所以命中率为 0。但第二次查询是从二级缓存中读取的，所以这一次的命中率为 1/2 = 0.5。当然，若有第三次查询的话，则命中率会是 1/3 = 0.66。
+
+### 2.3 增删改对二级查询缓存的影响
+
+#### (1) 默认对缓存的刷新 
+
+​	增删改操作，无论是否进行提交 sqlSession.commit()，均会清空一级、二级查询缓存， 使查询再次从 DB 中 select。 
+
+#### (2) 设置增删改操作不刷新二级缓存
+
+​	若要使某个增、删或改操作不清空二级缓存，则需要在其\<insert/>或\<delete/>或\<update/> 中添加属性 flushCache=”false”，默认为 true。 
+
+![image-20190521110225514](/Users/jack/Desktop/md/images/image-20190521110225514.png)
+
+### 2.4 二级缓存的关闭 
+
+​	二级缓存默认为开启状态。若要将其关闭，则需要进行相关设置。 根据关闭的范围大小，可以分为全局关闭与局部关闭。
+
+#### (1) 全局关闭 
+
+​	所谓全局关闭是指，整个应用的二级缓存全部关闭，所有查询均不使用二级缓存。**全局开关设置在主配置文件的全局设置\<settings/>中，该属性为 cacheEnabled，设置为 false，则关闭;设置为 true，则开启，默认值为 true。即二级缓存默认是开启的。**
+
+![image-20190521110344401](/Users/jack/Desktop/md/images/image-20190521110344401.png)
+
+#### (2) 局部关闭 
+
+​	所谓局部关闭是指，整个应用的二级缓存是开启的，但只是针对于某个\<select/>查询， 不使用二级缓存。此时可以单独只关闭该\<select/>标签的二级缓存。 
+
+​	在该要关闭二级缓存的\<select/>标签中，将其属性 useCache 设置为 false，即可关闭该 查询的二级缓存。该属性默认为 true，即每个\<select/>查询的二级缓存默认是开启的。 
+
+![image-20190521110436347](/Users/jack/Desktop/md/images/image-20190521110436347.png)
+
+### 2.5 二级缓存的使用原则
+
+####  (1) 只能在一个命名空间下使用二级缓存 
+
+​	由于二级缓存中的数据是基于 namespace 的，即不同 namespace 中的数据互不干扰。 **在多个 namespace 中若均存在对同一个表的操作，那么这多个 namespace 中的数据可能就会出现不一致现象。** 
+
+#### (2) 在单表上使用二级缓存 
+
+​	如果一个表与其它表有关联关系，那么就非常有可能存在多个 namespace 对同一数据 的操作。而不同 namespace 中的数据互不干扰，所以有可能出现这多个 namespace 中的数 据不一致现象。 
+
+#### (3) 查询多于修改时使用二级缓存 
+
+​	在查询操作远远多于增删改操作的情况下可以使用二级缓存。因为任何增删改操作都将刷新二级缓存，对二级缓存的频繁刷新将降低系统性能。 
+
+## 3.ehcache 二级查询缓存
+
+​	Mybatis 的特长是 SQL 操作，缓存数据管理不是其特长，为了提高缓存的性能，MyBatis允许使用第三方缓存产品。ehCache 就是其中的一种。
+
+> 注意，使用 ehcache 二级缓存，实体类无需实现序列化接口。
+
+### 1.导入 Jar 包
+
+​	 这里需要两个 Jar 包:一个为 ehcache 的核心 Jar 包，一个是 myBatis 与 ehcache 整合的插件 Jar 包。它们可以从 https://github.com/mybatis/ehcache-cache/releases 下载。 解压该文件，获取到它们。其中 lib 下的是 ehcache 的核心 Jar 包。
+
+### 2 添加 ehcache.xml
+
+​	 解压 EHCache 的核心 Jar 包 ehcache-core-2.6.8.jar，将其中的一个配置文件ehcache-failsafe.xml 直接放到项目的 src 目录下，并更名为 ehcache.xml。 
+
+#### (1) \<diskStore/>标签 
+
+​	指定一个文件目录，当内存空间不够，需要将二级缓存中数据写到硬盘上时，会写到这个指定目录中。其值一般为 java.io.tmpdir，表示当前系统的默认文件临时目录。 
+
+> 当前系统的默认文件临时目录，可以通过 System.property()方法查看:
+>
+> ![image-20190521111227148](/Users/jack/Desktop/md/images/image-20190521111227148.png)
+
+#### (2) \<defaultCache/>标签 
+
+![image-20190521111251912](/Users/jack/Desktop/md/images/image-20190521111251912.png)
+
+设定缓存的默认属性数据:
+
+- maxElementsInMemory:指定该内存缓存区可以存放缓存对象的最多个数。
+
+- eternal:设定缓存对象是否不会过期。若设为true，表示对象永远不会过期，此时会忽略 timeToIdleSeconds 与 timeToLiveSeconds 属性。默认值为 false。
+- timeToIdleSeconds:设定允许对象处于空闲状态的最长时间，以秒为单位。当对象自从最近一次被访问后，若处于空闲状态的时间超过了timeToIdleSeconds设定的值，这个对象就会过期。当对象过期，EHCache 就会将它从缓存中清除。 设置值为 0，则对象可以无 限期地处于空闲状态。 
+- timeToLiveSeconds:设定对象允许存在于缓存中的最长时间，以秒为单位。当对象 自从被存放到缓存后，若处于缓存中的时间超过了 timeToLiveSeconds 设定的值，这个对象 就会过期。当对象过期，EHCache 就会将它从缓存中清除。设置值为 0，则对象可以无限期 地存在于缓存中。注意，只有 timeToLiveSeconds≥ timeToIdleSeconds，才有意义。 
+- overflowToDisk:设定为 true，表示当缓存对象达到了 maxElementsInMemory 界限， 会将溢出的对象写到\<diskStore>元素指定的硬盘目录缓存中。 
+- maxElementsOnDisk:指定硬盘缓存区可以存放缓存对象的最多个数。
+- diskPersistent:指定当程序结束时，硬盘缓存区中的缓存对象是否做持久化。
+- diskExpiryThreadIntervalSeconds:指定硬盘中缓存对象的失效时间间隔。
+- memoryStoreEvictionPolicy:如果内存缓存区超过限制，选择移向硬盘缓存区中的 对象时使用的策略。支持三种策略:
+  - FIFO:First In First Out，先进先出
+
+  - LFU:Less Frequently Used，最少使用
+  - LRU:Least Recently Used，最近最少使用  
+
+### 3 启用 ehcache 缓存机制
+
+​	在映射文件的 mapper 中的\<cache/>中通过 type 指定缓存机制为 Ehcache 缓存。默认为 MyBatis 内置的二级缓存 org.apache.ibatis.cache.impl.PerpetualCache。 
+
+![image-20190521111457460](/Users/jack/Desktop/md/images/image-20190521111457460.png)
+
+### 4 ehcache 在不同 mapper 中的个性化设置
+
+​	在 ehcache.xml 中设置的属性值，会对该项目中所有使用 ehcache 缓存机制的缓存区域起作用。一个项目中可以有多个 mapper，不同的 mapper 有不同的缓存区域。==对于不同缓存区域也可进行专门针对于当前区域的个性化设置，可通过指定不同 mapper 的\<cache>属性 值来设置。 \<cache>属性值的优先级高于 ehcache.xml 中的属性值。==
+
+![image-20190521111555300](/Users/jack/Desktop/md/images/image-20190521111555300.png)  
+
+# 十六、一级和二级缓存实现原理
+
+## 1.一级缓存工作流程&源码分析
+
+### 工作流程
+
+一级缓存执行的时序图，如下图所示：
+
+![img](/Users/jack/Desktop/md/images/bb851700.png)
+
+### 源码分析
+
+**SqlSession**： 对外提供了用户和数据库之间交互需要的所有方法，隐藏了底层的细节。默认实现类是`DefaultSqlSession`。
+
+![img](/Users/jack/Desktop/md/images/ba96bc7f.jpg)
+
+**Executor**： `SqlSession`向用户提供操作数据库的方法，但和数据库操作有关的职责都会委托给Executor。
+
+![img](/Users/jack/Desktop/md/images/ef5e0eb3.jpg)
+
+​	如下图所示，Executor有若干个实现类，为Executor赋予了不同的能力。
+
+![img](/Users/jack/Desktop/md/images/83326eb3.jpg)
+
+**在一级缓存的源码分析中，主要学习`BaseExecutor`的内部实现。**
+
+**BaseExecutor**： `BaseExecutor`是一个实现了Executor接口的抽象类，**定义若干抽象方法，在执行的时候，把具体的操作委托给子类进行执行。**
+
+```java
+// BaseExecutor.java
+protected abstract int doUpdate(MappedStatement ms, Object parameter) throws SQLException;
+protected abstract List<BatchResult> doFlushStatements(boolean isRollback) throws SQLException;
+protected abstract <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException;
+protected abstract <E> Cursor<E> doQueryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds, BoundSql boundSql) throws SQLException;
+```
+
+​	在一级缓存的介绍中提到对`Local Cache`的查询和写入是在`Executor`内部完成的。在阅读`BaseExecutor`的代码后发现`Local Cache`是`BaseExecutor`内部的一个成员变量，如下代码所示:
+
+```java
+public abstract class BaseExecutor implements Executor {
+protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+protected PerpetualCache localCache;
+```
+
+**Cache**： MyBatis中的Cache接口，提供了和缓存相关的最基本的操作，如下图所示：
+
+![img](/Users/jack/Desktop/md/images/793031d0.jpg)
+
+有若干个实现类，使用装饰器模式互相组装，提供丰富的操控缓存的能力，部分实现类如下图所示：
+
+![img](/Users/jack/Desktop/md/images/cdb21712.jpg)
+
+​	`BaseExecutor`成员变量之一的`PerpetualCache`，是对Cache接口最基本的实现，其实现非常简单，内部持有HashMap，对一级缓存的操作实则是对HashMap的操作。如下代码所示：
+
+```java
+public class PerpetualCache implements Cache {
+  private String id;
+  private Map<Object, Object> cache = new HashMap<Object, Object>();
+```
+
+为执行和数据库的交互，首先需要初始化`SqlSession`，通过`DefaultSqlSessionFactory`开启`SqlSession`：
+
+```java
+// DefaultSqlSessionFactory.java
+private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    ............
+    final Executor executor = configuration.newExecutor(tx, execType);     
+    return new DefaultSqlSession(configuration, executor, autoCommit);
+}
+```
+
+在初始化`SqlSesion`时，会使用`Configuration`类创建一个全新的`Executor`，作为`DefaultSqlSession`构造函数的参数，创建Executor代码如下所示：
+
+```java
+// Configuration.java
+public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+    executorType = executorType == null ? defaultExecutorType : executorType;
+    executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+    Executor executor;
+    if (ExecutorType.BATCH == executorType) {
+      executor = new BatchExecutor(this, transaction);
+    } else if (ExecutorType.REUSE == executorType) {
+      executor = new ReuseExecutor(this, transaction);
+    } else {
+      executor = new SimpleExecutor(this, transaction);
+    }
+    // 尤其可以注意这里，如果二级缓存开关开启的话，是使用CahingExecutor装饰BaseExecutor的子类
+    if (cacheEnabled) {
+      executor = new CachingExecutor(executor);                      
+    }
+    executor = (Executor) interceptorChain.pluginAll(executor);
+    return executor;
+}
+```
+
+`SqlSession`创建完毕后，根据Statment的不同类型，会进入`SqlSession`的不同方法中，如果是`Select`语句的话，最后会执行到`SqlSession`的`selectList`，代码如下所示：
+
+```java
+@Override
+public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
+      MappedStatement ms = configuration.getMappedStatement(statement);
+      return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
+}
+```
+
+`SqlSession`把具体的查询职责委托给了Executor。==如果只开启了一级缓存的话，首先会进入`BaseExecutor`的`query`方法。==代码如下所示：
+
+```java
+// BaseExecutor.java
+@Override
+public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    BoundSql boundSql = ms.getBoundSql(parameter);
+    CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+    return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
+}
+```
+
+在上述代码中，会先根据传入的参数生成CacheKey，进入该方法查看CacheKey是如何生成的，代码如下所示：
+
+```java
+// BaseExecutor.java的createCacheKey方法
+CacheKey cacheKey = new CacheKey();
+cacheKey.update(ms.getId());
+cacheKey.update(rowBounds.getOffset());
+cacheKey.update(rowBounds.getLimit());
+cacheKey.update(boundSql.getSql());
+//后面是update了sql中带的参数
+cacheKey.update(value);
+```
+
+​	在上述的代码中，将`MappedStatement`的Id、SQL的offset、SQL的limit、SQL本身以及SQL中的参数传入了CacheKey这个类，最终构成CacheKey。CacheKey.java的内部结构：
+
+```java
+private static final int DEFAULT_MULTIPLYER = 37;
+private static final int DEFAULT_HASHCODE = 17;
+
+private int multiplier;
+private int hashcode;
+private long checksum;
+private int count;
+private List<Object> updateList;
+
+public CacheKey() {
+    this.hashcode = DEFAULT_HASHCODE;
+    this.multiplier = DEFAULT_MULTIPLYER;
+    this.count = 0;
+    this.updateList = new ArrayList<Object>();
+}
+```
+
+​	首先是成员变量和构造函数，有一个初始的`hachcode`和乘数，同时维护了一个内部的`updatelist`。在`CacheKey`的`update`方法中，会进行一个`hashcode`和`checksum`的计算，同时把传入的参数添加进`updatelist`中。如下代码所示：
+
+```java
+public void update(Object object) {
+    int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object); 
+    count++;
+    checksum += baseHashCode;
+    baseHashCode *= count;
+    hashcode = multiplier * hashcode + baseHashCode;
+    
+    updateList.add(object);
+}
+```
+
+同时重写了`CacheKey`的`equals`方法，代码如下所示：
+
+```java
+@Override
+public boolean equals(Object object) {
+    .............
+    for (int i = 0; i < updateList.size(); i++) {
+      Object thisObject = updateList.get(i);
+      Object thatObject = cacheKey.updateList.get(i);
+      if (!ArrayUtil.equals(thisObject, thatObject)) {
+        return false;
+      }
+    }
+    return true;
+}
+```
+
+​	除去hashcode、checksum和count的比较外，只要updatelist中的元素一一对应相等，那么就可以认为是CacheKey相等。只要两条SQL的下列五个值相同，即可以认为是相同的SQL。
+
+> Statement Id + Offset + Limmit + Sql + Params
+
+BaseExecutor的query方法继续往下走，代码如下所示：
+
+```java
+list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+if (list != null) {
+    // 这个主要是处理存储过程用的。
+    handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
+    } else {
+    list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
+}
+```
+
+​	如果查不到的话，就从数据库查，在`queryFromDatabase`中，会对`localcache`进行写入。==在`query`方法执行的最后，会判断一级缓存级别是否是`STATEMENT`级别，如果是的话，就清空缓存，这也就是`STATEMENT`级别的一级缓存无法共享`localCache`的原因。==代码如下所示：
+
+```java
+if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
+        clearLocalCache();
+}
+```
+
+如果是`insert/delete/update`方法，缓存就会刷新的原因。`SqlSession`的`insert`方法和`delete`方法，都会统一走`update`的流程，代码如下所示：
+
+```java
+@Override
+public int insert(String statement, Object parameter) {
+    return update(statement, parameter);
+  }
+   @Override
+  public int delete(String statement) {
+    return update(statement, null);
+}
+```
+
+`update`方法也是委托给了`Executor`执行。`BaseExecutor`的执行方法如下所示：
+
+```java
+@Override
+public int update(MappedStatement ms, Object parameter) throws SQLException {
+    ErrorContext.instance().resource(ms.getResource()).activity("executing an update").object(ms.getId());
+    if (closed) {
+      throw new ExecutorException("Executor was closed.");
+    }
+    clearLocalCache();
+    return doUpdate(ms, parameter);
+}
+```
+
+每次执行`update`前都会清空`localCache`。
+
+### 总结
+
+1. MyBatis一级缓存的生命周期和SqlSession一致。
+2. MyBatis一级缓存内部设计简单，只是一个没有容量限定的HashMap，在缓存的功能性上有所欠缺。
+3. ==MyBatis的一级缓存最大范围是SqlSession内部，有多个SqlSession或者分布式的环境下，数据库写操作会引起脏数据，建议设定缓存级别为Statement。==
+
+## 2.二级缓存源码分析
+
+​	MyBatis二级缓存的工作流程和前文提到的一级缓存类似，只是在一级缓存处理前，用`CachingExecutor`装饰了`BaseExecutor`的子类，在委托具体职责给`delegate`之前，实现了二级缓存的查询和写入功能，具体类关系图如下图所示：
+
+![img](/Users/jack/Desktop/md/images/090216b1.jpg)
+
+### 源码分析
+
+​	源码分析从`CachingExecutor`的`query`方法展开，`CachingExecutor`的`query`方法，首先会从`MappedStatement`中获得在配置初始化时赋予的Cache。
+
+```java
+Cache cache = ms.getCache();
+```
+
+本质上是装饰器模式的使用，具体的装饰链是：
+
+> SynchronizedCache -> LoggingCache -> SerializedCache -> LruCache -> PerpetualCache。
+
+![img](/Users/jack/Desktop/md/images/1f5233b2.jpg)
+
+以下是具体这些Cache实现类的介绍，他们的组合为Cache赋予了不同的能力。
+
+- `SynchronizedCache`：同步Cache，实现比较简单，直接使用synchronized修饰方法。
+- `LoggingCache`：日志功能，装饰类，用于记录缓存的命中率，如果开启了DEBUG模式，则会输出命中率日志。
+- `SerializedCache`：序列化功能，将值序列化后存到缓存中。该功能用于缓存返回一份实例的Copy，用于保存线程安全。
+- `LruCache`：采用了Lru算法的Cache实现，移除最近最少使用的Key/Value。
+- `PerpetualCache`： 作为为最基础的缓存类，底层实现比较简单，直接使用了HashMap。
+
+然后是判断是否需要刷新缓存，代码如下所示：
+
+```java
+flushCacheIfRequired(ms);
+```
+
+==在默认的设置中`SELECT`语句不会刷新缓存，`insert/update/delte`会刷新缓存。==进入该方法。代码如下所示：
+
+```java
+private void flushCacheIfRequired(MappedStatement ms) {
+    Cache cache = ms.getCache();
+    if (cache != null && ms.isFlushCacheRequired()) {      
+      tcm.clear(cache);
+    }
+}
+```
+
+MyBatis的`CachingExecutor`持有了`TransactionalCacheManager`，即上述代码中的tcm。
+
+`TransactionalCacheManager`中持有了一个Map，代码如下所示：
+
+```java
+private Map<Cache, TransactionalCache> transactionalCaches = new HashMap<Cache, TransactionalCache>();
+```
+
+==这个Map保存了Cache和用`TransactionalCache`包装后的Cache的映射关系。==
+
+`TransactionalCache`实现了Cache接口，`CachingExecutor`会默认使用他包装初始生成的Cache，作用是如果事务提交，对缓存的操作才会生效，如果事务回滚或者不提交事务，则不对缓存产生影响。
+
+在TransactionalCache.java的clear方法中，有以下两句。**清空了需要在提交时加入缓存的列表，同时设定提交时清空缓存**，代码如下所示：
+
+```java
+@Override
+public void clear() {
+	clearOnCommit = true;
+	entriesToAddOnCommit.clear();
+}
+```
+
+`CachingExecutor`继续往下走，`ensureNoOutParams`主要是用来处理存储过程的，暂时不用考虑。
+
+```java
+if (ms.isUseCache() && resultHandler == null) {
+	ensureNoOutParams(ms, parameterObject, boundSql);
+```
+
+之后会尝试从tcm中获取缓存的列表。
+
+```java
+List<E> list = (List<E>) tcm.getObject(cache, key);
+```
+
+​	==在getObject方法中，会把获取值的职责一路传递，最终到PerpetualCache.java。如果没有查到，会把key加入Miss集合，这个主要是为了统计命中率==。
+
+```java
+Object object = delegate.getObject(key);
+if (object == null) {
+	entriesMissedInCache.add(key);
+}
+```
+
+`CachingExecutor`继续往下走，如果查询到数据，则调用`tcm.putObject`方法，往缓存中放入值。
+
+```java
+if (list == null) {
+	list = delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+	tcm.putObject(cache, key, list); // issue #578 and #116
+}
+```
+
+​	==tcm的put方法也不是直接操作缓存，只是在把这次的数据和key放入待提交的Map中。==
+
+```java
+@Override
+public void putObject(Object key, Object object) {
+    entriesToAddOnCommit.put(key, object);
+}
+```
+
+​	从以上的代码分析中知道，如果不调用`commit`方法的话，由于`TranscationalCache`的作用，并不会对二级缓存造成直接的影响。因此我们看看`Sqlsession`的`commit`方法中做了什么。代码如下所示：
+
+```java
+@Override
+public void commit(boolean force) {
+    try {
+      executor.commit(isCommitOrRollbackRequired(force));
+```
+
+因为我们使用了CachingExecutor，首先会进入CachingExecutor实现的commit方法。
+
+```java
+@Override
+public void commit(boolean required) throws SQLException {
+    delegate.commit(required);
+    tcm.commit();
+}
+```
+
+会把具体commit的职责委托给包装的`Executor`。主要是看下`tcm.commit()`，tcm最终又会调用到`TrancationalCache`。
+
+```java
+public void commit() {
+    if (clearOnCommit) {
+      delegate.clear();
+    }
+    flushPendingEntries();
+    reset();
+}
+```
+
+​	**看到这里的`clearOnCommit`就想起刚才`TrancationalCache`的`clear`方法设置的标志位，真正的清理Cache是放到这里来进行的。具体清理的职责委托给了包装的Cache类。**之后进入`flushPendingEntries`方法。代码如下所示：
+
+```java
+private void flushPendingEntries() {
+    for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
+      delegate.putObject(entry.getKey(), entry.getValue());
+    }
+    ................
+}
+```
+
+在`flushPending`Entries中，将待提交的Map进行循环处理，委托给包装的Cache类，进行`putObject`的操作。
+
+后续的查询操作会重复执行这套流程。如果是`insert|update|delete`的话，会统一进入`CachingExecutor`的`update`方法，其中调用了这个函数，代码如下所示：
+
+```java
+private void flushCacheIfRequired(MappedStatement ms) 
+```
+
+在二级缓存执行流程后就会进入一级缓存的执行流程，因此不再赘述。
+
+### 总结
+
+1. MyBatis的二级缓存相对于一级缓存来说，实现了`SqlSession`之间缓存数据的共享，同时粒度更加的细，能够到`namespace`级别，通过Cache接口实现类不同的组合，对Cache的可控性也更强。
+
+2. MyBatis在多表查询时，极大可能会出现脏数据，有设计上的缺陷，安全使用二级缓存的条件比较苛刻。
+
+3. 在分布式环境下，由于默认的MyBatis Cache实现都是基于本地的，分布式环境下必然会出现读取到脏数据，需要使用集中式缓存将MyBatis的Cache接口实现，有一定的开发成本，直接使用Redis、Memcached等分布式缓存可能成本更低，安全性也更高。
+
+   
 
 
 
@@ -1723,3 +2345,7 @@ public void rollback(boolean required) throws SQLException {
 参照：芋道源码
 
 mybatis文档：<http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html>
+
+动力节点SSM课程
+
+[《聊聊 MyBatis 缓存机制》](https://tech.meituan.com/mybatis_cache.html) 
