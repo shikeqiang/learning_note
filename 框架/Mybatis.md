@@ -535,6 +535,8 @@ public interface Cache {
 
 ![image-20190515000712587](/Users/jack/Desktop/md/images/image-20190515000712587.png)
 
+![image-20190521235855244](/Users/jack/Desktop/md/images/image-20190521235855244.png)
+
 # 六、Mapper接口的工作原理
 
 Mapper 接口，对应的关系如下：
@@ -543,11 +545,11 @@ Mapper 接口，对应的关系如下：
 - 接口的方法名，就是映射文件中 MappedStatement 的 `"id"` 值。
 - 接口方法内的参数，就是传递给 SQL 的参数。
 
-Mapper 接口是没有实现类的，当调用接口方法时，接口全限名 + 方法名拼接字符串作为 key 值，可唯一定位一个对应的 MappedStatement 。举例：`com.mybatis3.mappers.StudentDao.findStudentById` ，可以唯一找到 `"namespace"` 为 `com.mybatis3.mappers.StudentDao` 下面 `"id"` 为 `findStudentById` 的 MappedStatement 。
+Mapper 接口是没有实现类的，当调用接口方法时，接口全限名 + 方法名拼接字符串作为 key 值，可唯一定位一个对应的 MappedStatement 。举例：`com.mybatis3.mappers.StudentDao.findStudentById` ，可以唯一找到 namespace 为 `com.mybatis3.mappers.StudentDao` 下面 id为 `findStudentById` 的 MappedStatement 。
 
-总结来说，在 Mybatis 中，每一个 `<select />`、`<insert />`、`<update />`、`<delete />` 标签，都会被解析为一个 MappedStatement 对象。
+​	==总结来说，在 Mybatis 中，每一个 `<select />`、`<insert />`、`<update />`、`<delete />` 标签，都会被解析为一个 MappedStatement 对象。==
 
-Mapper 接口的实现类，通过 MyBatis 使用 **JDK Proxy** 自动生成其代理对象 Proxy ，而代理对象 Proxy 会拦截接口方法，从而“调用”对应的 MappedStatement 方法，最终执行 SQL ，返回执行结果。整体流程如下图：![流程](/Users/jack/Desktop/md/images/02-7742725.png)
+​	Mapper 接口的实现类，通过 MyBatis 使用 **JDK Proxy** 自动生成其代理对象 Proxy ，而代理对象 Proxy 会拦截接口方法，从而“调用”对应的 MappedStatement 方法，最终执行 SQL ，返回执行结果。整体流程如下图：![流程](/Users/jack/Desktop/md/images/02-7742725.png)
 
 ​	其中，SqlSession 在调用 Executor 之前，会获得对应的 MappedStatement 方法。例如：`DefaultSqlSession#select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler)` 方法，代码如下：
 
@@ -1026,9 +1028,15 @@ public void rollback(boolean required) throws SQLException {
 
 ​	MyBatis 中的延迟加载，也称为懒加载，是**指在进行关联查询时，按照设置延迟规则推 迟对关联对象的 select 查询。**延迟加载可以有效的减少数据库压力。 需要注意的是，**MyBatis 的延迟加载只是对关联对象的查询有迟延设置，对于主加载对象都是直接执行查询语句的。**
 
+​	Mybatis 仅支持 association 关联对象和 collection 关联集合对象的延迟加载。其中，association 指的就是**一对一**，collection 指的就是**一对多查询**。
+
+> 它的原理是，使用 CGLIB 或 Javassist( 默认 ) 创建目标对象的代理对象。当调用代理对象的延迟加载属性的 getting 方法时，**进入拦截器方法**。比如调用 `a.getB().getName()` 方法，进入拦截器的 `invoke(...)` 方法，发现 `a.getB()` 需要延迟加载时，那么就会单独发送事先保存好的查询关联 B 对象的 SQL ，把 B 查询上来，然后调用`a.setB(b)` 方法，于是 `a` 对象 `b`属性就有值了，接着完成`a.getB().getName()` 方法的调用。这就是延迟加载的基本原理。
+>
+> 当然了，不光是 Mybatis，几乎所有的包括 Hibernate 在内，支持延迟加载的原理都是一样的。
+
 ## 1.关联对象加载时机 
 
-​	MyBatis 根据对关联对象查询的 select 语句的执行时机，分为三种类型:直接加载、侵 入式延迟加载与深度延迟加载。
+​	MyBatis 根据对关联对象查询的 select 语句的执行时机，**分为三种类型:直接加载、侵 入式延迟加载与深度延迟加载。**
 
 - 直接加载:执行完对主加载对象的 select 语句，马上执行对关联对象的 select 查询。 
 - 侵入式延迟:执行对主加载对象的查询时，不会执行对关联对象的查询。但当要访问主加载对象的详情时，就会马上执行关联对象的 select 查询。即对关联对象的查询执行， 侵入到了主加载对象的详情访问中。也可以这样理解:**将关联对象的详情侵入到了主加 载对象的详情中，即将关联对象的详情作为主加载对象的详情的一部分出现了。** 
@@ -1645,28 +1653,78 @@ private void flushCacheIfRequired(MappedStatement ms)
 ### 总结
 
 1. MyBatis的二级缓存相对于一级缓存来说，实现了`SqlSession`之间缓存数据的共享，同时粒度更加的细，能够到`namespace`级别，通过Cache接口实现类不同的组合，对Cache的可控性也更强。
-
 2. MyBatis在多表查询时，极大可能会出现脏数据，有设计上的缺陷，安全使用二级缓存的条件比较苛刻。
-
 3. 在分布式环境下，由于默认的MyBatis Cache实现都是基于本地的，分布式环境下必然会出现读取到脏数据，需要使用集中式缓存将MyBatis的Cache接口实现，有一定的开发成本，直接使用Redis、Memcached等分布式缓存可能成本更低，安全性也更高。
 
-   
+# 十七、插件原理
 
+​	Mybatis 仅可以编写针对 ParameterHandler、ResultSetHandler、StatementHandler、Executor 这 4 种接口的插件。
 
+​	==Mybatis 使用 JDK 的动态代理，为需要拦截的接口生成代理对象以实现接口方法拦截功能，每当执行这 4 种接口对象的方法时，就会进入拦截方法，具体就是 InvocationHandler 的 `#invoke(...)`方法。当然，只会拦截那些你指定需要拦截的方法。==
 
+> 编写一个 MyBatis 插件的步骤如下：
+>
+> 1. 首先，实现 Mybatis 的 Interceptor 接口，并实现 `#intercept(...)` 方法。
+> 2. 然后，在给插件编写注解，指定要拦截哪一个接口的哪些方法即可
+> 3. 最后，在配置文件中配置你编写的插件。
 
+# 十八、MyBatis分页
 
+​	Mybatis 使用 RowBounds 对象进行分页，它是针对 ResultSet 结果集执行的**内存分页**，而非**数据库分页**。
 
+所以，实际场景下，不适合直接使用 MyBatis 原有的 RowBounds 对象进行分页。而是使用如下两种方案：
 
+- 在 SQL 内直接书写带有数据库分页的参数来完成数据库分页功能
+- 也可以使用分页插件来完成数据库分页。
 
+这两者都是基于数据库分页，差别在于前者是工程师**手动**编写分页条件，后者是插件**自动**添加分页条件。
 
+​	==分页插件的基本原理是使用 Mybatis 提供的插件接口，实现自定义分页插件。在插件的拦截方法内，拦截待执行的 SQL ，然后重写 SQL ，根据dialect 方言，添加对应的物理分页语句和物理分页参数。==
 
+举例：`SELECT * FROM student` ，拦截 SQL 后重写为：`select * FROM student LIMI 0，10` 。
 
+目前市面上目前使用比较广泛的 MyBatis 分页插件有：
 
+- [Mybatis-PageHelper](https://github.com/pagehelper/Mybatis-PageHelper)
+- [MyBatis-Plus](https://github.com/baomidou/mybatis-plus)
 
+# 十九、JDBC存在的问题与MyBatis的解决方式
 
+问题一：SQL 语句写在代码中造成代码不易维护，且代码会比较混乱。
 
+解决方式：将 SQL 语句配置在 Mapper XML 文件中，与 Java 代码分离。
 
+------
+
+问题二：根据参数不同，拼接不同的 SQL 语句非常麻烦。例如 SQL 语句的 WHERE 条件不一定，可能多也可能少，占位符需要和参数一一对应。
+
+解决方式：MyBatis 提供 `<where />`、`<if />` 等等动态语句所需要的标签，并支持 OGNL 表达式，简化了动态 SQL 拼接的代码，提升了开发效率。
+
+------
+
+问题三，对结果集解析麻烦，SQL 变化可能导致解析代码变化，且解析前需要遍历。
+
+解决方式：Mybatis 自动将 SQL 执行结果映射成 Java 对象。
+
+------
+
+问题四，数据库链接创建、释放频繁造成系统资源浪费从而影响系统性能，如果使用数据库链接池可解决此问题。
+
+解决方式：在 `mybatis-config.xml` 中，配置数据链接池，使用连接池管理数据库链接。
+
+# 二十、MyBatis映射文件解析
+
+​	Mybatis 映射文件中，如果 A 标签通过 include 引用了B标签的内容，请问，B 标签能否定义在 A 标签的后面，还是说必须定义在A标签的前面？
+
+​	答：虽然 Mybatis 解析 XML 映射文件是**按照顺序**解析的。但是，被引用的 B 标签依然可以定义在任何地方，Mybatis 都可以正确识别。**也就是说，无需按照顺序，进行定义**。
+
+​	**原理是，Mybatis 解析 A 标签，发现 A 标签引用了 B 标签，但是 B 标签尚未解析到，尚不存在，此时，Mybatis 会将 A 标签标记为未解析状态。然后，继续解析余下的标签，包含 B 标签，待所有标签解析完毕，Mybatis 会重新解析那些被标记为未解析的标签，此时再解析A标签时，B 标签已经存在，A 标签也就可以正常解析完成了。**
+
+在 XML Mapper 文件中：
+
+- `<parameterMap>` 标签，会被解析为 ParameterMap 对象，其每个子元素会被解析为 ParameterMapping 对象。
+- `<resultMap>` 标签，会被解析为 ResultMap 对象，其每个子元素会被解析为 ResultMapping 对象。
+- 每一个 `<select>`、`<insert>`、`<update>`、`<delete>` 标签，均会被解析为一个 MappedStatement 对象，标签内的 SQL 会被解析为一个 BoundSql 对象。
 
 
 

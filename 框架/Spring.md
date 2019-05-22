@@ -692,7 +692,6 @@ Object sharedInstance = getSingleton(beanName);
 
   ```Java
   // DefaultSingletonBeanRegistry.java
-  
   @Nullable
   protected Object getSingleton(String beanName, boolean allowEarlyReference) {
       // 从单例缓冲中加载 bean
@@ -726,7 +725,6 @@ Object sharedInstance = getSingleton(beanName);
 
     ```Java
     // DefaultSingletonBeanRegistry.java
-    
     /**
      * Cache of singleton objects: bean name to bean instance.
      * 一级缓存，保存所有的singletonBean的实例
