@@ -2,7 +2,7 @@
 
 # 一、JVM的组成
 
-![image-20190413104745927](/Users/jack/Desktop/md/images/image-20190413104745927.png)
+![image-20190413104745927](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413104745927.png)
 
 ​	==JVM 内存区域主要分为线程私有区域【程序计数器、虚拟机栈、本地方法区】、线程共享区域【JAVA 堆、方法区】、直接内存。==
 
@@ -10,16 +10,16 @@
 
 > 在 Java8 中，永久代已经被移除，被一个称为“元数据区”(元空间)的区域所取代。元空间的本质和永久代类似，==**元空间与永久代之间最大的区别在于:元空间并不在虚拟机中，而是使用本地内存。**==因此，默认情况下，元空间的大小仅受本地内存限制。类的元数据放入 native memory, 字符串池和类的静态变量放入 java 堆中，这样可以加载多少类的元数据就不再由MaxPermSize 控制, 而由系统的实际可用空间来控制。
 
-![image-20190413105556518](/Users/jack/Desktop/md/images/image-20190413105556518.png)
+![image-20190413105556518](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413105556518.png)
 
-![img](/Users/jack/Desktop/md/images/01.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01.jpg)
 
 - **类加载器**，在 JVM 启动时或者类运行时将需要的 class 加载到 JVM 中。
 - **内存区**，将内存划分成若干个区以模拟实际机器上的存储、记录和调度功能模块，如实际机器上的各种功能的寄存器或者 PC 指针的记录器等。
 - **执行引擎**，执行引擎的任务是负责执行 class 文件中包含的字节码指令，相当于实际机器上的 CPU 。
 - **本地方法调用**，调用 C 或 C++ 实现的本地方法的代码返回结果。
 
-![image-20190413104718734](/Users/jack/Desktop/md/images/image-20190413104718734.png)
+![image-20190413104718734](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413104718734.png)
 
 # 二、Java 内存堆和栈区别
 
@@ -32,11 +32,11 @@
 
 > JVM 中堆和栈属于不同的内存区域，使用目的也不同。**栈常用于保存方法帧和局部变量，而对象总是在堆上分配。栈通常都比堆小，也不会在多个线程之间共享，而堆被整个 JVM 的所有线程共享。**
 
-![img](/Users/jack/Desktop/md/images/03.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/03.png)
 
 # 三、JAVA 对象创建的过程
 
-JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Users/jack/Desktop/md/images/06-20190404222153737.png)
+JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/06-20190404222153737.png)
 
 - **Java 中对象的创建就是在堆上分配内存空间的过程，此处说的对象创建仅限于 new 关键字创建的普通 Java 对象，不包括数组对象的创建。**
 
@@ -53,7 +53,7 @@ JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Us
 - 对于内存绝对规整的情况相对简单一些，虚拟机只需要在被占用的内存和可用空间之间移动指针即可，这种方式被称为“**指针碰撞**”。
 - 对于内存不规整的情况稍微复杂一点，这时候虚拟机需要维护一个列表，来记录哪些内存是可用的。分配内存的时候需要找到一个可用的内存空间，然后在列表上记录下已被分配，这种方式成为“**空闲列表**”。
 
-![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343061326333643f773d3134323626683d33333326663d706e6726733d3236333436.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343061326333643f773d3134323626683d33333326663d706e6726733d3236333436.jpg)
 
 **多线程并发时会出现正在给对象 A 分配内存，还没来得及修改指针，对象 B 又用这个指针分配内存，这样就出现问题了。解决这种问题有两种方案：**
 
@@ -74,7 +74,7 @@ JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Us
 
 到此为止一个对象就产生了，这就是 new 关键字创建对象的过程。过程如下：
 
-![JAVA 对象创建的过程](/Users/jack/Desktop/md/images/07-20190404222153727.png)
+![JAVA 对象创建的过程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/07-20190404222153727.png)
 
 > 另外，这个问题，面试官可能引申成 “`A a = new A()` 经历过什么过程”的问题。
 
@@ -92,8 +92,8 @@ JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Us
 
 对象的访问定位有两种：
 
-- **句柄定位**：Java 堆会画出一块内存来作为句柄池，reference 中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与对象类型数据各自的具体地址信息。![句柄定位](/Users/jack/Desktop/md/images/04.png)
-- **直接指针**访问：Java 堆对象的不居中就必须考虑如何放置访问类型数据的相关信息，而 reference 中存储的直接就是对象地址。 ![直接指针访问](/Users/jack/Desktop/md/images/05.png)
+- **句柄定位**：Java 堆会画出一块内存来作为句柄池，reference 中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与对象类型数据各自的具体地址信息。![句柄定位](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/04.png)
+- **直接指针**访问：Java 堆对象的不居中就必须考虑如何放置访问类型数据的相关信息，而 reference 中存储的直接就是对象地址。 ![直接指针访问](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/05.png)
 
 ## 句柄定位和直接指针访问的区别
 
@@ -121,7 +121,7 @@ JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Us
 ## **1）Java 堆溢出**
 
 ​	Java应用程序在启动时会指定所需要的内存大小，它被分割成两个不同的区域：`Heap space（堆空间）`和`Permgen（永久代）`：
-![img](/Users/jack/Desktop/md/images/auto-orient-20190405164553472.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/auto-orient-20190405164553472.png)
 
 ​	 这两个区域的大小可以在JVM（Java虚拟机）==启动时通过参数-Xmx和-XX:MaxPermSize==设置，如果你没有显式设置，则将使用特定平台的默认值。
 
@@ -185,7 +185,7 @@ JAVA 对象创建的过程，如下图所示：![JAVA 对象创建的过程](/Us
 
 # 八、垃圾收集器与内存分配策略
 
-![image-20190413154354799](/Users/jack/Desktop/md/images/image-20190413154354799.png)
+![image-20190413154354799](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413154354799.png)
 
 ## 1.垃圾回收机制
 
@@ -328,7 +328,7 @@ Java 一共有四种引用类型：
 
 ​	一种可行的实现是，**在标记阶段，首先通过根节点，==标记所有从根节点开始的可达对象==。**因此，未被标记的对象就是未被引用的垃圾对象。然后，**在清除阶段，清除所有未被标记的对象。**
 
-![标记-清除算法](/Users/jack/Desktop/md/images/f07ac7c68994aa21b7b4271073ea4e5b.jpeg)
+![标记-清除算法](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f07ac7c68994aa21b7b4271073ea4e5b.jpeg)
 
 - 缺点：
   - 效率问题，标记和清除两个过程的效率都不高。
@@ -338,7 +338,7 @@ Java 一共有四种引用类型：
 
 ​	==标记整理算法，类似与标记清除算法，不过它标记完对象后，不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉边界以外的内存==。
 
-![标记-整理算法](/Users/jack/Desktop/md/images/52ea9a3813e09621c563b1cd4bdf0d22.jpeg)
+![标记-整理算法](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/52ea9a3813e09621c563b1cd4bdf0d22.jpeg)
 
 - 优点：
   - 相对标记清除算法，解决了内存碎片问题。
@@ -350,7 +350,7 @@ Java 一共有四种引用类型：
 
 ​	复制算法，可以解决效率问题，**它将可用内存按容量划分为大小相等的两块，每次只使用其中的一块，当这一块内存用完了，就将还存活着的对象复制到另一块上面，然后再把已经使用过的内存空间一次清理掉，这样使得每次都是对整个半区进行内存回收，内存分配时也就不用考虑内存碎片等复杂情况，只要移动堆顶指针，按顺序分配内存即可（还可使用TLAB进行高效分配内存）。**
 
-![复制算法](/Users/jack/Desktop/md/images/cc3f228ca5353fd5deb4b22b7a9709e6.jpeg)
+![复制算法](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/cc3f228ca5353fd5deb4b22b7a9709e6.jpeg)
 
 - 图的上半部分是未回收前的内存区域，图的下半部分是回收后的内存区域。通过图，我们发现不管回收前还是回收后都有一半的空间未被利用。
 - 优点：
@@ -366,7 +366,7 @@ Java 一共有四种引用类型：
 - 在新生代中，每次垃圾收集都发现有大批对象死去，只有少量存活，就选用**复制算法**。
 - **老年代中，因为对象存活率高，没有额外空间对它进行分配担保，就必须使用“标记清理”或者“标记整理”算法来进行回收。**
 
-![分代收集算法](/Users/jack/Desktop/md/images/fec52af474f1250831d46b541e0fe7a9.jpeg)
+![分代收集算法](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/fec52af474f1250831d46b541e0fe7a9.jpeg)
 
 - 图的左半部分是未回收前的内存区域，右半部分是回收后的内存区域。
 - 对象分配策略：
@@ -416,7 +416,7 @@ Java 一共有四种引用类型：
 
 ## 6.JVM 垃圾收集器
 
-![image-20190413162911430](/Users/jack/Desktop/md/images/image-20190413162911430.png)
+![image-20190413162911430](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413162911430.png)
 
 **如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。**
 
@@ -579,14 +579,14 @@ Java 一共有四种引用类型：
 
 > ​	每次进行 Minor GC 时**，JVM 会计算 Survivor 区移至老年区的对象的平均大小，如果这个值大于老年区的剩余值大小则进行一次 Full GC ，**如果小于检查 HandlePromotionFailure 设置，如果 `true` 则只进行 Monitor GC ，如果 `false` 则进行 Full GC 。
 
-如下是一张对象创建时，分配内存的图：![内存分配](/Users/jack/Desktop/md/images/bc22a30cbe93b8dedda080144a73b613.png)
+如下是一张对象创建时，分配内存的图：![内存分配](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/bc22a30cbe93b8dedda080144a73b613.png)
 
 ### 7.6 **为什么新生代内存需要有两个 Survivor 区**
 
 #### 1 为什么要有Survivor区
 
 ​	先不去想为什么有两个Survivor区，第一个问题是，设置Survivor区的意义在哪里？ 
-![堆内存分类](/Users/jack/Desktop/md/images/20160516144358110.jpeg)
+![堆内存分类](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20160516144358110.jpeg)
 
 ​	**如果没有Survivor，Eden区每进行一次Minor GC，存活的对象就会被送到老年代。老年代很快被填满，触发Major GC**（因为Major GC一般伴随着Minor GC，也可以看做触发了Full GC）。**老年代的内存空间远大于新生代，进行一次Full GC消耗的时间比Minor GC长得多。**频发的Full GC消耗的时间是非常可观的，这一点会影响大型程序的执行和响应速度，更不要说某些连接会因为超时发生连接错误了。
 
@@ -607,10 +607,10 @@ Java 一共有四种引用类型：
 ​	**设置两个Survivor区最大的好处就是解决了碎片化**。
 ​	刚刚新建的对象在Eden中，一旦Eden满了，触发一次Minor GC，Eden中的存活对象就会被移动到Survivor区。这样继续循环下去，下一次Eden满了的时候，问题来了，此时进行Minor GC，Eden和Survivor各有一些存活对象，如果此时把Eden区的存活对象硬放到Survivor区，很明显这两部分对象所占有的内存是不连续的，也就导致了内存**碎片化**。 
 ​	如下图，其中色块代表对象，白色框分别代表Eden区（大）和Survivor区（小）。**Eden区理所当然大一些，否则新建对象很快就导致Eden区满，进而触发Minor GC，有悖于初衷。** 
-![一个Survivor区带来碎片化](/Users/jack/Desktop/md/images/20160516173704870.png)
+![一个Survivor区带来碎片化](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20160516173704870.png)
 
 ​	那么，顺理成章的，应该建立两块Survivor区，刚刚新建的对象在Eden中，经历一次Minor GC，Eden中的存活对象就会被移动到第一块survivor space S0，Eden被清空；等Eden区再满了，就再触发一次Minor GC，Eden和S0中的存活对象又会被复制送入第二块survivor space S1（**这个过程非常重要，==因为这种复制算法保证了S1中来自S0和Eden两部分的存活对象占用连续的内存空间，避免了碎片化的发生==**）。S0和Eden被清空，然后下一轮S0与S1交换角色，如此循环往复。**如果对象的复制次数达到16次，该对象就会被送到老年代中。**下图中每部分的意义和上一张图一样。 
-![两块Survivor避免碎片化](/Users/jack/Desktop/md/images/20160516174938778.png) 
+![两块Survivor避免碎片化](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20160516174938778.png) 
 ​	上述机制最大的好处就是，整个过程中，==**永远有一个survivor space是空的，另一个非空的survivor space无碎片**==。
 
 ​	那么，Survivor为什么不分更多块呢？比方说分成三个、四个、五个?显然，如果Survivor区再细分下去，每一块的空间就会比较小，很容易导致Survivor区满，因此，我认为两块Survivor区是经过权衡之后的最佳方案。
@@ -627,7 +627,7 @@ Java 一共有四种引用类型：
 
 ​	GC 经常发生的区域是堆区，堆区还可以细分为
 
-![堆](/Users/jack/Desktop/md/images/67796f9fc657b7b4dd0054f561248f5b.png)
+![堆](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/67796f9fc657b7b4dd0054f561248f5b.png)
 
 - 新生代
   - 一个 Eden 区
@@ -773,7 +773,7 @@ Java 一共有四种引用类型：
 
 ​	负责加载用户路径(classpath)上的类库。
 
-![image-20190413211703572](/Users/jack/Desktop/md/images/image-20190413211703572.png)
+![image-20190413211703572](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413211703572.png)
 
 ## 2、类加载发生的时机
 
@@ -791,7 +791,7 @@ Java 一共有四种引用类型：
 
 下图所示是 ClassLoader 加载一个 `.class` 文件到 JVM 时需要经过的步骤：
 
-![类加载器是如何加载 class 文件](/Users/jack/Desktop/md/images/08-20190406220511902.png)
+![类加载器是如何加载 class 文件](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/08-20190406220511902.png)
 
 - 第一个阶段，加载(Loading)，是找到 `.class` 文件并把这个文件包含的字节码加载到内存中。
 
@@ -904,7 +904,7 @@ Java 一共有四种引用类型：
 
 **类加载器 ClassLoader 是具有==层次结构的，也就是父子关系(是组合关系，而不是继承关系)==**，如下图所示：
 
-![双亲委派模型](/Users/jack/Desktop/md/images/09.png)
+![双亲委派模型](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/09.png)
 
 - Bootstrap ClassLoader ：根类加载器，负责加载 Java 的核心类，它不是 `java.lang.ClassLoader` 的子类，而是由 JVM 自身实现。
 
@@ -945,7 +945,7 @@ Java 一共有四种引用类型：
 
 ### **双亲委派模型的工作过程**
 
-![image-20190413211936822](/Users/jack/Desktop/md/images/image-20190413211936822.png)
+![image-20190413211936822](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413211936822.png)
 
 - 1、当前 ClassLoader 首先从自己已经加载的类中，查询是否此类已经加载，如果已经加载则直接返回原来已经加载的类。
 
@@ -1019,7 +1019,7 @@ protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundE
 
 直接参考 [《Java 自定义 ClassLoader 实现 JVM 类加载》](https://www.jianshu.com/p/3036b46f1188) 文章即可。
 
-![èå¾](/Users/jack/Desktop/md/images/f20e86724ff310733d7556bd203dc061.jpeg)
+![èå¾](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f20e86724ff310733d7556bd203dc061.jpeg)
 
 参照：
 

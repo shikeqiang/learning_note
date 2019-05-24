@@ -46,7 +46,7 @@
 
 数据读取和写入操作图示：
 
-![image-20190413174153859](/Users/jack/Desktop/md/images/image-20190413174153859.png)
+![image-20190413174153859](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190413174153859.png)
 
 ​	**客户端发送数据时，必须先将数据存入 Buffer 中，然后将 Buffer 中的内容写入通道。服务端这边接收数据必须通过 Channel 将数据读入到 Buffer 中，然后再从 Buffer 中取出数据来处理。**
 
@@ -101,7 +101,7 @@ position和limit的具体含义取决于当前buffer的模式。capacity在读�
 
 **读写模式下position和limit的含义：**
 
-![image-20190112093206617](/Users/jack/Desktop/md/images/image-20190112093206617-7256726.png)
+![image-20190112093206617](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093206617-7256726.png)
 
 > 容量（Capacity）
 
@@ -119,7 +119,7 @@ position和limit的具体含义取决于当前buffer的模式。capacity在读�
 
 ​	一旦切换到读模式，**limit则代表我们所能读取的最大数据量，他的值等同于写模式下position的位置**。换句话说，您可以读取与写入数量相同的字节数（限制设置为写入的字节数，由位置标记）。
 
-![img](/Users/jack/Desktop/md/images/152644_UfAI_2243330.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/152644_UfAI_2243330.png)
 
 ### 二、Buffer的常见方法
 
@@ -250,7 +250,7 @@ compareTo也是比较buffer中的剩余元素，只不过这个方法适用于�
 
 **数据读取和写入操作图示：**
 
-![image-20190115093729588](/Users/jack/Desktop/md/images/image-20190115093729588-7516249.png)
+![image-20190115093729588](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190115093729588-7516249.png)
 
 ##### Java NIO Channel通道和流非常相似，主要有以下几点区别：
 
@@ -522,7 +522,7 @@ int send = channel.send(buffer, new InetSocketAddress("localhost",1234));
 
 =="scattering read"是把数据从单个Channel写入到多个buffer==,如下图所示：
 
-![image-20190112093414109](/Users/jack/Desktop/md/images/image-20190112093414109-7256854.png)
+![image-20190112093414109](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093414109-7256854.png)
 
 示例代码：
 
@@ -543,7 +543,7 @@ channel.read(bufferArray);
 
 #### Gathering Writes
 
-**"gathering write"把多个buffer的数据写入到同一个channel中**，下面是示意图：![image-20190112093437129](/Users/jack/Desktop/md/images/image-20190112093437129-7256877.png)
+**"gathering write"把多个buffer的数据写入到同一个channel中**，下面是示意图：![image-20190112093437129](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093437129-7256877.png)
 
 示例代码：
 
@@ -583,7 +583,7 @@ channel.write(bufferArray);
 
 下面是一个单线程中Slector维护3个Channel的示意图：
 
-![image-20190112093731825](/Users/jack/Desktop/md/images/image-20190112093731825-7257052.png)
+![image-20190112093731825](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112093731825-7257052.png)
 
 ​	**要使用Selector的话，我们必须==把Channel注册到Selector上，然后就可以调用Selector的select()方法。==这个方法会进入阻塞，直到有一个channel的状态符合条件。当方法返回后，线程可以处理这些事件。**
 

@@ -14,7 +14,7 @@
 
   Spring 提供了一系列的 starter pom 来简化 Maven 的依赖加载。例如，当你使用了 `spring-boot-starter-web` ，会自动加入如下依赖：
 
-![`spring-boot-starter-web` ç pom æä"¶](/Users/jack/Desktop/md/images/01-6804336.png)
+![`spring-boot-starter-web` ç pom æä"¶](/Users/jack/Desktop/md/images/01-6804336-8711964.png)
 
 - 4、[自动配置 Spring Bean](https://www.jianshu.com/p/ddb6e32e3faf)
 
@@ -298,17 +298,472 @@ java -jar xxx.jar --spring.profiles.active=prod 表示使用生产环境的配�
     </build>
 ```
 
-通过执行 `mvn clean package -P ${profile}` 来指定使用哪个profile。
+​	通过执行 `mvn clean package -P ${profile}` 来指定使用哪个profile。
+
+# 六、核心注解@SpringBootApplication
+
+​	Spring Boot 的核心注解是@SpringBootApplication，源码如下：
+
+```Java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
+public @interface SpringBootApplication {
+    Class<?>[] exclude() default {};
+    String[] excludeName() default {};
+    @AliasFor(
+        annotation = ComponentScan.class,
+        attribute = "basePackages"
+    )
+    String[] scanBasePackages() default {};
+    @AliasFor(
+        annotation = ComponentScan.class,
+        attribute = "basePackageClasses"
+    )
+    Class<?>[] scanBasePackageClasses() default {};
+}
+```
+
+​	从源代码中得知 **@SpringBootApplication 被 @Configuration、@EnableAutoConfiguration、@ComponentScan 注解所修饰**，换言之 Springboot 提供了统一的注解来替代以上三个注解，简化程序的配置。下面解释一下各注解的功能。
+
+## @Configuration
+
+​	@Configuration 是一个类级注释，指定类是 **Bean 定义**的配置类。@Configuration 类通过 @bean 注解的public 公共方法声明bean。
+
+​	通俗的讲 @Configuration 一般与 @Bean 注解配合使用，用 @Configuration 注解类等价与 XML 中配置 beans，用 @Bean 注解方法等价于 XML 中配置 bean。举例说明：
+
+```xml
+<!--xml配置，等价于下面的Java文件，注意在xml文件中用了ref标签-->
+<beans>
+    <bean id = "userService" class="com.user.UserService">
+        <property name="userDAO" ref = "userDAO"></property>
+    </bean>
+    <bean id = "userDAO" class="com.user.UserDAO"></bean>
+</beans>
+```
+
+```Java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class Config {
+    @Bean
+    public UserService getUserService(){
+        UserService userService = new UserService();
+        userService.setUserDAO(null);
+        return userService;
+    }
+    @Bean
+    public UserDAO getUserDAO(){
+        return new UserDAO();
+    }
+}
+
+public class UserService {
+    private UserDAO userDAO;
+
+    public UserDAO getUserDAO() {
+        return userDAO;
+    }
+
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+}
+
+public class UserDAO {
+}
+```
+
+注意：
+
+- 使用 public 修饰 @Bean 注解的方法；
+- UserService、UserDAO 类无需声明为 @Component、@Service、@Repository、@Controller；
+
+​	不用 @Autowired 注解直接注入 UserDAO的原因可能是： **@Configuration、@Bean 更注重配置方面的内容，比如我们在 @Bean 方法中可以设置 UserDAO 类对象的特殊信息，比如指定 transactionManager 等。**
+
+## @EnableAutoConfiguration
+
+​	启用 Spring 应用程序上下文的自动配置，试图猜测和配置您可能需要的bean。自动配置类通常采用基于你的 classpath 和已经定义的 beans 对象进行应用。
+
+​	被 @EnableAutoConfiguration 注解的类所在的包有特定的意义，并且作为默认配置使用。例如，当扫描 @Entity类的时候就会使用到它。通常推荐将 @EnableAutoConfiguration 配置在 root 包下，这样所有的子包、类都可以被查找到。
+
+​	Auto-configuration类是常规的 Spring 配置 Bean。它们是通过使用 SpringFactoriesLoader 机制（以 EnableAutoConfiguration 类路径为 key）定位的。通常 auto-configuration beans 是 @Conditional beans（在大多数情况下配合 @ConditionalOnClass 和 @ConditionalOnMissingBean 注解进行使用）。
+
+打开自动配置的功能。如果我们想要关闭某个类的自动配置，可以设置注解的 `exclude` 或 `excludeName` 属性。
+
+> ### SpringFactoriesLoader 机制： 
+>
+> ​	**SpringFactoriesLoader为Spring工厂加载器，该对象提供了loadFactoryNames方法，入参为factoryClass和classLoader即需要传入工厂类名称和对应的类加载器，方法会根据指定的classLoader，加载该类加器搜索路径下的指定文件，即spring.factories文件，传入的工厂类为接口，而文件中对应的类则是接口的实现类，或最终作为实现类。**
+>
+> ​	==SpringFactoriesLoader会查询包含 META-INF/spring.factories 文件的JAR。== 当找到spring.factories文件后，SpringFactoriesLoader将查询配置文件命名的属性。EnableAutoConfiguration的 key 值为org.springframework.boot.autoconfigure.EnableAutoConfiguration。根据此 key 对应的值进行 spring 配置。在 spring-boot-autoconfigure.jar文件中，包含一个 spring.factories 文件，部分内容如下：
+>
+> ![image-20190524093545944](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190524093545944.png)
+>
+> ```factories
+> # Initializers
+> org.springframework.context.ApplicationContextInitializer=\
+> org.springframework.boot.autoconfigure.SharedMetadataReaderFactoryContextInitializer,\
+> org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener
+> 
+> # Application Listeners
+> org.springframework.context.ApplicationListener=\
+> org.springframework.boot.autoconfigure.BackgroundPreinitializer
+> ...
+> ```
+>
+> ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1650e0e47481e59a.png)
+
+## @ComponentScan
+
+​	扫描指定包下的 Bean 们，为 @Configuration注解的类配置组件扫描指令，同时提供与 Spring XML 元素并行的支持。无论是 basePackageClasses() 或是 basePackages() （或其 alias 值）都可以定义指定的包进行扫描。如果指定的包没有被定义，则将从声明该注解的类所在的包进行扫描。
+
+​	注意， 元素有一个 annotation-config 属性（详情：http://www.cnblogs.com/exe19/p/5391712.html），但是 @ComponentScan 没有。这是因为在使用 @ComponentScan 注解的几乎所有的情况下，默认的注解配置处理是假定的。此外，当使用 AnnotationConfigApplicationContext， 注解配置处理器总会被注册，以为着任何试图在 @ComponentScan 级别是扫描失效的行为都将被忽略。
+
+​	通俗的讲，@ComponentScan 注解会自动扫描指定包下的全部标有 @Component注解 的类，并注册成bean，当然包括 @Component 下的子注解@Service、@Repository、@Controller。@ComponentScan 注解没有类似的属性。
+
+参照：https://blog.csdn.net/claram/article/details/75125749 
+
+# 七、自动配置原理
+
+​	主要是通过@EnableAutoConfiguration注解实现的，在@EnableAutoConfiguration注解里面面可以看到，主要是通过引入AutoConfigurationImportSelector这个类实现的自动装配(2.x版本，1.x版本的好像是EnableAutoConfigurationImportSelector这个类，然后这个类继承了AutoConfigurationImportSelector.java)：
+
+```Java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@AutoConfigurationPackage
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+   String ENABLED_OVERRIDE_PROPERTY = "spring.boot.enableautoconfiguration";
+   /**
+    * Exclude specific auto-configuration classes such that they will never be applied.
+    * @return the classes to exclude
+    */
+   Class<?>[] exclude() default {};
+   /**
+    * Exclude specific auto-configuration class names such that they will never be
+    * applied.
+    * @return the class names to exclude
+    * @since 1.3.0
+    */
+   String[] excludeName() default {};
+}
+```
+
+> @Import其实就是引入一个或多个配置，可以导入普通类，也可以导入配置类。
+> @Import用来导入一个或多个类（会被spring容器管理），或者配置类（配置类里的@Bean标记的类也会被spring容器管理）
+>
+> 如：@Import({User.class,People.class, MyConfig.class})
+
+在AutoConfigurationImportSelector类中，有一个selectImports方法，它返回的数组（类的全类名）都会被纳入到spring容器中，主要通过在selectImports方法中调用getCandidateConfigurations方法。
+
+> **selectImports方法在springboot启动流程——bean实例化前被执行，返回要实例化的类信息列表。如果获取到类信息，spring可以通过类加载器将类加载到jvm中，现在我们已经通过spring-boot的starter依赖方式依赖了我们需要的组件，那么这些组件的类信息在select方法中就可以被获取到。**
+
+```Java
+//AutoConfigurationImportSelector.java
+@Override
+public String[] selectImports(AnnotationMetadata annotationMetadata) {
+   if (!isEnabled(annotationMetadata)) {
+      return NO_IMPORTS;
+   }
+   AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader
+         .loadMetadata(this.beanClassLoader);
+   AnnotationAttributes attributes = getAttributes(annotationMetadata);
+    // 接收返回的数组(类的全类名)
+   List<String> configurations = getCandidateConfigurations(annotationMetadata,
+         attributes);
+   configurations = removeDuplicates(configurations);
+   Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+   checkExcludedClasses(configurations, exclusions);
+   configurations.removeAll(exclusions);
+   configurations = filter(configurations, autoConfigurationMetadata);
+   fireAutoConfigurationImportEvents(configurations, exclusions);
+   return StringUtils.toStringArray(configurations);
+}
+
+// 到classpath下的读取META-INF/spring.factories文件的配置，并返回一个字符串数组。
+protected List<String> getCandidateConfigurations(AnnotationMetadata metadata,
+			AnnotationAttributes attributes) {
+		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(
+				getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());
+		Assert.notEmpty(configurations,
+				"No auto configuration classes found in META-INF/spring.factories. If you "
+						+ "are using a custom packaging, make sure that file is correct.");
+		return configurations;
+	}
+// SpringFactoriesLoader.java
+public static List<String> loadFactoryNames(Class<?> factoryClass, @Nullable ClassLoader classLoader) {
+        String factoryClassName = factoryClass.getName();
+        return (List)loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());
+    }
+```
+
+> #### @EnableAutoConfiguration 作用：
+>
+> -  从classpath中搜索所有META-INF/spring.factories配置文件然后，将其中org.springframework.boot.autoconfigure.EnableAutoConfiguration  key对应的配置项加载到spring容器
+> - 只有spring.boot.enableautoconfiguration为true（默认为true）的时候，才启用自动配置
+>
+> - @EnableAutoConfiguration还可以进行排除，排除方式有2中，一是根据class来排除（exclude），二是根据class name（excludeName）来排除，其内部实现的关键点有
+>    1）ImportSelector 该接口的方法的返回值都会被纳入到spring容器管理中
+>    2）SpringFactoriesLoader 该类可以从classpath中搜索所有META-INF/spring.factories配置文件，并读取配置
+
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1650e64b3fe3fa0a.png)
+
+总结：
+
+1. Spring Boot 在启动时扫描项目所依赖的 jar 包，寻找包含`spring.factories` 文件的 jar 包。
+2. 根据 `spring.factories` 配置加载 AutoConfigure 类。
+3. 根据 `@Conditional` 等条件注解的条件，进行自动配置并将 Bean 注入 Spring IoC 中。
+
+参照：
+
+- [《@EnableAutoConfiguration 注解的工作原理》](https://www.jianshu.com/p/464d04c36fb1) 。
+- [《一个面试题引起的 Spring Boot 启动解析》](https://juejin.im/post/5b679fbc5188251aad213110)
+
+# 八、读取配置文件的方式
+
+1. `@Value` 注解，读取配置到属性。最最最常用。
+
+   > 另外，支持和 `@PropertySource` 注解一起使用，指定使用的配置文件。
+   >
+   > 如： @Value("${info.address}")；其中在配置文件中：info.address=USA
+
+2. `@ConfigurationProperties` 注解，读取配置到类上。
+
+   > 另外，支持和 `@PropertySource` 注解一起使用，指定使用的配置文件。
+   >
+   > 如：@ConfigurationProperties(prefix ="info")，然后定义相关 的info属性
+
+3. 读取指定文件
+
+   > 资源目录下建立config/db-config.properties:
+   >
+   > db.username=root
+   >
+   > db.password=123456
+   >
+   > 3.1 @PropertySource+@Value注解读取方式
+   >
+   > @PropertySource(value ={"config/db-config.properties"})+ @Value("${db.username}")
+   >
+   > **注意：@PropertySource不支持yml文件读取。**
+   >
+   > 3.2 @PropertySource+@ConfigurationProperties注解读取方式
+   >
+   > 1. `@ConfigurationProperties(prefix ="db")`
+   > 2. `@PropertySource(value ={"config/db-config.properties"})`
+   > 3. 在java类中定义相关的属性：private String username;
 
 
 
+参考 [《Spring Boot 读取配置的几种方式》](https://aoyouzi.iteye.com/blog/2422837) 。
 
+# 九、与其他框架的集成
 
+## 1.与 Spring MVC 集成
 
+1. 引入 `spring-boot-starter-web` 的依赖。
 
+2. 实现 WebMvcConfigurer 接口，可添加自定义的 Spring MVC 配置。
 
+   > ​	因为 Spring Boot 2 基于 JDK 8 的版本，而 JDK 8 提供 `default` 方法，所以 **Spring Boot 2 废弃了 WebMvcConfigurerAdapter 适配类，直接使用 WebMvcConfigurer 即可。**
 
+```java
+// WebMvcConfigurer.java
+public interface WebMvcConfigurer {
 
+    /** 配置路径匹配器 **/
+    default void configurePathMatch(PathMatchConfigurer configurer) {}
+    
+    /** 配置内容裁决的一些选项 **/
+    default void configureContentNegotiation(ContentNegotiationConfigurer configurer) { }
+
+    /** 异步相关的配置 **/
+    default void configureAsyncSupport(AsyncSupportConfigurer configurer) { }
+
+    default void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) { }
+
+    default void addFormatters(FormatterRegistry registry) {
+    }
+
+    /** 添加拦截器 **/
+    default void addInterceptors(InterceptorRegistry registry) { }
+
+    /** 静态资源处理 **/
+    default void addResourceHandlers(ResourceHandlerRegistry registry) { }
+
+    /** 解决跨域问题 **/
+    default void addCorsMappings(CorsRegistry registry) { }
+
+    default void addViewControllers(ViewControllerRegistry registry) { }
+
+    /** 配置视图解析器 **/
+    default void configureViewResolvers(ViewResolverRegistry registry) { }
+
+    /** 添加参数解析器 **/
+    default void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    }
+    /** 添加返回值处理器 **/
+    default void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> handlers) { }
+    /** 这里配置视图解析器 **/
+    default void configureMessageConverters(List<HttpMessageConverter<?>> converters) { }
+    /** 配置消息转换器 **/
+    default void extendMessageConverters(List<HttpMessageConverter<?>> converters) { }
+   /** 配置异常处理器 **/
+    default void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) { }
+    default void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) { }
+    @Nullable
+    default Validator getValidator() { return null; }
+    @Nullable
+    default MessageCodesResolver getMessageCodesResolver() {  return null; }
+}
+```
+
+在使用 Spring MVC 时，我们一般会做如下几件事情：
+
+1. 实现自己项目需要的拦截器，并在 WebMvcConfigurer 实现类中配置。可参见 [MVCConfiguration](https://github.com/YunaiV/oceans/blob/2a2d3746905f1349e260e88049e7e28346c7648f/bff/webapp-bff/src/main/java/cn/iocoder/oceans/webapp/bff/config/MVCConfiguration.java) 类。
+2. 配置 `@ControllerAdvice` + `@ExceptionHandler` 注解，实现全局异常处理。可参见 [GlobalExceptionHandler](https://github.com/YunaiV/oceans/blob/2a2d3746905f1349e260e88049e7e28346c7648f/bff/webapp-bff/src/main/java/cn/iocoder/oceans/webapp/bff/config/GlobalExceptionHandler.java) 类。
+3. 配置 `@ControllerAdvice` ，实现 ResponseBodyAdvice 接口，实现全局统一返回。可参见 [GlobalResponseBodyAdvice](https://github.com/YunaiV/oceans/blob/2a2d3746905f1349e260e88049e7e28346c7648f/bff/webapp-bff/src/main/java/cn/iocoder/oceans/webapp/bff/config/GlobalResponseBodyAdvice.java) 。
+
+当然，有一点需要注意，WebMvcConfigurer、ResponseBodyAdvice、`@ControllerAdvice`、`@ExceptionHandler` 接口，都是 Spring MVC 框架自身已经有的东西。
+
+- `spring-boot-starter-web` 的依赖，帮我们解决的是 Spring MVC 的依赖以及相关的 Tomcat 等组件。
+
+## 2.与Spring Security集成
+
+1. 引入 `spring-boot-starter-security` 的依赖。
+2. 继承 WebSecurityConfigurerAdapter ，添加**自定义**的安全配置。
+
+```java
+@Configuration
+@EnableWebSecurity      // 开启Spring Security的功能
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {   //继承WebSecurityConfigurerAdapter，并重写它的方法来设置一些web安全的细节
+
+    /**
+     * authorizeRequests():定义哪些URL需要被保护、哪些不需要被保护。
+     *      例如下面代码指定了/和/home不需要任何认证就可以访问，其他的路径都必须通过身份验证。
+     * 通过formLogin()定义当需要用户登录时候，转到的登录页面。
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/", "/home").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .permitAll()
+                .and()
+                .logout()
+                .permitAll();
+    }
+
+// 在内存中创建了一个用户，该用户的名称为user，密码为password，用户角色为USER。
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+                .inMemoryAuthentication()
+                .withUser("user").password("password").roles("USER");
+    }
+    @Bean
+    public static PasswordEncoder passwordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
+    }
+
+}
+```
+
+## 3.与Spring Security OAuth2 的集成
+
+参见 [《Spring Security OAuth2 入门》](http://www.iocoder.cn/Spring-Security/OAuth2-learning/) 文章
+
+## 4.与JPA的集成
+
+1. 引入 `spring-boot-starter-data-jpa` 的依赖。
+2. 在 application 配置文件中，加入 JPA 相关的少量配置。当然，数据库的配置也要添加进去。
+3. 具体编码。
+
+详细的使用，可以参考：[《一起来学 SpringBoot 2.x | 第六篇：整合 Spring Data JPA》](http://www.iocoder.cn/Spring-Boot/battcn/v2-orm-jpa/)
+
+有两点需要注意：
+
+- Spring Boot 2 默认使用的数据库连接池是 [HikariCP](https://github.com/brettwooldridge/HikariCP) ，目前最好的性能的数据库连接池的实现。
+- `spring-boot-starter-data-jpa` 的依赖，使用的默认 JPA 实现是 Hibernate 5.X 。
+
+> 数据源配置：
+>
+> ```properties
+> `spring.datasource.url=jdbc:mysql://localhost:3306/chapter5?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&useSSL=falsespring.datasource.password=rootspring.datasource.username=root#spring.datasource.type# JPA配置spring.jpa.hibernate.ddl-auto=update# 输出日志spring.jpa.show-sql=true# 数据库类型spring.jpa.database=mysql`
+> ```
+>
+> > ddl-auto 几种属性
+>
+> - **create：** 每次运行程序时，都会重新创建表，故而数据会丢失
+> - **create-drop：** 每次运行程序时会先创建表结构，然后待程序结束时清空表
+> - **upadte：** 每次运行程序，没有表时会创建表，如果对象发生改变会更新表结构，原有数据不会清空，只会更新（推荐使用）
+> - **validate：** 运行程序会校验数据与数据库的字段类型是否相同，**字段不同会报错**
+>
+> 由于上面我们采用的是`spring.jpa.hibernate.ddl-auto=update`方式，因此这里可以跳过手动建表的操作
+
+## 5.与MyBatis的集成
+
+1. 引入 `mybatis-spring-boot-starter` 的依赖。
+2. 在 application 配置文件中，加入 MyBatis 相关的少量配置。当然，数据库的配置也要添加进去。
+3. 具体编码。
+
+详细的使用，可以参考：[《一起来学 SpringBoot 2.x | 第七篇：整合 Mybatis》](http://www.iocoder.cn/Spring-Boot/battcn/v2-orm-mybatis/)
+
+## 6.与RabbitMQ的集成
+
+1. 引入 `spring-boot-starter-amqp` 的依赖
+2. 在 application 配置文件中，加入 RabbitMQ 相关的少量配置。
+3. 具体编码。
+
+详细的使用，可以参考：
+
+- [《一起来学 SpringBoot 2.x | 第十二篇：初探 RabbitMQ 消息队列》](http://www.iocoder.cn/Spring-Boot/battcn/v2-queue-rabbitmq/)
+- [《一起来学 SpringBoot 2.x | 第十三篇：RabbitMQ 延迟队列》](http://www.iocoder.cn/Spring-Boot/battcn/v2-queue-rabbitmq-delay/)
+
+## 7.与Kafka的集成
+
+1. 引入 `spring-kafka` 的依赖。
+2. 在 application 配置文件中，加入 Kafka 相关的少量配置。
+3. 具体编码。
+
+详细的使用，可以参考：
+
+- [《Spring Boot系列文章（一）：SpringBoot Kafka 整合使用》](http://www.54tianzhisheng.cn/2018/01/05/SpringBoot-Kafka/)
+
+## 8.与RocketMQ的集成
+
+1. 引入 `rocketmq-spring-boot` 的依赖。
+2. 在 application 配置文件中，加入 RocketMQ 相关的少量配置。
+3. 具体编码。
+
+详细的使用，胖友可以参考：
+
+- [《我用这种方法在 Spring 中实现消息的发送和消费》](http://www.iocoder.cn/RocketMQ/start/spring-boot-example)
+
+# 十、日志框架
+
+Spring Boot 支持的日志框架有：
+
+- Logback
+- Log4j2
+- Log4j
+- Java Util Logging
+
+默认使用的是 Logback 日志框架，也是目前较为推荐的，具体配置，可以参见 [《一起来学 SpringBoot 2.x | 第三篇：SpringBoot 日志配置》](http://www.iocoder.cn/Spring-Boot/battcn/v2-config-logs/) 。
+
+因为 Log4j2 的性能更加优秀，也有人在生产上使用，可以参考 [《Spring Boot Log4j2 日志性能之巅》](https://www.jianshu.com/p/f18a9cff351d) 配置。
 
 
 

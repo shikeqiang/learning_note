@@ -6,7 +6,7 @@
 
 ​	Java 虚拟机在执行 Java 程序的过程中会把它管理的内存划分成若干个不同的数据区域。 这些组成部分一些是线程私有的，其他的则是线程共享的。
 
-![è¿è¡æ¶æ°æ®åºå](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303661333463643861343335343f773d35313326683d34303426663d706e6726733d313332303638-1544494988876.jpg)
+![è¿è¡æ¶æ°æ®åºå](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303661333463643861343335343f773d35313326683d34303426663d706e6726733d313332303638-1544494988876.jpg)
 
 **其中，线程私有的：程序计数器，虚拟机栈和本地方法栈。**
 
@@ -43,7 +43,7 @@
 
 ​	==Java 虚拟机所管理的内存中最大的一块，Java 堆是所有线程共享的一块内存区域，在虚拟机启动时创建。==**此内存区域的唯一目的就是==存放对象实例==，几乎所有的对象实例以及数组都在这里分配内存。**
 
-​	Java 堆是垃圾收集器管理的主要区域，因此也被称作**GC堆（Garbage Collected Heap）**。从垃圾回收的角度，由于现在收集器基本都采用分代垃圾收集算法，==所以Java堆还可以细分为：新生代和老年代：再细致一点有：Eden空间、From Survivor、To Survivor空间等。==**进一步划分的目的是更好地回收内存，或者更快地分配内存。**![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32352f313635373033343461323963333433333f773d35393926683d32353026663d706e6726733d38393436.jpg)
+​	Java 堆是垃圾收集器管理的主要区域，因此也被称作**GC堆（Garbage Collected Heap）**。从垃圾回收的角度，由于现在收集器基本都采用分代垃圾收集算法，==所以Java堆还可以细分为：新生代和老年代：再细致一点有：Eden空间、From Survivor、To Survivor空间等。==**进一步划分的目的是更好地回收内存，或者更快地分配内存。**![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32352f313635373033343461323963333433333f773d35393926683d32353026663d706e6726733d38393436.jpg)
 
 **在 JDK 1.8中移除整个永久代，取而代之的是一个叫元空间（Metaspace）的区域（永久代使用的是JVM的堆内存空间，而元空间使用的是物理内存，直接受到本机的物理内存限制）。**
 
@@ -65,7 +65,7 @@
 
 ​	==既然运行时常量池时方法区的一部分，自然受到方法区内存的限制，当常量池无法再申请到内存时会抛出 OutOfMemoryError 异常。==
 
-**JDK1.7及之后版本的 JVM 已经将运行时常量池从方法区中移了出来，==在 Java 堆（Heap）中开辟了一块区域存放运行时常量池。==**![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d392d31342f32363033383433332e6a7067.jpg)
+**JDK1.7及之后版本的 JVM 已经将运行时常量池从方法区中移了出来，==在 Java 堆（Heap）中开辟了一块区域存放运行时常量池。==**![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d392d31342f32363033383433332e6a7067.jpg)
 
 #### 1.7 直接内存
 
@@ -81,7 +81,7 @@
 
 #### 2.1 对象的创建
 
-下图便是 Java 对象的创建过程。 ![Javaå¯¹è±¡çåå"ºè¿ç¨](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343133353836393f773d39353026683d32373926663d706e6726733d3238353239.jpg)
+下图便是 Java 对象的创建过程。 ![Javaå¯¹è±¡çåå"ºè¿ç¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343133353836393f773d39353026683d32373926663d706e6726733d3238353239.jpg)
 
 **①类加载检查：** 虚拟机遇到一条 new 指令时，首先将去检查这个指令的参数==是否能在常量池中定位到这个类的符号引用，并且检查这个符号引用代表的类是否已被加载过、解析和初始化过==。如果没有，那必须先执行相应的类加载过程。
 
@@ -89,7 +89,7 @@
 
 ##### **内存分配的两种方式：**
 
-​	**选择以上两种方式中的哪一种，取决于 Java 堆内存是否规整。而 Java 堆内存是否规整，取决于 GC 收集器的算法是"标记-清除"，还是"标记-整理"（也称作"标记-压缩"），值得注意的是，复制算法内存也是规整的**![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343061326333643f773d3134323626683d33333326663d706e6726733d3236333436.jpg)
+​	**选择以上两种方式中的哪一种，取决于 Java 堆内存是否规整。而 Java 堆内存是否规整，取决于 GC 收集器的算法是"标记-清除"，还是"标记-整理"（也称作"标记-压缩"），值得注意的是，复制算法内存也是规整的**![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961343061326333643f773d3134323626683d33333326663d706e6726733d3236333436.jpg)
 
 ##### **内存分配并发问题**
 
@@ -120,8 +120,8 @@
 
 ​	建立对象就是为了使用对象，我们的Java程序通过栈上的 reference 数据来操作堆上的具体对象。对象的访问方式由虚拟机实现而定，目前主流的访问方式有==**①使用句柄**和**②直接指针**==两种：
 
-1. **句柄：** **如果使用句柄的话，那么Java堆中将会划分出一块内存来作为句柄池，reference 中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与类型数据各自的具体地址信息；** ![ä½¿ç¨å¥æ](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303662393537333936383934363f773d37383626683d33363226663d706e6726733d313039323031.jpg)
-2. **直接指针：** **如果使用直接指针访问，那么 Java 堆对象的布局中就必须考虑如何放置访问类型数据的相关信息，而reference 中存储的直接就是对象的地址。**![ä½¿ç¨ç´æ¥æé](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303662613361343162366236353f773d37363626683d33353326663d706e6726733d3939313732.jpg)
+1. **句柄：** **如果使用句柄的话，那么Java堆中将会划分出一块内存来作为句柄池，reference 中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与类型数据各自的具体地址信息；** ![ä½¿ç¨å¥æ](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303662393537333936383934363f773d37383626683d33363226663d706e6726733d313039323031.jpg)
+2. **直接指针：** **如果使用直接指针访问，那么 Java 堆对象的布局中就必须考虑如何放置访问类型数据的相关信息，而reference 中存储的直接就是对象的地址。**![ä½¿ç¨ç´æ¥æé](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f342f32372f313633303662613361343162366236353f773d37363626683d33353326663d706e6726733d3939313732.jpg)
 
    **这两种对象访问方式各有优势。使用句柄来访问的最大好处是 reference 中存储的是稳定的句柄地址，在对象被移动时只会改变句柄中的实例数据指针，而 reference 本身不需要修改。使用直接指针访问方式最大的好处就是速度快，它节省了一次指针定位的时间开销。**
 
@@ -139,7 +139,7 @@
 
 ​	这两种不同的创建方法是有差别的，第一种方式是在常量池中拿对象，第二种方式是直接在堆内存空间创建一个新的对象。==只要使用new方法，便需要创建新的对象。==
 
- ![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961353963303837333f773d36393826683d33353526663d706e6726733d3130343439.jpg)
+ ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961353963303837333f773d36393826683d33353526663d706e6726733d3130343439.jpg)
 
 **2 String 类型的常量池比较特殊。它的主要使用方法有两种：**
 
@@ -169,7 +169,7 @@
 		  System.out.println(str4 == str5);//false
 ```
 
-![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961346431336639323f773d35393326683d36303326663d706e6726733d3232323635.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32322f313635363165353961346431336639323f773d35393326683d36303326663d706e6726733d3232323635.jpg)
 
 ​	尽量避免多个字符串拼接，因为这样会重新创建对象。如果需要改变字符串的话，可以使用 StringBuilder 或者 StringBuffer。
 
@@ -260,9 +260,9 @@ i4=i5+i6   true
 
 ​	**Java 的自动内存管理主要是针对对象内存的回收和对象内存的分配。**同时，Java 自动内存管理最核心的功能是 **堆** 内存中对象的分配与回收。
 
-**JDK1.8之前的堆内存示意图：**![img](/Users/jack/Desktop/md/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32352f313635373033343461323963333433333f773d35393926683d32353026663d706e6726733d38393436-1544514899922.jpg)
+**JDK1.8之前的堆内存示意图：**![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/68747470733a2f2f757365722d676f6c642d63646e2e786974752e696f2f323031382f382f32352f313635373033343461323963333433333f773d35393926683d32353026663d706e6726733d38393436-1544514899922.jpg)
 
-从上图可以看出==堆内存分为新生代、老年代和永久代。==**新生代又被进一步分为：Eden 区＋Survivor1 区＋Survivor2 区。**值得注意的是，**在 JDK 1.8中移除整个永久代，取而代之的是一个叫元空间（Metaspace）的区域**（永久代使用的是JVM的堆内存空间，而==元空间使用的是物理内存，直接受到本机的物理内存限制==）。![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f38393239343534372e6a7067.jpg)
+从上图可以看出==堆内存分为新生代、老年代和永久代。==**新生代又被进一步分为：Eden 区＋Survivor1 区＋Survivor2 区。**值得注意的是，**在 JDK 1.8中移除整个永久代，取而代之的是一个叫元空间（Metaspace）的区域**（永久代使用的是JVM的堆内存空间，而==元空间使用的是物理内存，直接受到本机的物理内存限制==）。![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f38393239343534372e6a7067.jpg)
 
 #### 1.1 对象优先在eden区分配
 
@@ -287,11 +287,11 @@ public class GCTest {
 }
 ```
 
-![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32353137383335302e6a7067.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32353137383335302e6a7067.jpg)
 
-添加的参数：`-XX:+PrintGCDetails` ![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f31303331373134362e6a7067.jpg)
+添加的参数：`-XX:+PrintGCDetails` ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f31303331373134362e6a7067.jpg)
 
-运行结果：![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32383935343238362e6a7067.jpg)
+运行结果：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32383935343238362e6a7067.jpg)
 
 ​	从上图我们可以看出**==eden区(新生代中)内存几乎已经被分配完全（即使程序什么也不做，新生代也会使用2000多k内存）。==**假如我们再为allocation2分配内存会出现什么情况呢？
 
@@ -299,7 +299,7 @@ public class GCTest {
 allocation2 = new byte[900*1024];
 ```
 
-![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32383132383738352e6a7067.jpg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32362f32383132383738352e6a7067.jpg)
 
 ​	**简单解释一下为什么会出现这种情况：** 因为给allocation2分配内存的时候eden区内存几乎已经被分配完了，我们刚刚讲了**当Eden区没有足够空间进行分配时，虚拟机将发起一次Minor GC**。GC期间虚拟机又发现allocation1无法存入Survivor空间，所以只好通过 **分配担保机制** 把新生代的对象提前转移到老年代中去，老年代上的空间足够存放allocation1，所以不会出现Full GC。执行Minor GC后，**后面分配的对象如果能够存在eden区的话，还是会在eden区分配内存。**可以执行如下代码验证：
 
@@ -332,7 +332,7 @@ public class GCTest {
 
 ### 2.判断对象是否死亡
 
-​	**堆中几乎放着所有的对象实例，对堆垃圾回收前的第一步就是要判断那些对象已经死亡（即不能再被任何途径使用的对象）。**![img](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f31313033343235392e6a7067.jpg)
+​	**堆中几乎放着所有的对象实例，对堆垃圾回收前的第一步就是要判断那些对象已经死亡（即不能再被任何途径使用的对象）。**![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f31313033343235392e6a7067.jpg)
 
 #### 2.1 引用计数法
 
@@ -357,7 +357,7 @@ public class ReferenceCountingGc {
 
 #### 2.2 可达性分析算法
 
-​	基本思想就是通过一系列的称为 **“GC Roots”** 的对象作为起点，**从这些节点开始向下搜索，节点所走过的路径称为引用链**，当一个对象到 GC Roots 没有任何引用链相连的话，则证明此对象是不可用的。![å¯è¾¾æ§åæç®æ³](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f37323736323034392e6a7067.jpg)
+​	基本思想就是通过一系列的称为 **“GC Roots”** 的对象作为起点，**从这些节点开始向下搜索，节点所走过的路径称为引用链**，当一个对象到 GC Roots 没有任何引用链相连的话，则证明此对象是不可用的。![å¯è¾¾æ§åæç®æ³](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f37323736323034392e6a7067.jpg)
 
 ##### 在Java语言中，可作为GC Roots的对象包括下面几种：
 
@@ -429,24 +429,24 @@ public class ReferenceCountingGc {
 
 ### 3 垃圾收集算法
 
-![åå¾æ¶éç®æ³](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f313134323732332e6a7067.jpg)
+![åå¾æ¶éç®æ³](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f313134323732332e6a7067.jpg)
 
 #### 3.1 标记-清除算法
 
 ​	算法分为“标记”和“清除”阶段：首先标记出所有需要回收的对象，在标记完成后统一回收所有被标记的对象。它是最基础的收集算法，效率也很高，但是会带来两个明显的问题：
 
 1. **==效率问题==**
-2. **==空间问题（标记清除后会产生大量不连续的碎片）==![æ è®°-æ¸é¤ç®æ³](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f36333730373238312e6a7067.jpg)**
+2. **==空间问题（标记清除后会产生大量不连续的碎片）==![æ è®°-æ¸é¤ç®æ³](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f36333730373238312e6a7067.jpg)**
 
    **复制收集算法在对象存活率较高时就要进行较多的复制操作，效率将会变低。所以在老年代一般不能直接选用这种算法。**
 
 #### 3.2 复制算法
 
-​	为了解决效率问题，“复制”收集算法出现了。它可以将**内存分为大小相同的两块，每次使用其中的一块**。当这一块的内存使用完后，**就将还存活的对象复制到另一块去，然后再把使用的空间一次清理掉。**这样就使每次的内存回收都是对内存区间的一半进行回收。![å¤å¶ç®æ³](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f39303938343632342e6a7067.jpg)
+​	为了解决效率问题，“复制”收集算法出现了。它可以将**内存分为大小相同的两块，每次使用其中的一块**。当这一块的内存使用完后，**就将还存活的对象复制到另一块去，然后再把使用的空间一次清理掉。**这样就使每次的内存回收都是对内存区间的一半进行回收。![å¤å¶ç®æ³](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f39303938343632342e6a7067.jpg)
 
 #### 3.3 标记-整理算法
 
-​	根据老年代的特点特出的一种标记算法，标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象回收，而是**让所有存活的对象向一端移动，然后直接清理掉端边界以外的内存。**![æ è®°-æ´çç®æ³](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f39343035373034392e6a7067.jpg)
+​	根据老年代的特点特出的一种标记算法，标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象回收，而是**让所有存活的对象向一端移动，然后直接清理掉端边界以外的内存。**![æ è®°-æ´çç®æ³](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f39343035373034392e6a7067.jpg)
 
 #### 3.4 分代收集算法
 
@@ -468,7 +468,7 @@ public class ReferenceCountingGc {
 
 #### 4.1 Serial收集器
 
-​	Serial（串行）收集器收集器是最基本、历史最悠久的垃圾收集器了。这是一个单线程收集器了，它的 **“单线程”** 的意义不仅仅意味着它只会使用一条垃圾收集线程去完成垃圾收集工作，更重要的是它在进行垃圾收集工作的时候==必须暂停其他所有的工作线程（ **"Stop The World"** ），直到它收集结束==。**新生代采用复制算法，老年代采用标记-整理算法**![ Serialæ¶éå¨](/Users/jack/Desktop/md/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f34363837333032362e6a7067.jpg)
+​	Serial（串行）收集器收集器是最基本、历史最悠久的垃圾收集器了。这是一个单线程收集器了，它的 **“单线程”** 的意义不仅仅意味着它只会使用一条垃圾收集线程去完成垃圾收集工作，更重要的是它在进行垃圾收集工作的时候==必须暂停其他所有的工作线程（ **"Stop The World"** ），直到它收集结束==。**新生代采用复制算法，老年代采用标记-整理算法**![ Serialæ¶éå¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/687474703a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f31382d382d32372f34363837333032362e6a7067.jpg)
 
 ​	**虚拟机在一些特定指令位置设置一些“安全点”，当程序运行到这些“安全点”的时候就会暂停所有当前运行的线程（Stop The World 所以叫STW），暂停后再找到“GC Roots”进行关系的组建，进而执行标记和清除。**
 
@@ -521,7 +521,7 @@ public class ReferenceCountingGc {
 
 - **重新标记：** 重新标记阶段就是为了修正并发标记期间，因为用户程序继续运行而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段的时间稍长，远远比并发标记阶段时间短
 
-- **并发清除：** 开启用户线程，同时GC线程开始对为标记的区域做清扫。![image-20181226154908502](/Users/jack/Desktop/md/images/image-20181226154908502-5810548.png)
+- **并发清除：** 开启用户线程，同时GC线程开始对为标记的区域做清扫。![image-20181226154908502](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226154908502-5810548.png)
 
   从它的名字就可以看出它是一款优秀的垃圾收集器，主要优点：**并发收集、低停顿**。但是它有下面三个明显的缺点：
 
@@ -600,9 +600,9 @@ public class ReferenceCountingGc {
 
   ### 7 垃圾收集器参数总结
 
-  ![image-20181226161833674](/Users/jack/Desktop/md/images/image-20181226161833674-5812313.png)
+  ![image-20181226161833674](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226161833674-5812313.png)
 
-  ![image-20181226161843389](/Users/jack/Desktop/md/images/image-20181226161843389-5812323.png)
+  ![image-20181226161843389](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226161843389-5812323.png)
 
 
 ## 三、JDK监控和故障处理工具
@@ -616,15 +616,15 @@ public class ReferenceCountingGc {
 
 #### 2.1 jps:虚拟机进程状况工具
 
-​	JDK的很多小工具的名字都参考了UNIX命令的命名方式，**jps（JVM Process Status）**是其中的典型。除了名字像UNIX的ps命令外，它的功能也和ps命令类似：**可以列出正在运行的虚拟机进程，并显示虚拟机执行主类名称以及这些进程的本地虚拟机唯一ID**（Local Virtual Machine Identifier,LVMID）。虽然功能比较单一，但它是使用最高的JDK命令行工具，因为其他的JDK工具大多需要输入它查询到的LVMID来确定要监控的是哪一个虚拟机进程。**jps的常用功能选项：**![image-20181226160225527](/Users/jack/Desktop/md/images/image-20181226160225527-5811345.png)
+​	JDK的很多小工具的名字都参考了UNIX命令的命名方式，**jps（JVM Process Status）**是其中的典型。除了名字像UNIX的ps命令外，它的功能也和ps命令类似：**可以列出正在运行的虚拟机进程，并显示虚拟机执行主类名称以及这些进程的本地虚拟机唯一ID**（Local Virtual Machine Identifier,LVMID）。虽然功能比较单一，但它是使用最高的JDK命令行工具，因为其他的JDK工具大多需要输入它查询到的LVMID来确定要监控的是哪一个虚拟机进程。**jps的常用功能选项：**![image-20181226160225527](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160225527-5811345.png)
 
 #### 2.2 jstat:虚拟机统计信息监视工具
 
-**jstat（JVM Statistics Monitoring Tool） 使用于监视虚拟机各种运行状态信息的命令行工具。** 它可以显示本地或者远程（需要远程主机提供RMI支持）虚拟机进程中的类信息、内存、垃圾收集、JIT编译等运行数据，在没有GUI，只提供了纯文本控制台环境的服务器上，它将是运行期间定位虚拟机性能问题的首选工具。![image-20181226160252701](/Users/jack/Desktop/md/images/image-20181226160252701-5811372.png)
+**jstat（JVM Statistics Monitoring Tool） 使用于监视虚拟机各种运行状态信息的命令行工具。** 它可以显示本地或者远程（需要远程主机提供RMI支持）虚拟机进程中的类信息、内存、垃圾收集、JIT编译等运行数据，在没有GUI，只提供了纯文本控制台环境的服务器上，它将是运行期间定位虚拟机性能问题的首选工具。![image-20181226160252701](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160252701-5811372.png)
 
 ### 2.3 jinfo：Java配置信息工具
 
-**jinfo（Configuration Info for Java） 的作用是实时地查看和调整虚拟机各项参数。**使用jps命令的-v可以查看虚拟机启动时显式指定的参数列表，但如果想知道未被显式指定的参数的系统默认值，可以使用jinfo的-flag选项进行查询，**jinfo还可以使用-sysprops选项把虚拟机进程的System.getProperties()的内容打印出来。**![image-20181226160307603](/Users/jack/Desktop/md/images/image-20181226160307603-5811387.png)
+**jinfo（Configuration Info for Java） 的作用是实时地查看和调整虚拟机各项参数。**使用jps命令的-v可以查看虚拟机启动时显式指定的参数列表，但如果想知道未被显式指定的参数的系统默认值，可以使用jinfo的-flag选项进行查询，**jinfo还可以使用-sysprops选项把虚拟机进程的System.getProperties()的内容打印出来。**![image-20181226160307603](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160307603-5811387.png)
 
 ### 2.4 jmap：Java内存映像工具
 
@@ -644,19 +644,19 @@ public class ReferenceCountingGc {
 
 从Java 5开始 引入了 JConsole，JConsole 是一个内置 Java 性能分析器。您可以轻松地使用 JConsole（或者，它更高端的 “近亲” jvisualvm ）来监控 Java 应用程序性能和跟踪 Java 中的代码。（推荐使用升级版 JConsole 即 jvisualvm 。）
 
-控制台启动或者直接双击可执行程序。![image-20181226160330858](/Users/jack/Desktop/md/images/image-20181226160330858-5811411.png)
+控制台启动或者直接双击可执行程序。![image-20181226160330858](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160330858-5811411.png)
 
-![image-20181226160347102](/Users/jack/Desktop/md/images/image-20181226160347102-5811427.png)
+![image-20181226160347102](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160347102-5811427.png)
 
 我们再来看看**jvisualvm**
 
-![image-20181226160755489](/Users/jack/Desktop/md/images/image-20181226160755489-5881433.png)
+![image-20181226160755489](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226160755489-5881433.png)
 
 ## 四、Class类文件结构
 
 ### 1 概述
 
-​	计算机虽然只能识别0和1，但是越来越多的程序语言选择了与操作系统和机器指令集无关无关的、平台中立的格式作为程序编译后的存储格式。==Java虚拟机不和包括Java在内的任何语言绑定，只与 **"Class文件"** 这种特定的二进制文件所关联，Class文件中包含了Java虚拟机指令集合符号表以及若干其它辅助信息。==Java虚拟机作为一个通用的、机器无关的执行平台，任何其他语言都可以将其作为语言的产品交付媒介。 ![image-20181230104838913](/Users/jack/Desktop/md/images/image-20181230104838913-6138119.png)
+​	计算机虽然只能识别0和1，但是越来越多的程序语言选择了与操作系统和机器指令集无关无关的、平台中立的格式作为程序编译后的存储格式。==Java虚拟机不和包括Java在内的任何语言绑定，只与 **"Class文件"** 这种特定的二进制文件所关联，Class文件中包含了Java虚拟机指令集合符号表以及若干其它辅助信息。==Java虚拟机作为一个通用的、机器无关的执行平台，任何其他语言都可以将其作为语言的产品交付媒介。 ![image-20181230104838913](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181230104838913-6138119.png)
 
 ### 2 Class类文件结构
 
@@ -668,7 +668,7 @@ public class ReferenceCountingGc {
 
 ​	==无符号数==属于基本的数据类型，以u1、u2、u4、u8来分别代表1个字节、2个字节、4个字节和8个字节的无符号数，无符号数可以用来描述数字、索引引用、数量值或者按照UTF-8编码构成字符串值。
 
-​	==表==是由多个无符号数或者其他表作为数据项构成的复合数据类型，所有表都习惯性地以“_info”结尾。表用于描述有层次关系的复合结构的数据，**整个Class文件本质上就是一张表，**它由表6-1所示的数据项构成。![image-20181230105832504](/Users/jack/Desktop/md/images/image-20181230105832504-6138712.png)
+​	==表==是由多个无符号数或者其他表作为数据项构成的复合数据类型，所有表都习惯性地以“_info”结尾。表用于描述有层次关系的复合结构的数据，**整个Class文件本质上就是一张表，**它由表6-1所示的数据项构成。![image-20181230105832504](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181230105832504-6138712.png)
 
 ​	这里需要重复提一下，Class文件结构不像XML等描述语言，由于它没有任何分割符号，所以无论是数量甚至于数据存储的字节序这样的细节都被严格限定，哪个字节代表什么含义，长度是多少，先后顺序如何，都不允许改变。
 
@@ -688,7 +688,7 @@ public class ReferenceCountingGc {
 
 #### 2.3访问标志
 
-​	**在常量池结束之后，紧接着的两个字节代表访问标志，**这个标志用于识别一些类或者接口层次的访问信息，包括：这个Class是类还是接口，是否为public或者abstract类型，如果是类的话是否声明为final等等。具体标志位及标志的含义如下图所示：![image-20181230201748979](/Users/jack/Desktop/md/images/image-20181230201748979-6172269.png)
+​	**在常量池结束之后，紧接着的两个字节代表访问标志，**这个标志用于识别一些类或者接口层次的访问信息，包括：这个Class是类还是接口，是否为public或者abstract类型，如果是类的话是否声明为final等等。具体标志位及标志的含义如下图所示：![image-20181230201748979](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181230201748979-6172269.png)
 
 #### 2.4 类索引、父类索引与接口索引集合
 
@@ -706,7 +706,7 @@ public class ReferenceCountingGc {
 
 - 简单名称：指没有类型和参数修饰的方法或者字段名称，这个类中的inc()方法和m字段的简单名称分别是“inc”和“m”
 
-- 描述符：==用来描述字段的数据类型、方法的参数列表（包括数量、类型以及顺序）和返回值。==根据描述符规则，基本数据类型（byte、char、double、float、int、long、short、boolean）以及代表无返回值的void类型都用一个大写字符来表示，而**对象类型则用字符L加对象的全限定名来表示**，详见下表：![image-20181230203932261](/Users/jack/Desktop/md/images/image-20181230203932261-6173572.png)
+- 描述符：==用来描述字段的数据类型、方法的参数列表（包括数量、类型以及顺序）和返回值。==根据描述符规则，基本数据类型（byte、char、double、float、int、long、short、boolean）以及代表无返回值的void类型都用一个大写字符来表示，而**对象类型则用字符L加对象的全限定名来表示**，详见下表：![image-20181230203932261](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181230203932261-6173572.png)
 
   ​	对于数组类型，**每一维度将使用一个前置的“[”字符来描述，**如一个定义为“java.lang.String[][]”类型的二维数组，将被记录为：“[[Ljava/lang/String==；==”，一个整型数组“int[]”将被记录为“[I”**。用描述符来描述方法时，按照先参数列表，后返回值的顺序描述，参数列表按照参数的严格顺序放在一组小括号“()”之内**。如方法void inc()的描述符为“()V”，方法java.lang.String toString()的描述符为“()Ljava/lang/String；”，方法intindexOf(char[] source,int sourceOffset,int sourceCount,char[] target,int targetOffset,int targetCount,int fromIndex)的描述符为“([CII[CIII)I”
 
@@ -730,13 +730,13 @@ public class ReferenceCountingGc {
 
 #### 3.2 加载和存储指令
 
-​	==加载和存储指令用于将数据在栈帧中的局部变量表和操作数栈之间来回传输。==这类指令主要有：![image-20190125122538319](/Users/jack/Desktop/md/images/image-20190125122538319.png)
+​	==加载和存储指令用于将数据在栈帧中的局部变量表和操作数栈之间来回传输。==这类指令主要有：![image-20190125122538319](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190125122538319.png)
 
 ​	**存储数据的操作数栈和局部变量表主要就是由加载和存储指令进行操作，除此之外，还有少量指令，如访问对象的字段或数组元素的指令也会向操作数栈传输数据。**	
 
 #### 3.3 运算指令
 
-​	**==运算或算术指令用于对操作数栈上的值进行某种特定运算，并把结果重新存入操作栈顶==**。 **大体上算术指令可以分为两种：对整型数据和对浮点数据进行运算指令。**（由于没有byte、char、short、boolean类型，所以对这类数据的运算应使用int类型指令代替）![image-20181230214428548](/Users/jack/Desktop/md/images/image-20181230214428548-6177468.png)
+​	**==运算或算术指令用于对操作数栈上的值进行某种特定运算，并把结果重新存入操作栈顶==**。 **大体上算术指令可以分为两种：对整型数据和对浮点数据进行运算指令。**（由于没有byte、char、short、boolean类型，所以对这类数据的运算应使用int类型指令代替）![image-20181230214428548](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181230214428548-6177468.png)
 
 #### 3.4 类型转换指令
 
@@ -748,7 +748,7 @@ public class ReferenceCountingGc {
 
 ​	虽然类实例和数组都是对象，但java虚拟机对类实例和数组的创建和操作使用了不同的字节码指令。对象创建后，就可以通过对象访问指令获取对象实例或者数组实例中的字段或者数组元素，这些指令如下：
 
-![image-20190101170113412](/Users/jack/Desktop/md/images/image-20190101170113412-6333273.png)
+![image-20190101170113412](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190101170113412-6333273.png)
 
 #### 3.6 操作数栈管理指令
 
@@ -816,7 +816,7 @@ public class ReferenceCountingGc {
 
 ### 2 类加载时机
 
-类从被加载到虚拟机内存到卸出内存为止，它的整个生命周期包括：![image-20190106232253416](/Users/jack/Desktop/md/images/image-20190106232253416-6788173.png)
+类从被加载到虚拟机内存到卸出内存为止，它的整个生命周期包括：![image-20190106232253416](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190106232253416-6788173.png)
 
 我们思考一下那么**什么时候需要开始类加载的第一个阶段：加载？**
 
@@ -975,7 +975,7 @@ public class Test2 {
 
 ​	编译时Javac将会为value生成ConstantValue属性，在**准备阶段虚拟机就会根据ConstantValue的设置将value赋值为123。**
 
-**基本数据类型的零值：**![image-20190107114832326](/Users/jack/Desktop/md/images/image-20190107114832326-6832912.png)
+**基本数据类型的零值：**![image-20190107114832326](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190107114832326-6832912.png)
 
 ### 3.4 解析
 
@@ -1077,7 +1077,7 @@ public class Test2 {
 
 ​	我们的应用程序都是由这3种类加载器互相配合进行加载的，如果有必要，还可以加入自己定义的类加载器。这些类加载器之间的关系一般如下图：
 
-![image-20190107115600661](/Users/jack/Desktop/md/images/image-20190107115600661-6833360.png)
+![image-20190107115600661](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190107115600661-6833360.png)
 
 ### 4.3 双亲委派模型
 

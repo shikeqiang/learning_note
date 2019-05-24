@@ -1,8 +1,8 @@
 # Java集合
 
-![img](/Users/jack/Desktop/md/images/java-coll.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/java-coll.png)
 
-![img](/Users/jack/Desktop/md/images/jpeg.jpeg)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/jpeg.jpeg)
 
 ## 一、集合接口
 
@@ -288,7 +288,7 @@ ConcurrentHashMap 是线程安全的 HashMap 的实现。主要区别如下：
 
 ## 为什么HashMap允许key，value都可以为空，而ConCurrentHashMap和Hashtable不允许？
 
-![image-20190414112633320](/Users/jack/Desktop/md/images/image-20190414112633320.png)
+![image-20190414112633320](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190414112633320.png)
 
 
 
