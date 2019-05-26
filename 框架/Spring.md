@@ -451,6 +451,14 @@ Spring Bean 支持 5 种 Scope ，分别如下：
 
 ## 3、Bean的生命周期
 
+1. 通过构造器或工厂方法创建Bean实例
+2. 为Bean的属性设置值和对其它Bean的引用
+3. 调用Bean的初始化方法
+4. Bean可以使用了
+5. 当容器关闭时，调用Bean的销毁方法
+
+
+
 Spring Bean 的**初始化**流程如下：
 
 ### 实例化 Bean 对象

@@ -767,4 +767,12 @@ Spring Boot 支持的日志框架有：
 
 
 
-参照：芋道源码
+参考和推荐如下文章：
+
+- 我有面试宝典 [《[经验分享\] Spring Boot面试题总结》](http://www.wityx.com/post/242_1_1.html)
+- Java 知音 [《Spring Boot 面试题精华》](https://cloud.tencent.com/developer/article/1348086)
+- 祖大帅 [《一个面试题引起的 Spring Boot 启动解析》](https://juejin.im/post/5b679fbc5188251aad213110)
+- 大胡子叔叔_ [《Spring Boot + Spring Cloud 相关面试题》](https://blog.csdn.net/panhaigang123/article/details/79587612)
+- 墨斗鱼博客 [《20 道 Spring Boot 面试题》](https://www.mudouyu.com/article/26)
+- 夕阳雨晴 [《Spring Boot Starter 的面试题》](https://blog.csdn.net/sun1021873926/article/details/78176354)
+- 芋道源码
