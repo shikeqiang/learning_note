@@ -1017,7 +1017,7 @@ public Result test(@PathVariable("id")String id)
 
 ![image-20190417163118123](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190417163118123.png)
 
-## 1、什么是 AOP 
+## 1、简介
 
 ​	AOP(Aspect-Oriented Programming)，即**面向切面编程**, 它与 OOP( Object-Oriented Programming, 面向对象编程) 相辅相成， 提供了与 OOP 不同的抽象软件结构的视角。
 
@@ -1043,7 +1043,7 @@ public Result test(@PathVariable("id")String id)
 > 11. Synchronization 同步 
 > 12. Transactions 事务 
 
-## 2、什么是 Aspect 
+## 2、Aspect 简介
 
 Aspect 由 **PointCut** 和 **Advice** 组成。
 
