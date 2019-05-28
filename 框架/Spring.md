@@ -1244,7 +1244,7 @@ a.基于TransactionInterceptor的声明式事务；
 
 b.基于TransactionProxyFactoryBean的声明式事务；
 
-c.基于\命名空间的声明式事务；
+c.基于命名空间的声明式事务；
 
 d.基于标注（@Transactional）的声明式事务。
 
@@ -1794,9 +1794,11 @@ public interface TransactionStatus{
 - 为什么没有事务对象呢？在 TransactionStatus 的实现类 DefaultTransactionStatus 中，有个 `Object transaction` 属性，表示事务对象。
 - `#isNewTransaction()` 方法，表示是否是新创建的事务。作用主要参照上面的 `commit(TransactionStatus status)` 方法的解释。通过该方法，我们可以判断，当前事务是否当前方法所创建的，只有创建事务的方法，**才能且应该真正的提交事务**。
 
-[可能是最漂亮的Spring事务管理详解](<https://blog.csdn.net/qq_34337272/article/details/80394121>)
 
 
+参照：	[可能是最漂亮的Spring事务管理详解](<https://blog.csdn.net/qq_34337272/article/details/80394121>)
+
+芋道源码
 
 
 
