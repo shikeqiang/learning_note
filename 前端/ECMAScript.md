@@ -841,6 +841,10 @@ var getGlobal = function () {
 
 # 三、变量的解构赋值
 
+- 左右两边结构必须一致，比如左右都是数组
+- 右边必须是个东西，比如是个数组，或者json等
+- 声明和赋值赋值不能分开，必须在一句话里
+
 ## 1.数组的解构赋值
 
 ### 基本用法
@@ -1572,17 +1576,241 @@ for (let i of text) {
 
 ​	上面代码中，字符串`text`只有一个字符，但是`for`循环会认为它包含两个字符（都不可打印），而`for...of`循环会正确识别出这一个字符。
 
+- `startsWith`
+- `endsWith`
 
+```js
+var url = 'http://qq.com'
+console.log(url.startsWith('http'))
+console.log(url.endsWith('com'))
+// 都是 true
+```
 
+- 字符串模版
+  - 使用反引号  `，${变量}，读取变量，拼接字符串
+  - 可以折行
 
+```js
+let a = 12
+let str1 = `asdf${a}`
+console.log(str1)	--> asdf12
 
+let title = '标题'
+let content = '内容'
+let str = `<div>
+<h1>${title}</h1>
+<p>${content}</p>
+`
+console.log(str)
+<div>
+<h1>标题</h1>
+<p>内容</p>
+```
 
+# 五、函数
 
+## 箭头函数
 
+- 箭头函数，就是函数的简写
+  - 如果只有一个参数，`()` 可以省
+  - 如果只有一个`return`，`{}`可以省
 
+```js
+// 普通函数
+function name() {
+}
+// 箭头函数，去掉 function， 加上 =>
+() => {
+}
+let show1 = function () {
+    console.log('abc')
+}
+let show2 = () => {
+    console.log('abc')
+}
+show1() // 调用函数
+show2()
+let show4 = function (a) {
+    return a*2
+}
+let show5 = a => a * 2  // 简洁，类似python lambda 函数
+console.log(show4(10))
+console.log(show5(10))
+```
 
+## 函数-参数
 
+- 参数扩展／展开	...args
+  - 收集剩余的参数，必须当到最后一个参数位置
+  - 展开数组，简写，效果和直接把数组的内容写在这儿一样
+- 默认参数
 
+```js
+function show(a, b, ...args) {
+    console.log(a)
+    console.log(b)
+    console.log(args)
+}
+console.log(show(1, 2, 3, 4, 5))   --> 弹出1； 2； 3，4，5
+
+let arr1 = [1, 2, 3]
+let arr2 = [4, 5, 6]
+let arr3 = [...arr1, ...arr2]
+console.log(arr3)	--> 弹出 1，2，3，4，5，6
+
+function show2(a, b=5, c=8) {	// 默认参数
+    console.log(a, b, c)
+}
+show2(88, 12)	-- >弹出 88，12，8
+```
+
+# 六、数组
+
+- 新增4个方法
+- map 映射 一个对一个
+
+```js
+let arr = [12, 5, 8]
+let result = arr.map(function (item) {
+    return item*2		// 返回
+})
+let result2 = arr.map(item=>item*2) // 简写，箭头函数也可以直接赋值
+console.log(result)
+console.log(result2)
+
+let score = [18, 86, 88, 24]
+let result3 = score.map(item => item >= 60 ? '及格' : '不及格')
+console.log(result3)
+
+// 结果
+[ 24, 10, 16 ]
+[ 24, 10, 16 ]
+[ '不及格', '及格', '及格', '不及格' ]
+```
+
+- reduce 汇总 一堆出来一个，每次会减少某些计算的数
+  - 用于比如，算总数，算平均数
+
+```js
+var arr = [1, 3, 5, 7]
+var result = arr.reduce(function (tmp, item, index) {
+    //tmp 上次结果，item当前数，index次数1开始，这里的“上次结果”即为第一个数
+    console.log(tmp, item, index)
+    return tmp + item
+})
+console.log(result)		--> 1，3，1 ； 4，5，2 ； 9，7 ，3 ；16
+
+var arr = [1, 3, 5, 7]
+var result = arr.reduce(function (tmp, item, index) {
+    if (index != arr.length - 1) { // 不是最后一次，求和
+        return tmp + item
+    } else {
+        return (tmp + item)/arr.length		// 求平均数
+    }
+})
+console.log(result)  // 平均值
+```
+
+- filter 过滤器 保留为true的
+
+```js
+var arr = [12, 4, 8, 9]
+// 三目运算符
+var result = arr.filter(item => (item % 3 === 0) ? true : false)
+console.log(result)
+var result = arr.filter(item => item % 3 === 0)
+console.log(result)
+
+var arr = [
+    { title: '苹果', price: 10 },
+    { title: '西瓜', price: 20 },
+]
+var result = arr.filter(json => json.price >= 20)
+console.log(result)
+```
+
+- forEach 循环迭代
+
+```js
+var arr = [12, 4, 8, 9]
+var result = arr.forEach(item => console.log(item))
+var result = arr.forEach((item, index)=>console.log(item, index))
+```
+
+# 七、面向对象
+
+- 原来写法
+  - 类和构造函数一样
+  - 属性和方法分开写的
+
+```js
+// 老版本
+function User(name, pass) {
+    this.name = name
+    this.pass = pass
+}
+
+User.prototype.showName = function () {
+    console.log(this.name)
+}
+User.prototype.showPass = function () {
+    console.log(this.pass)
+}
+
+var u1 = new User('able', '1233')
+u1.showName()
+u1.showPass()
+// 老版本继承
+function VipUser(name, pass, level) {
+    User.call(this, name, pass)
+    this.level = level
+}
+VipUser.prototype = new User()
+VipUser.prototype.constructor = VipUser
+VipUser.prototype.showLevel = function () {
+    console.log(this.level)
+}
+var v1 = new VipUser('blue', '1234', 3)
+v1.showName()
+v1.showLevel()
+```
+
+- 新版面向对象
+  - 有了 class 关键字、构造器(constructor)
+  - class 里面直接加方法
+  - 继承，super 超类==父类
+
+```js
+class User {
+    constructor(name, pass) {
+        this.name = name
+        this.pass = pass
+    }
+    showName() {
+        console.log(this.name)
+    }
+    showPass() {
+        console.log(this.pass)
+    }
+}
+
+var u1 = new User('able2', '111')
+u1.showName()
+u1.showPass()
+
+// 新版本继承
+class VipUser extends User {
+    constructor(name, pass, level) {	// 原来的属性加上个level
+        super(name, pass)
+        this.level = level
+    }
+    showLevel(){
+        console.log(this.level)
+    }
+}
+v1 = new VipUser('blue', '123', 3)
+v1.showLevel()
+```
 
 
 
@@ -1621,3 +1849,7 @@ for (let i of text) {
 
 
 参照：[ECMAScript 6 入门](http://es6.ruanyifeng.com/)
+
+开课吧
+
+<https://github.com/able8/hello-es6#1es6%E6%80%8E%E4%B9%88%E6%9D%A5%E7%9A%84>
