@@ -1502,15 +1502,15 @@ for(int i=0;i<list.size();i++){
 
 ## 1、Servlet过滤器的配置
 
-​	第一部分是过滤器在Web应用中的定义，由<filter>元素表示，包括<filter-name>和<filter-class>两个必需的子元素
-​	第二部分是过滤器映射的定义，由<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
+​	第一部分是过滤器在Web应用中的定义，由\<filter>元素表示，包括\<filter-name>和\<filter-class>两个必需的子元素
+​	第二部分是过滤器映射的定义，由\<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
 
 ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
 
 ## 2、servlet是什么
 
 ​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
- **容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。**
+**容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。**
 
 ![image-20190201104605382](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190201104605382.png)
 
@@ -1550,7 +1550,7 @@ for(int i=0;i<list.size();i++){
 
 服务终止：
 
-> destory方法是在servlet实例被销毁时由web容器调用。**Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态。**
+> ==destory方法是在servlet实例被销毁时由web容器调用。==**Servlet规范确保在destroy方法调用之 前所有请求的处理均完成，需要覆盖destroy方法的情况：释放任何在init方法中 打开的与servlet相关的资源存储servlet的状态。**
 >
 > 在destroy()方法调用之后，容器会释放这个Servlet实例，该实例随后会被Java的垃圾收集器所回收。如果再次需要这个Servlet处理请求，Servlet容器会创建一个新的Servlet实例。
 
@@ -1564,7 +1564,7 @@ for(int i=0;i<list.size();i++){
 
 (3)初始化：调用init方法初始化
 
-(4)处理客户请求：每当有一个客户请求，容器会创建一个线程来处理客户请求
+(4)处理客户请求：**每当有一个客户请求，容器会创建一个线程来处理客户请求**
 
 (5)卸载：调用destroy方法让servlet自己释放其占用的资源
 

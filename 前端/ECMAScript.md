@@ -1812,9 +1812,123 @@ v1 = new VipUser('blue', '123', 3)
 v1.showLevel()
 ```
 
+# 八、json
 
+- JSON 格式
+  - JavaScript Object Notation 的缩写，是一种用于数据交换的文本格式
+  - JSON 是 JS对象 的严格子集
+  - JSON 的标准写法
+  - 只能用双引号
+  - 所有的key都必须用双引号包起来
+- JSON 对象
+  - JSON 对象是 JavaScript 的原生对象，用来处理 JSON 格式数据，有两个静态方法
+  - JSON.parse(string) ：接受一个 **JSON 字符串**并将其转换成一个 JavaScript **对象**。
+  - JSON.stringify(obj) ：接受一个 JavaScript **对象**并将其转换为一个 **JSON 字符串**。
 
+```js
+var json = {a: 12, b: 5}
+var str = 'hi,' + JSON.stringify(json)
+var url = 'http://www.xx.com/' + encodeURIComponent(JSON.stringify(json))
+console.log(str)
+console.log(url)
 
+var str = '{"a": 12, "b": 4, "c": "abc"}'
+var json = JSON.parse(str)
+console.log(json)
+hi,{"a":12,"b":5}
+http://www.xx.com/%7B%22a%22%3A12%2C%22b%22%3A5%7D
+{ a: 12, b: 4, c: 'abc' }
+```
+
+- 对象（object）
+  - 是 JavaScript 语言的核心概念，也是最重要的数据类型
+  - 对象就是一组“键值对”（key-value）的集合，是一种无序的复合数据集合
+  - 对象的所有键名都是字符串, 所以加不加引号都可以
+  - 如果键名是数值，会被自动转为字符串
+  - 对象的每一个键名又称为“属性”（property），它的“键值”可以是任何数据类型
+  - 如果一个属性的值为函数，通常把这个属性称为“方法”，它可以像函数那样调用
+  - in 运算符用于检查对象是否包含某个属性（注意，检查的是键名，不是键值
+  - for...in循环用来遍历一个对象的全部属性
+- 对象 简写
+  - key-value 一样时可以简写
+  - 里面函数可以简写, 去掉
+
+```js
+var a = 12, b = 5
+console.log({a:a, b:b})
+console.log({a, b})
+console.log({a, b, c:"c"})
+console.log({ a, b, show(){ console.log('a') }})
+{ a: 12, b: 5 }
+{ a: 12, b: 5 }
+{ a: 12, b: 5, c: 'c' }
+{ a: 12, b: 5, show: [Function: show] }
+```
+
+# 九、Promise
+
+- 异步和同步
+  - 异步，操作之间没有关系，同时执行多个操作， 代码复杂
+  - 同步，同时只能做一件事，代码简单
+- Promise 对象
+  - 用同步的方式来书写异步代码
+  - Promise 让异步操作写起来，像在写同步操作的流程，不必一层层地嵌套回调函数
+  - 改善了可读性，对于多层嵌套的回调函数很方便
+  - 充当异步操作与回调函数之间的中介，使得异步操作具备同步操作的接口
+- Promise 也是一个构造函数
+  - 接受一个回调函数f1作为参数，f1里面是异步操作的代码
+  - 返回的p1就是一个 Promise 实例
+  - 所有异步任务都返回一个 Promise 实例
+  - Promise 实例有一个then方法，用来指定下一步的回调函数
+
+```
+function f1(resolve, reject) {
+  // 异步代码...
+}
+var p1 = new Promise(f1);
+p1.then(f2); // f1的异步操作执行完成，就会执行f2。
+```
+
+- Promise 使得异步流程可以写成同步流程
+
+```js
+// 传统写法
+step1(function (value1) {
+  step2(value1, function(value2) {
+    step3(value2, function(value3) {
+      step4(value3, function(value4) {
+        // ...
+      });
+    });
+  });
+});
+
+// Promise 的写法
+(new Promise(step1))
+  .then(step2)
+  .then(step3)
+  .then(step4);
+```
+
+- Promise.all(promiseArray)方法
+  - 将多个Promise对象实例包装，生成并返回一个新的Promise实例
+  - promise数组中所有的promise实例都变为resolve的时候，该方法才会返回
+  - 并将所有结果传递results数组中
+  - promise数组中任何一个promise为reject的话，则整个Promise.all调用会立即终止，并返回一个reject的新的promise对象
+
+```js
+var p1 = Promise.resolve(1),
+    p2 = Promise.resolve(2),
+    p3 = Promise.resolve(3);
+Promise.all([p1, p2, p3]).then(function (results) {
+    console.log(results);  // [1, 2, 3]
+});
+```
+
+- Promise.race([p1, p2, p3])
+  - Promse.race就是赛跑的意思
+  - 哪个结果获得的快，就返回那个结果
+  - 不管结果本身是成功状态还是失败状态
 
 
 
