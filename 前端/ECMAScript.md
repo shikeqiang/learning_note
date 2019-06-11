@@ -1812,13 +1812,13 @@ v1 = new VipUser('blue', '123', 3)
 v1.showLevel()
 ```
 
-# 八、json
+# 八、json对象
 
 - JSON 格式
   - JavaScript Object Notation 的缩写，是一种用于数据交换的文本格式
   - JSON 是 JS对象 的严格子集
   - JSON 的标准写法
-  - 只能用双引号
+  - **只能用双引号**
   - 所有的key都必须用双引号包起来
 - JSON 对象
   - JSON 对象是 JavaScript 的原生对象，用来处理 JSON 格式数据，有两个静态方法
@@ -1826,12 +1826,12 @@ v1.showLevel()
   - JSON.stringify(obj) ：接受一个 JavaScript **对象**并将其转换为一个 **JSON 字符串**。
 
 ```js
-var json = {a: 12, b: 5}
+var json = {a: 12, b: 5}	// 错误写法，不是json
 var str = 'hi,' + JSON.stringify(json)
 var url = 'http://www.xx.com/' + encodeURIComponent(JSON.stringify(json))
 console.log(str)
 console.log(url)
-
+// 只能用双引号，即key和value都要用双引号，json字符串中都要用双引号
 var str = '{"a": 12, "b": 4, "c": "abc"}'
 var json = JSON.parse(str)
 console.log(json)
@@ -1850,7 +1850,7 @@ http://www.xx.com/%7B%22a%22%3A12%2C%22b%22%3A5%7D
   - in 运算符用于检查对象是否包含某个属性（注意，检查的是键名，不是键值
   - for...in循环用来遍历一个对象的全部属性
 - 对象 简写
-  - key-value 一样时可以简写
+  - key-value 的名字一样时可以简写，即key、value名字一样的时候，可以只写一个
   - 里面函数可以简写, 去掉
 
 ```js
@@ -1865,21 +1865,59 @@ console.log({ a, b, show(){ console.log('a') }})
 { a: 12, b: 5, show: [Function: show] }
 ```
 
-# 九、Promise
+# 九、Promise对象
+
+​	所谓`Promise`，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。Promise 提供统一的 API，各种异步操作都可以用同样的方法进行处理。
+
+#### `Promise`对象有以下两个特点。
+
+（1）对象的状态不受外界影响。`Promise`对象代表一个异步操作，有三种状态：`pending`（进行中）、`fulfilled`（已成功）和`rejected`（已失败）。只有异步操作的结果，可以决定当前是哪一种状态，任何其他操作都无法改变这个状态。这也是`Promise`这个名字的由来，它的英语意思就是“承诺”，表示其他手段无法改变。
+
+（2）一旦状态改变，就不会再变，任何时候都可以得到这个结果。`Promise`对象的状态改变，只有两种可能：从`pending`变为`fulfilled`和从`pending`变为`rejected`。只要这两种情况发生，状态就凝固了，不会再变了，会一直保持这个结果，这时就称为 resolved（已定型）。如果改变已经发生了，你再对`Promise`对象添加回调函数，也会立即得到这个结果。这与事件（Event）完全不同，事件的特点是，如果你错过了它，再去监听，是得不到结果的。
+
+> 有了`Promise`对象，就可以将异步操作以同步操作的流程表达出来，避免了层层嵌套的回调函数。此外，`Promise`对象提供统一的接口，使得控制异步操作更加容易。
+
+```javascript
+const promise = new Promise(function(resolve, reject) {
+  // ... some code
+
+  if (/* 异步操作成功 */){
+    resolve(value);
+  } else {
+    reject(error);
+  }
+});
+```
+
+> `Promise`构造函数接受一个函数作为参数，该函数的两个参数分别是`resolve`和`reject`。它们是两个函数，由 JavaScript 引擎提供，不用自己部署。
+>
+> `resolve`函数的作用是，将`Promise`对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去；`reject`函数的作用是，将`Promise`对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
+
+`Promise`实例生成以后，可以用`then`方法分别指定`resolved`状态和`rejected`状态的回调函数。
+
+```javascript
+promise.then(function(value) {
+  // success
+}, function(error) {
+  // failure
+});
+```
+
+> `then`方法可以接受两个回调函数作为参数。第一个回调函数是`Promise`对象的状态变为`resolved`时调用，第二个回调函数是`Promise`对象的状态变为`rejected`时调用。其中，第二个函数是可选的，不一定要提供。这两个函数都接受`Promise`对象传出的值作为参数。
 
 - 异步和同步
   - 异步，操作之间没有关系，同时执行多个操作， 代码复杂
   - 同步，同时只能做一件事，代码简单
 - Promise 对象
-  - 用同步的方式来书写异步代码
+  - **用同步的方式来书写异步代码**
   - Promise 让异步操作写起来，像在写同步操作的流程，不必一层层地嵌套回调函数
   - 改善了可读性，对于多层嵌套的回调函数很方便
   - 充当异步操作与回调函数之间的中介，使得异步操作具备同步操作的接口
 - Promise 也是一个构造函数
-  - 接受一个回调函数f1作为参数，f1里面是异步操作的代码
+  - **接受一个回调函数f1作为参数，f1里面是异步操作的代码**
   - 返回的p1就是一个 Promise 实例
   - 所有异步任务都返回一个 Promise 实例
-  - Promise 实例有一个then方法，用来指定下一步的回调函数
+  - ==Promise 实例有一个then方法，用来指定下一步的回调函数==
 
 ```
 function f1(resolve, reject) {
@@ -1903,7 +1941,7 @@ step1(function (value1) {
   });
 });
 
-// Promise 的写法
+// Promise 的写法，先创建一个Promise对象，然后传入对应的函数
 (new Promise(step1))
   .then(step2)
   .then(step3)
@@ -1911,7 +1949,7 @@ step1(function (value1) {
 ```
 
 - Promise.all(promiseArray)方法
-  - 将多个Promise对象实例包装，生成并返回一个新的Promise实例
+  - **将多个Promise对象实例包装，生成并返回一个新的Promise实例**
   - promise数组中所有的promise实例都变为resolve的时候，该方法才会返回
   - 并将所有结果传递results数组中
   - promise数组中任何一个promise为reject的话，则整个Promise.all调用会立即终止，并返回一个reject的新的promise对象
@@ -1920,21 +1958,486 @@ step1(function (value1) {
 var p1 = Promise.resolve(1),
     p2 = Promise.resolve(2),
     p3 = Promise.resolve(3);
+//Promise.all里面放一个数组，然后执行后调用then里面的方法
 Promise.all([p1, p2, p3]).then(function (results) {
     console.log(results);  // [1, 2, 3]
 });
 ```
 
 - Promise.race([p1, p2, p3])
+
+  > 上面代码中，只要`p1`、`p2`、`p3`之中有一个实例率先改变状态，`p`的状态就跟着改变。那个率先改变的 Promise 实例的返回值，就传递给`p`的回调函数。
+
   - Promse.race就是赛跑的意思
   - 哪个结果获得的快，就返回那个结果
   - 不管结果本身是成功状态还是失败状态
 
+实例：
 
+```js
+<Script src="jquert.js" charset="utf-8"></Script>
+<Script>
+	Promise.all([	// 传入多个ajax请求
+        $.ajax({url:'data/arr.txt',dataType:'json'}),
+        $.ajax({url:'data/num.txt',dataType:'json'}),
+        $.ajax({url:'data/json.txt',dataType:'json'})
+]).then(results=>{
+    let [arr,num,json]=results;		//解构赋值
+    alert("成功了");
+    console.log(arr,json,num);
+	},err=>{
+      alert('失败了');
+});
+</Script>
+```
 
+## 常见应用：
 
+### 加载图片
 
+我们可以将图片的加载写成一个`Promise`，一旦加载完成，`Promise`的状态就发生变化。
 
+```javascript
+const preloadImage = function (path) {
+  return new Promise(function (resolve, reject) {
+    const image = new Image();
+    image.onload  = resolve;
+    image.onerror = reject;
+    image.src = path;
+  });
+};
+```
+
+### Generator 函数与 Promise 的结合
+
+使用 Generator 函数管理流程，遇到异步操作的时候，通常返回一个`Promise`对象。
+
+```javascript
+function getFoo () {
+  return new Promise(function (resolve, reject){
+    resolve('foo');
+  });
+}
+
+const g = function* () {
+  try {
+    const foo = yield getFoo();
+    console.log(foo);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+function run (generator) {
+  const it = generator();
+
+  function go(result) {
+    if (result.done) return result.value;
+
+    return result.value.then(function (value) {
+      return go(it.next(value));
+    }, function (error) {
+      return go(it.throw(error));
+    });
+  }
+
+  go(it.next());
+}
+
+run(g);
+```
+
+上面代码的 Generator 函数`g`之中，有一个异步操作`getFoo`，它返回的就是一个`Promise`对象。函数`run`用来处理这个`Promise`对象，并调用下一个`next`方法。
+
+## Promise.try()
+
+实际开发中，经常遇到一种情况：不知道或者不想区分，函数`f`是同步函数还是异步操作，但是想用 Promise 来处理它。因为这样就可以不管`f`是否包含异步操作，都用`then`方法指定下一步流程，用`catch`方法处理`f`抛出的错误。一般就会采用下面的写法。
+
+```javascript
+Promise.resolve().then(f)
+```
+
+上面的写法有一个缺点，就是如果`f`是同步函数，那么它会在本轮事件循环的末尾执行。
+
+```javascript
+const f = () => console.log('now');
+Promise.resolve().then(f);
+console.log('next');
+// next
+// now
+```
+
+上面代码中，函数`f`是同步的，但是用 Promise 包装了以后，就变成异步执行了。
+
+​	那么有没有一种方法，让同步函数同步执行，异步函数异步执行，并且让它们具有统一的 API 呢？回答是可以的，并且还有两种写法。第一种写法是用`async`函数来写。
+
+```javascript
+const f = () => console.log('now');
+(async () => f())();
+console.log('next');
+// now
+// next
+```
+
+上面代码中，第二行是一个立即执行的匿名函数，会立即执行里面的`async`函数，因此如果`f`是同步的，就会得到同步的结果；如果`f`是异步的，就可以用`then`指定下一步，就像下面的写法。
+
+```javascript
+(async () => f())()
+.then(...)
+```
+
+需要注意的是，`async () => f()`会吃掉`f()`抛出的错误。所以，如果想捕获错误，要使用`promise.catch`方法。
+
+```javascript
+(async () => f())()
+.then(...)
+.catch(...)
+```
+
+第二种写法是使用`new Promise()`。
+
+```javascript
+const f = () => console.log('now');
+(
+  () => new Promise(
+    resolve => resolve(f())
+  )
+)();
+console.log('next');
+// now
+// next
+```
+
+上面代码也是使用立即执行的匿名函数，执行`new Promise()`。这种情况下，同步函数也是同步执行的。
+
+鉴于这是一个很常见的需求，所以现在有一个[提案](https://github.com/ljharb/proposal-promise-try)，提供`Promise.try`方法替代上面的写法。
+
+```javascript
+const f = () => console.log('now');
+Promise.try(f);
+console.log('next');
+// now
+// next
+```
+
+事实上，`Promise.try`存在已久，Promise 库[`Bluebird`](http://bluebirdjs.com/docs/api/promise.try.html)、[`Q`](https://github.com/kriskowal/q/wiki/API-Reference#promisefcallargs)和[`when`](https://github.com/cujojs/when/blob/master/docs/api.md#whentry)，早就提供了这个方法。
+
+由于`Promise.try`为所有操作提供了统一的处理机制，所以如果想用`then`方法管理流程，最好都用`Promise.try`包装一下。这样有[许多好处](http://cryto.net/~joepie91/blog/2016/05/11/what-is-promise-try-and-why-does-it-matter/)，其中一点就是可以更好地管理异常。
+
+```javascript
+function getUsername(userId) {
+  return database.users.get({id: userId})
+  .then(function(user) {
+    return user.name;
+  });
+}
+```
+
+上面代码中，`database.users.get()`返回一个 Promise 对象，如果抛出异步错误，可以用`catch`方法捕获，就像下面这样写。
+
+```javascript
+database.users.get({id: userId})
+.then(...)
+.catch(...)
+```
+
+但是`database.users.get()`可能还会抛出同步错误（比如数据库连接错误，具体要看实现方法），这时你就不得不用`try...catch`去捕获。
+
+```javascript
+try {
+  database.users.get({id: userId})
+  .then(...)
+  .catch(...)
+} catch (e) {
+  // ...
+}
+```
+
+上面这样的写法就很笨拙了，这时就可以统一用`promise.catch()`捕获所有同步和异步的错误。
+
+```javascript
+Promise.try(() => database.users.get({id: userId}))
+  .then(...)
+  .catch(...)
+```
+
+事实上，`Promise.try`就是模拟`try`代码块，就像`promise.catch`模拟的是`catch`代码块。
+
+# 十、generator
+
+## 1.认识生成器函数
+
+​	执行 Generator 函数会返回一个遍历器对象，也就是说，Generator 函数除了状态机，还是一个遍历器对象生成函数。返回的遍历器对象，可以依次遍历 Generator 函数内部的每一个状态。
+
+​	形式上，Generator 函数是一个普通函数，但是有两个特征。**一是，`function`关键字与函数名之间有一个星号；二是，函数体内部使用`yield`表达式，定义不同的内部状态（`yield`在英语里的意思就是“产出”）。**
+
+​	Generator 函数的调用方法与普通函数一样，也是在函数名后面加上一对圆括号。不同的是，调用 Generator 函数后，该函数并不执行，返回的也不是函数运行结果，而是一个指向内部状态的指针对象，也就是遍历器对象（Iterator Object）。
+
+​	**接着调用遍历器对象的`next`方法，使得指针移向下一个状态。**也就是说，每次调用`next`方法，内部指针就从函数头部或上一次停下来的地方开始执行，直到遇到下一个`yield`表达式（或`return`语句）为止。换言之，Generator 函数是分段执行的，`yield`表达式是暂停执行的标记，而`next`方法可以恢复执行。
+
+- generator 生成器函数
+  - 普通函数是一路到底，即函数会一直执行到最后才结束
+  - generator函数，在运行期间可以停，通过 yield 配合，交出执行权
+    - yield 有 放弃、退让、退位的意思
+  - 需要调用next()方法启动执行，需要遇到 yield 停, 踹一脚走一步
+  - ==generator函数前面加一个 `*` 两边可以有空格，或靠近函数或`function`==
+  - 背后实际生成多个小函数，实现走走停停
+
+```javascript
+function* helloWorldGenerator() {
+  yield 'hello';
+  yield 'world';
+  return 'ending';
+}
+
+var hw = helloWorldGenerator();
+hw.next()
+// { value: 'hello', done: false }
+
+hw.next()
+// { value: 'world', done: false }
+
+hw.next()
+// { value: 'ending', done: true }
+
+hw.next()
+// { value: undefined, done: true }
+```
+
+> 上面代码一共调用了四次`next`方法。
+>
+> 第一次调用，**Generator 函数开始执行，直到遇到第一个`yield`表达式为止。`next`方法返回一个对象，它的`value`属性就是当前`yield`表达式的值`hello`，==`done`属性的值`false`，表示遍历还没有结束==**。
+>
+> 第二次调用，Generator 函数从上次`yield`表达式停下的地方，一直执行到下一个`yield`表达式。`next`方法返回的对象的`value`属性就是当前`yield`表达式的值`world`，`done`属性的值`false`，表示遍历还没有结束。
+>
+> 第三次调用，**Generator 函数从上次`yield`表达式停下的地方，一直执行到`return`语句（如果没有`return`语句，就执行到函数结束）。**`next`方法返回的对象的`value`属性，就是紧跟在`return`语句后面的表达式的值（==如果没有`return`语句，则`value`属性的值为`undefined`==），`done`属性的值`true`，表示遍历已经结束。
+>
+> 第四次调用，此时 Generator 函数已经运行完毕，`next`方法返回对象的`value`属性为`undefined`，`done`属性为`true`。以后再调用`next`方法，返回的都是这个值。
+
+​	总结一下，调用 Generator 函数，返回一个遍历器对象，代表 Generator 函数的内部指针。以后，每次调用遍历器对象的`next`方法，就会返回一个有着`value`和`done`两个属性的对象。`value`属性表示当前的内部状态的值，是`yield`表达式后面那个表达式的值；`done`属性是一个布尔值，表示是否遍历结束。
+
+## 2.generator-yield
+
+​	`	yield`表达式本身没有返回值，或者说总是返回`undefined`。==`next`方法可以带一个参数，该参数就会被当作上一个`yield`表达式的返回值。==
+
+- `yield`
+  - 既可传参，又可以返回结果
+  - ==第一个`next()`传参无效，只用来启动==
+- 如果函数前漏掉 `*`
+  - 就是普通函数
+  - 如果有`yield`会报错， `ReferenceError: yield is not defined`
+  - **yield 只能在Generator函数内部使用**
+
+```js
+function * show() {
+    console.log('1')
+    var a = yield
+    console.log('2')
+    console.log(a)
+}
+// yield 传参
+var gen = show()
+gen.next() // 1
+gen.next() // 2 和 undefined 因为没有传参，yield没有返回值
+var gen = show()
+gen.next(10) // 1 第一次执行到yield，但没有执行赋值，只是用来启动
+gen.next(20) // 2 和 20
+
+function* show2() {
+    console.log('1')
+    yield 10
+    console.log('2')
+}
+// yield 返回
+var gen = show2()	//Generator对象
+var res1 = gen.next()	
+console.log(res1) // { value: 10, done: false }
+var res2 = gen.next()
+console.log(res2)
+// { value: undefined, done: true }  最后的value需要return返回
+```
+
+#### 遍历器对象的`next`方法的运行逻辑如下。
+
+（1）遇到`yield`表达式，就暂停执行后面的操作，并将紧跟在`yield`后面的那个表达式的值，作为返回的对象的`value`属性值。
+
+（2）下一次调用`next`方法时，再继续往下执行，直到遇到下一个`yield`表达式。
+
+（3）如果没有再遇到新的`yield`表达式，就一直运行到函数结束，直到`return`语句为止，并将`return`语句后面的表达式的值，作为返回的对象的`value`属性值。
+
+（4）如果该函数没有`return`语句，则返回的对象的`value`属性值为`undefined`。
+
+需要注意的是，`yield`表达式后面的表达式，只有当调用`next`方法、内部指针指向该语句时才会执行，因此等于为 JavaScript 提供了手动的“惰性求值”（Lazy Evaluation）的语法功能。
+
+```javascript
+function* gen() {
+  yield  123 + 456;
+}
+```
+
+**上面代码中，`yield`后面的表达式`123 + 456`，不会立即求值，只会在`next`方法将指针移到这一句时，才会求值。**
+
+> ```javascript
+> function* foo(x) {
+>   var y = 2 * (yield (x + 1));
+>   var z = yield (y / 3);
+>   return (x + y + z);
+> }
+> 
+> var a = foo(5);
+> a.next() // Object{value:6, done:false}
+> a.next() // Object{value:NaN, done:false}
+> a.next() // Object{value:NaN, done:true}
+> 
+> var b = foo(5);
+> b.next() // { value:6, done:false }
+> b.next(12) // { value:8, done:false }
+> b.next(13) // { value:42, done:true }
+> ```
+>
+> ​	上面代码中，第二次运行`next`方法的时候不带参数，导致 y 的值等于`2 * undefined`（即`NaN`），除以 3 以后还是`NaN`，因此返回对象的`value`属性也等于`NaN`。第三次运行`Next`方法的时候不带参数，所以`z`等于`undefined`，返回对象的`value`属性等于`5 + NaN + undefined`，即`NaN`。
+>
+> ​	如果向`next`方法提供参数，返回结果就完全不一样了。上面代码第一次调用`b`的`next`方法时，返回`x+1`的值`6`；**第二次调用`next`方法，将上一次`yield`表达式的值设为`12`，因此`y`等于`24`，返回`y / 3`的值`8`；第三次调用`next`方法，将上一次`yield`表达式的值设为`13`，因此`z`等于`13`，这时`x`等于`5`，`y`等于`24`，所以`return`语句的值等于`42`。**
+>
+> ​	注意，**由于`next`方法的参数表示上一个`yield`表达式的返回值，所以在第一次使用`next`方法时，传递参数是无效的。**V8 引擎直接忽略第一次使用`next`方法时的参数，只有从第二次使用`next`方法开始，参数才是有效的。从语义上讲，第一个`next`方法用来启动遍历器对象，所以不用带有参数。
+
+## 3.generator-实例
+
+- Promise 适合一次读一组
+- generator 适合逻辑性的
+
+```js
+// 带逻辑-generator
+runner(function * () {
+    let userData = yield $.ajax({url: 'getUserData'})
+
+    if (userData.type == 'VIP') {
+        let items = yield $.ajax({url: 'getVIPItems'})
+    } else {
+        let items = yield $.ajax({url: 'getItems'})
+    }
+})
+// yield 实例，用同步方式写异步
+server.use(function * () {
+    let data = yield db.query(`select * from user_table`)
+    this.body = data
+})
+```
+
+# 十二、总结
+
+1. 变量 let const
+
+| 声明方式 | 能否重复声明                                  | 作用域 | 类型 | 是否支持变量提升                  |
+| -------- | --------------------------------------------- | ------ | ---- | --------------------------------- |
+| var      | 能                                            | 函数级 | 变量 | 是,undefined                      |
+| let      | 不能,不允许在相同作用域内，重复声明同一个变量 | 块级   | 变量 | 否,referrenceError:is not defined |
+| const    | 不能                                          | 块级   | 常量 | 否                                |
+
+> *暂时性死区*：在代码**块内**，使用let命令**声明**变量**之前**，该变量都是**不可用**的。这在语法上，称为“暂时性死区”（temporal dead zone，简称 TDZ）
+
+1. 箭头函数
+   - 方便
+     - 如果只有一个参数，（）可以省略
+     - 如果只有一个语句且为return,{}可以省略
+   - 修正this
+     - 只会从自己的作用域链的上一层继承this
+     - 箭头函数没有自己的this指针，通过 call() 或 apply() 方法调用一个函数时，只能传递参数
+     - 函数体内的this对象，就是定义时所在的对象，而不是使用时所在的对象。所以this对象的指向是可变的，但是在箭头函数中，它是固定的。
+     - 不可以当作构造函数，也就是说，不可以使用new命令，否则会抛出一个错误
+     - 不可以使用arguments对象，该对象在函数体内不存在。如果要用，可以用 rest 参数代替
+     - 不可以使用yield命令，因此箭头函数不能用作 Generator 函数
+   - 不适用场合
+     - 定义对象的方法，且该方法内部包括this。
+     - 需要动态this的时候，也不应使用箭头函数
+
+> *作用域* ：一旦设置了参数的默认值，函数进行声明初始化时，参数会形成一个单独的作用域（context）。等到初始化结束，这个作用域就会消失。这种语法行为，在不设置参数默认值时，是不会出现的。
+
+1. 参数的扩展...rest
+   - 收集
+   - 扩展
+   - 默认参数
+2. 数组方法
+   - map 映射
+   - reduce 汇总，一堆 -> 一个
+   - filter 过滤
+   - forEach 循环
+3. 字符串
+   - startWith
+   - endWith
+   - 字符串模板 `${a}xxx${b}`，即拼接变量
+4. Promise
+   - 封装异步操作
+   - Promise.all([]).then()
+5. generator
+   - 执行一半能暂停
+   - yield
+6. JSON
+   - JSON.stringfy()
+   - JSON.parse()
+7. 面向对象
+   - class Test{}
+8. 解构赋值
+   - 左右结构一样
+   - 右边是合法事情
+   - 声明赋值一次完成
+
+# 十三、ES7 预览
+
+- 数组
+  - `arr.includes()` 数组是否包含某个东西
+  - 数组的 arr.keys(), arr,entries()
+  - for ... in 遍历数组 下标 key
+  - for ... of 遍历数组 值 value, 不能用于json
+
+```
+let arr = ['a', 'b', 'c']
+console.log(arr.includes(1))
+
+for (let i in arr) {
+    console.log(i) // 循环的时下标 key
+}
+
+for (let i of arr) {
+    console.log(i) // 循环的是值 value
+}
+for (let i of arr.keys()) {
+    console.log('>'+i)
+}
+for (let [key, value] of arr.entries()) {
+    console.log('>' + key + value)
+}
+
+let json = { a: 12, b: 5, c: 7 }
+for (let i in json) {
+    console.log(i)
+}
+```
+
+- 字符串
+  - padStart()/padEnd() 指定宽度，不够就补空格或指定字符
+
+```
+console.log('=' + 'abcd'.padStart(6, '0') + '=')
+console.log('=' + 'abcd'.padEnd(6, '0') + '=')
+=00abcd=
+=abcd00=
+```
+
+- 容忍度
+  - [1, 2, 3,] 老版数组最后不能有逗号，新的可以有
+  - 函数参数最后多的逗号也可以
+- async await
+  - 和 generator yield 类似
+  - generator 不可以写成箭头函数， async 可以
+
+```
+async function show() {
+    console.log(1)
+    await
+    console.log(2)
+}
+```
 
 
 
