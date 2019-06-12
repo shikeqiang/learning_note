@@ -2385,12 +2385,12 @@ server.use(function * () {
 # 十三、ES7 预览
 
 - 数组
-  - `arr.includes()` 数组是否包含某个东西
+  - `arr.includes()` 数组是否包含某个元素
   - 数组的 arr.keys(), arr,entries()
   - for ... in 遍历数组 下标 key
   - for ... of 遍历数组 值 value, 不能用于json
 
-```
+```js
 let arr = ['a', 'b', 'c']
 console.log(arr.includes(1))
 
