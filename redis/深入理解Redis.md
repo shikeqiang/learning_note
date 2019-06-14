@@ -408,9 +408,420 @@ Redis 能作为一个很好的消息队列来使用，依赖 List 类型利用 L
 
 - [《Redis 常见的应用场景解析》](https://zhuanlan.zhihu.com/p/29665317)
 
+# 六、Redis实现分布式锁
 
+## **方案一：set 指令**
 
+==先拿 **setnx** 来争抢锁，抢到之后，再用 expire 给锁加一个过期时间防止锁忘记了释放。==
 
+> set 指令有非常复杂的参数，可以同时把 setnx 和 expire 合成一条指令来用的，防止在 setnx 之后执行 expire 之前进程意外 crash 或者要重启维护了。
+
+可以使用 **set** 指令，实现分布式锁。指令如下：
+
+```bash
+SET key value [EX seconds] [PX milliseconds] [NX|XX]
+```
+
+- 可以使用 `SET key value EX seconds NX` 命令，尝试获得锁。
+
+> 一般通过`setnx+lua`实现，或者`set key value px milliseconds nx`。后一种方式的核心实现命令如下：
+>
+> ```lua
+> - 获取锁（unique_value可以是UUID等）
+> SET resource_name unique_value NX PX 30000
+> 
+> - 释放锁（lua脚本中，一定要比较value，防止误解锁）
+> if redis.call("get",KEYS[1]) == ARGV[1] then
+>     return redis.call("del",KEYS[1])
+> else
+>     return 0
+> end
+> ```
+>
+> 这种实现方式有3大要点：
+>
+> 1. set命令要用`set key value px milliseconds nx`；
+> 2. value要具有唯一性；
+> 3. 释放锁时要验证value值，不能误解锁；
+>
+> **事实上这类琐最大的缺点就是它加锁时只作用在一个Redis节点上，即使Redis通过sentinel保证高可用，如果这个master节点由于某些原因发生了主从切换，那么就会出现锁丢失的情况：**
+>
+> 1. 在Redis的master节点上拿到了锁；
+> 2. 但是这个加锁的key还没有同步到slave节点；
+> 3. master故障，发生故障转移，slave节点升级为master节点；
+> 4. 导致锁丢失。
+
+### 具体的实现：
+
+​	分布式锁一般有三种实现方式：1. 数据库乐观锁；2. 基于Redis的分布式锁；3. 基于ZooKeeper的分布式锁。
+
+​	**首先，为了确保分布式锁可用，我们至少要确保锁的实现同时满足以下四个条件：**
+
+1. **互斥性。**在任意时刻，只有一个客户端能持有锁。
+2. **不会发生死锁。**即使有一个客户端在持有锁的期间崩溃而没有主动解锁，也能保证后续其他客户端能加锁。
+3. **具有容错性。**只要大部分的Redis节点正常运行，客户端就可以加锁和解锁。
+4. **解铃还须系铃人。**加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了。
+
+#### 	代码实现：
+
+```xml
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.9.0</version>
+</dependency>
+```
+
+```java
+public class RedisTool {
+    private static final String LOCK_SUCCESS = "OK";
+    private static final String SET_IF_NOT_EXIST = "NX";
+    private static final String SET_WITH_EXPIRE_TIME = "PX";
+    /** 尝试获取分布式锁 
+    @param jedis Redis客户端 
+    @param lockKey 锁 
+    @param requestId 请求标识 
+    @param expireTime 超期时间 
+    @return 是否获取成功 
+    */
+    public static boolean tryGetDistributedLock(Jedis jedis, String lockKey, String requestId, int expireTime) {
+
+        String result = jedis.set(lockKey, requestId, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, expireTime);
+
+        if (LOCK_SUCCESS.equals(result)) {
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+​	上面的加锁就一行代码：`jedis.set(String key, String value, String nxxx, String expx, int time)`，这个set()方法一共有五个形参：
+
+- 第一个为key，使用key来当锁，因为key是唯一的。
+- 第二个为value，传的是requestId，除了key作为锁，因为要保证可靠性，即分布式锁要满足第四个条件**解铃还须系铃人**，通过给value赋值为requestId，**这样就知道这把锁是哪个请求加的了**，在解锁的时候就可以有依据。==requestId可以使用`UUID.randomUUID().toString()`方法生成。==
+- 第三个为nxxx，**这个参数是NX，意思是SET IF NOT EXIST，即当key不存在时，我们进行set操作；若key已经存在，则不做任何操作；**
+- 第四个为expx，**这个参数传的是PX，意思是我们要给这个key加一个过期的设置，具体时间由第五个参数决定。**
+- **第五个为time，与第四个参数相呼应，代表key的过期时间。**
+
+​	==总的来说，执行上面的set()方法就只会导致两种结果：1. 当前没有锁（key不存在），那么就进行加锁操作，并对锁设置个有效期，同时value表示加锁的客户端。2. 已有锁存在，不做任何操作。==
+
+​	上面的加锁代码满足**可靠性**里描述的三个条件：首先，set()加入了NX参数，可以保证如果已有key存在，则函数不会调用成功，也就是只有一个客户端能持有锁，满足互斥性。其次，**由于对锁设置了过期时间，即使锁的持有者后续发生崩溃而没有解锁，锁也会因为到了过期时间而自动解锁（即key被删除），不会发生死锁。**最后，因为将value赋值为requestId，代表加锁的客户端请求标识，**那么在客户端在解锁的时候就可以进行校验是否是同一个客户端。**由于我们只考虑Redis单机部署的场景，所以容错性我们暂不考虑。
+
+#### 错误示例1
+
+比较常见的错误示例就是使用`jedis.setnx()`和`jedis.expire()`组合实现加锁，代码如下：
+
+```java
+public static void wrongGetLock1(Jedis jedis, String lockKey, String requestId, int expireTime) {
+
+    Long result = jedis.setnx(lockKey, requestId);
+    if (result == 1) {
+        // 若在这里程序突然崩溃，则无法设置过期时间，将发生死锁
+        jedis.expire(lockKey, expireTime);
+    }
+}
+```
+
+​	==setnx()方法作用就是SET IF NOT EXIST，expire()方法就是给锁加一个过期时间。==乍一看好像和前面的set()方法结果一样，然而**由于这是两条Redis命令，不具有原子性**，如果程序在执行完setnx()之后突然崩溃，导致锁没有设置过期时间。那么将会发生死锁。网上之所以有人这样实现，是因为低版本的jedis并不支持多参数的set()方法。
+
+#### 错误示例2
+
+​	这一种错误示例就比较难以发现问题，而且实现也比较复杂。实现思路：使用`jedis.setnx()`命令实现加锁，其中key是锁，value是锁的过期时间。执行过程：1. 通过setnx()方法尝试加锁，如果当前锁不存在，返回加锁成功。2. 如果锁已经存在则获取锁的过期时间，和当前时间比较，如果锁已经过期，则设置新的过期时间，返回加锁成功。
+
+```java
+public static boolean wrongGetLock2(Jedis jedis, String lockKey, int expireTime) {
+    long expires = System.currentTimeMillis() + expireTime;
+    String expiresStr = String.valueOf(expires);
+    // 如果当前锁不存在，返回加锁成功
+    if (jedis.setnx(lockKey, expiresStr) == 1) {
+        return true;
+    }
+    // 如果锁存在，获取锁的过期时间
+    String currentValueStr = jedis.get(lockKey);
+    if (currentValueStr != null && Long.parseLong(currentValueStr) < System.currentTimeMillis()) {
+        // 锁已过期，获取上一个锁的过期时间，并设置现在锁的过期时间
+        String oldValueStr = jedis.getSet(lockKey, expiresStr);
+        if (oldValueStr != null && oldValueStr.equals(currentValueStr)) {
+            // 考虑多线程并发的情况，只有一个线程的设置值和当前值相同，它才有权利加锁
+            return true;
+        }
+    }
+    // 其他情况，一律返回加锁失败
+    return false;
+}
+```
+
+​	那么这段代码问题在于：
+
+1. **由于是客户端自己生成过期时间，所以需要强制要求分布式下每个客户端的时间必须同步。** 
+2. 当锁过期的时候，如果多个客户端同时执行`jedis.getSet()`方法，那么虽然最终只有一个客户端可以加锁，但是这个客户端的锁的过期时间可能被其他客户端覆盖。
+3. 锁不具备拥有者标识，即任何客户端都可以解锁。
+
+### 正确代码
+
+```java
+public class RedisTool {
+    private static final Long RELEASE_SUCCESS = 1L;
+    /** 
+    释放分布式锁
+    @param jedis Redis客户端 
+    @param lockKey 锁 
+    @param requestId 请求标识 
+    @return 是否释放成功 
+    */
+    public static boolean releaseDistributedLock(Jedis jedis, String lockKey, String requestId) {
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        Object result = jedis.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        if (RELEASE_SUCCESS.equals(result)) {
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+​	可以看到，解锁只需要两行代码就搞定了！第一行代码，是一个简单的Lua脚本代码。第二行代码**，将Lua代码传到`jedis.eval()`方法里，并使参数KEYS[1]赋值为lockKey，ARGV[1]赋值为requestId。eval()方法是将Lua代码交给Redis服务端执行。**
+
+​	这段Lua代码的功能：首先获取锁对应的value值，检查是否与requestId相等，如果相等则删除锁（解锁）。使用Lua语言是为了确保上述操作是原子性的，eval()方法可以确保原子性，**在eval命令执行Lua代码的时候，Lua代码将被当成一个命令去执行，并且直到eval命令执行完成，Redis才会执行其他命令。**
+
+#### 错误示例1
+
+​	最常见的解锁代码就是直接使用`jedis.del()`方法删除锁，这种不先判断锁的拥有者而直接解锁的方式，会导致任何客户端都可以随时进行解锁，即使这把锁不是它的。
+
+```java
+public static void wrongReleaseLock1(Jedis jedis, String lockKey) {
+    jedis.del(lockKey);
+}
+```
+
+#### 错误示例2
+
+​	这种解锁代码乍一看也是没问题，甚至我之前也差点这样实现，与正确代码差不多，唯一区别的是分成两条命令去执行，代码如下：
+
+```java
+public static void wrongReleaseLock2(Jedis jedis, String lockKey, String requestId) {
+    // 判断加锁与解锁是不是同一个客户端
+    if (requestId.equals(jedis.get(lockKey))) {
+        // 若在此时，这把锁突然不是这个客户端的，则会误解锁
+        jedis.del(lockKey);
+    }
+}
+```
+
+​	如代码注释，问题在于如果调用`jedis.del()`方法的时候，这把锁已经不属于当前客户端的时候会解除他人加的锁。比如客户端A加锁，一段时间之后客户端A解锁，在执行`jedis.del()`之前，锁突然过期了，此时客户端B尝试加锁成功，然后客户端A再执行del()方法，则将客户端B的锁给解除了。
+
+​	此外，如果你的项目中Redis是多机部署的，那么可以尝试使用`Redisson`实现分布式锁，这是Redis官方提供的Java组件。
+
+参照 [《Redis 分布式锁的正确实现方式（Java版）》](https://wudashan.cn/2017/10/23/Redis-Distributed-Lock-Implement/) 文章。
+
+## **方案二：Redlock**
+
+​	set 指令的方案，适合用于在单机 Redis 节点的场景下，在多 Redis 节点的场景下，会存在分布式锁丢失的问题。所以，Redis 作者 Antirez 基于分布式环境下提出了一种更高级的分布式锁的实现方式：Redlock 。
+
+### 	Redlock实现
+
+​	antirez提出的redlock算法大概是这样的：在Redis的分布式环境中，我们假设有N个Redis master。这些节点**完全互相独立，不存在主从复制或者其他集群协调机制**。我们确保将在N个实例上使用与在Redis单实例下相同方法获取和释放锁。现在我们假设有5个Redis master节点，同时我们需要在5台服务器上面运行这些Redis实例，这样保证他们不会同时都宕掉。
+
+为了取到锁，客户端应该执行以下操作:
+
+- 获取当前Unix时间，以毫秒为单位。
+- 依次尝试从5个实例，使用相同的key和**具有唯一性的value**（例如UUID）获取锁。当向Redis请求获取锁时，客户端应该设置一个网络连接和响应超时时间，这个超时时间应该小于锁的失效时间。例如你的锁自动失效时间为10秒，则超时时间应该在5-50毫秒之间。这样可以避免服务器端Redis已经挂掉的情况下，客户端还在死死地等待响应结果。如果服务器端没有在规定时间内响应，客户端应该尽快尝试去另外一个Redis实例请求获取锁。
+- 客户端使用当前时间减去开始获取锁时间（步骤1记录的时间）就得到获取锁使用的时间。**当且仅当从大多数**（N/2+1，这里是3个节点）**的Redis节点都取到锁，并且使用的时间小于锁失效时间时，锁才算获取成功**。
+- 如果取到了锁，key的真正有效时间等于有效时间减去获取锁所使用的时间（步骤3计算的结果）。
+- 如果因为某些原因，获取锁失败（没有在至少N/2+1个Redis实例取到锁或者取锁时间已经超过了有效时间），客户端应该在**所有的Redis实例上进行解锁**（即便某些Redis实例根本就没有加锁成功，防止某些节点获取到锁但是客户端没有得到响应而导致接下来的一段时间不能被重新获取锁）。
+
+### Redlock源码
+
+​	redisson已经有对redlock算法封装，接下来对其用法进行简单介绍，并对核心源码进行分析（**假设5个redis实例**）。
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.redisson/redisson -->
+<dependency>
+    <groupId>org.redisson</groupId>
+    <artifactId>redisson</artifactId>
+    <version>3.3.2</version>
+</dependency>
+```
+
+#### 用法
+
+​	redission封装的redlock算法实现的分布式锁用法，跟重入锁（ReentrantLock）有点类似：
+
+```java
+Config config = new Config();
+config.useSentinelServers().addSentinelAddress("127.0.0.1:6369","127.0.0.1:6379", "127.0.0.1:6389")
+        .setMasterName("masterName")
+        .setPassword("password").setDatabase(0);
+RedissonClient redissonClient = Redisson.create(config);
+// 还可以getFairLock(), getReadWriteLock()
+RLock redLock = redissonClient.getLock("REDLOCK_KEY");
+boolean isLock;
+try {
+    isLock = redLock.tryLock();
+    // 500ms拿不到锁, 就认为获取锁失败。10000ms即10s是锁失效时间。
+    isLock = redLock.tryLock(500, 10000, TimeUnit.MILLISECONDS);
+    if (isLock) {
+        //TODO if get lock success, do something;
+    }
+} catch (Exception e) {
+} finally {
+    // 无论如何, 最后都要解锁
+    redLock.unlock();
+}
+```
+
+#### 唯一ID
+
+​	实现分布式锁的一个非常重要的点就是set的value要具有唯一性，redisson的value是通过**UUID+threadId**保证value的唯一性。入口在redissonClient.getLock("REDLOCK_KEY")，源码在Redisson.java和RedissonLock.java中：
+
+```java
+protected final UUID id = UUID.randomUUID();
+String getLockName(long threadId) {
+    return id + ":" + threadId;
+}
+```
+
+#### 获取锁
+
+​	获取锁的代码为redLock.tryLock()或者redLock.tryLock(500, 10000, TimeUnit.MILLISECONDS)，两者的最终核心源码都是下面这段代码，只不过前者获取锁的默认租约时间（leaseTime）是LOCK_EXPIRATION_INTERVAL_SECONDS，即30s：
+
+```java
+<T> RFuture<T> tryLockInnerAsync(long leaseTime, TimeUnit unit, long threadId, RedisStrictCommand<T> command) {
+    internalLockLeaseTime = unit.toMillis(leaseTime);
+    // 获取锁时向5个redis实例发送的命令
+    return commandExecutor.evalWriteAsync(getName(), LongCodec.INSTANCE, command,
+    // 首先分布式锁的KEY不能存在，如果确实不存在，那么执行hset命令（hset REDLOCK_KEY uuid+threadId 1），并通过pexpire设置失效时间（也是锁的租约时间）
+              "if (redis.call('exists', KEYS[1]) == 0) then " +
+                  "redis.call('hset', KEYS[1], ARGV[2], 1); " +
+                  "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                  "return nil; " +
+              "end; " +
+// 如果分布式锁的KEY已经存在，并且value也匹配，表示是当前线程持有的锁，那么重入次数加1，并且设置失效时间
+              "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " +
+                  "redis.call('hincrby', KEYS[1], ARGV[2], 1); " +
+                  "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                  "return nil; " +
+              "end; " +
+              // 获取分布式锁的KEY的失效时间毫秒数
+              "return redis.call('pttl', KEYS[1]);",
+              // 这三个参数分别对应KEYS[1]，ARGV[1]和ARGV[2]
+                Collections.<Object>singletonList(getName()), internalLockLeaseTime, getLockName(threadId));
+}
+```
+
+获取锁的命令中，
+
+- **KEYS[1]**就是Collections.singletonList(getName())，表示分布式锁的key，即REDLOCK_KEY；
+- **ARGV[1]**就是internalLockLeaseTime，即锁的租约时间，默认30s；
+- **ARGV[2]**就是getLockName(threadId)，是获取锁时set的唯一值，即UUID+threadId：
+
+------
+
+#### 释放锁
+
+​	释放锁的代码为redLock.unlock()，核心源码如下：
+
+```java
+protected RFuture<Boolean> unlockInnerAsync(long threadId) {
+    // 向5个redis实例都执行如下命令
+    return commandExecutor.evalWriteAsync(getName(), LongCodec.INSTANCE, RedisCommands.EVAL_BOOLEAN,
+            // 如果分布式锁KEY不存在，那么向channel发布一条消息
+            "if (redis.call('exists', KEYS[1]) == 0) then " +
+                "redis.call('publish', KEYS[2], ARGV[1]); " +
+                "return 1; " +
+            "end;" +
+            // 如果分布式锁存在，但是value不匹配，表示锁已经被占用，那么直接返回
+            "if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then " +
+                "return nil;" +
+            "end; " +
+            // 如果就是当前线程占有分布式锁，那么将重入次数减1
+            "local counter = redis.call('hincrby', KEYS[1], ARGV[3], -1); " +
+            // 重入次数减1后的值如果大于0，表示分布式锁有重入过，那么只设置失效时间，还不能删除
+            "if (counter > 0) then " +
+                "redis.call('pexpire', KEYS[1], ARGV[2]); " +
+                "return 0; " +
+            "else " +
+                // 重入次数减1后的值如果为0，表示分布式锁只获取过1次，那么删除这个KEY，并发布解锁消息
+                "redis.call('del', KEYS[1]); " +
+                "redis.call('publish', KEYS[2], ARGV[1]); " +
+                "return 1; "+
+            "end; " +
+            "return nil;",
+            // 这5个参数分别对应KEYS[1]，KEYS[2]，ARGV[1]，ARGV[2]和ARGV[3]
+            Arrays.<Object>asList(getName(), getChannelName()), LockPubSub.unlockMessage, internalLockLeaseTime, getLockName(threadId));
+
+}
+```
+
+#### 具体实现：
+
+##### 单机Redis
+
+```java
+Config config1 = new Config();
+config1.useSingleServer().setAddress("redis://172.29.1.180:5378")
+        .setPassword("a123456").setDatabase(0);
+RedissonClient redissonClient1 = Redisson.create(config1);
+
+Config config2 = new Config();
+config2.useSingleServer().setAddress("redis://172.29.1.180:5379")
+        .setPassword("a123456").setDatabase(0);
+RedissonClient redissonClient2 = Redisson.create(config2);
+
+Config config3 = new Config();
+config3.useSingleServer().setAddress("redis://172.29.1.180:5380")
+        .setPassword("a123456").setDatabase(0);
+RedissonClient redissonClient3 = Redisson.create(config3);
+
+String resourceName = "REDLOCK";
+RLock lock1 = redissonClient1.getLock(resourceName);
+RLock lock2 = redissonClient2.getLock(resourceName);
+RLock lock3 = redissonClient3.getLock(resourceName);
+
+RedissonRedLock redLock = new RedissonRedLock(lock1, lock2, lock3);
+boolean isLock;
+try {
+    isLock = redLock.tryLock(500, 30000, TimeUnit.MILLISECONDS);
+    System.out.println("isLock = "+isLock);
+    if (isLock) {
+        //TODO if get lock success, do something;
+        Thread.sleep(30000);
+    }
+} catch (Exception e) {
+} finally {
+    // 无论如何, 最后都要解锁
+    System.out.println("");
+    redLock.unlock();
+}
+```
+
+最核心的变化就是`RedissonRedLock redLock = new RedissonRedLock(lock1, lock2, lock3);`，这里用到三个节点。
+
+参照两篇博客：
+
+- [《Redlock：Redis分布式锁最牛逼的实现》](https://mp.weixin.qq.com/s/JLEzNqQsx-Lec03eAsXFOQ)
+- [《Redisson 实现 Redis 分布式锁的 N 种姿势》](https://www.jianshu.com/p/f302aa345ca8)
+
+## **对比 Zookeeper 分布式锁**
+
+- 从可靠性上来说，Zookeeper 分布式锁好于 Redis 分布式锁。
+- 从性能上来说，Redis 分布式锁好于 Zookeeper 分布式锁。
+
+所以，没有绝对的好坏，可以根据自己的业务来具体选择。
+
+# 七、Redis实现消息队列
+
+​	一般使用 list 结构作为队列，rpush 生产消息，lpop 消费消息。当 lpop 没有消息的时候，要适当 sleep 一会再重试。
+
+- 除了sleep，list 还有个指令叫 blpop ，在没有消息的时候，它会阻塞住直到消息到来。
+- 使用 pub / sub 主题订阅者模式，可以实现 生产一次消费多次 ，即1:N 的消息队列，
+- pub / sub的缺点是：在消费者下线的情况下，生产的消息会丢失，得使用专业的消息队列如 rabbitmq 等。
+- **可以通过使用 sortedset ，拿时间戳作为 score ，消息内容作为 key 调用 zadd 来生产消息，消费者用 zrangebyscore 指令获取 N 秒之前的数据轮询进行处理，实现延时队列。**
+
+​	当然，实际上 Redis 真的真的真的不推荐作为消息队列使用，它最多只是消息队列的存储层，上层的逻辑，还需要做大量的封装和支持。
+
+另外，在 Redis 5.0 增加了 Stream 功能，一个新的强大的支持多播的可持久化的消息队列，提供类似 Kafka 的功能。
 
 
 
