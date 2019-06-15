@@ -1,4 +1,4 @@
-# shRedis配置
+# Redis配置
 
 ## 1.Redis备份(持久化)
 

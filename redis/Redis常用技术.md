@@ -15,7 +15,7 @@ Redis 是存在事务的,Redis的事务是使用 MULTI-EXEC的命令组合，使
 
 ​	**在 Redis 中 开启事务是 ==multi== 命令，而执行事务是==exec==命令。 multi 到 exec 命令之间的 Redis 命令将采取进入队列的形式，直至 exec 命令的出现，才会一次性发送队列里的命令去执行 ，而在执行这些命令的时候其他客户端就不能再插入任何命令了，这就是 事务机制。**  执行过程如下图：![image-20181216211654133](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216211654133-4966214.png)
 
-​	由上图可以看出，先用multi开启事务，然后发现输入set和get后并没有马上执行，而是进入了“QUEUED”，进入了存储队列。接着执行exec命令，发现set和get命令都执行并返回结果了。
+​	**由上图可以看出，先用multi开启事务，然后发现输入set和get后并没有马上执行，而是进入了“QUEUED”，进入了存储队列。接着执行exec命令，发现set和get命令都执行并返回结果了。**
 
 ​	如果回滚事务，则可以使用 discard 命令，它就会进入在事务队列中的命令，这样事务中的方法就不会被执行了，使用 discard命令取消事务如图：![image-20181216212816641](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216212816641-4966896.png)
 
@@ -40,7 +40,7 @@ List list = ops.exec () ; //执行事务
 
 Redis的事务回滚分为两种情况：一种是命令格式正确而数据类型不符合，一种是命令格式不正确。![image-20181216215644601](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216215644601-4968604.png)
 
-如上图，就是数据类型不符合，使用命令 incr对其自增，但是命令只会进入事务队列，而没有被执行，所以它不会有任何的错误发生，而是等待 exec命令的执行。当 exec命令执行后，之前进入队列的命令就依次执行，当遇到 incr时发生命令操作的数据类型错误，所以显示出了错误，而其之前和之后的命令都会被正常执行。注意，这里命令格式是正确的，问题在于数据类型，对于命令格式是错误的却是另外一种情形，如图： ![image-20181216215758077](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216215758077-4968678.png)
+​	如上图，就是数据类型不符合，**使用命令 incr对其自增，但是命令只会进入事务队列，而没有被执行，所以它不会有任何的错误发生，而是等待 exec命令的执行。**当 exec命令执行后，之前进入队列的命令就依次执行，当遇到 incr时发生命令操作的数据类型错误，所以显示出了错误，而其之前和之后的命令都会被正常执行。注意，这里命令格式是正确的，问题在于数据类型，对于命令格式是错误的却是另外一种情形，如图： ![image-20181216215758077](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216215758077-4968678.png)
 
 ​	使用的 incr命令格式是错误的，这个时候 Redis会立即检测出来并产生错误，而在此之前我们设置了 keyl， 在此之后我们设置了 key2a 当事务执行的时候，我们发现 keyl 和 key2 的值都为空 ，说明被 Redis 事务回滚了。
 

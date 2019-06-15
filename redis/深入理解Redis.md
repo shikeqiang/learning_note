@@ -267,6 +267,12 @@ config set maxmemory-policy noeviction
 
 另外，在 Redis 5.0 增加了 Stream 功能，一个新的强大的支持多播的可持久化的消息队列，提供类似 Kafka 的功能。
 
+一个 Redis 实例，最多能存放多少的 keys ，List、Set、Sorted Set 他们最多能存放多少元素。
+
+理论上，Redis 可以处理多达 2^32 的 keys ，并且在实际中进行了测试，每个实例至少存放了 2 亿 5 千万的 keys。
+
+任何 list、set、和 sorted set 都可以放 2^32 个元素。
+
 # 五、Redis使用场景
 
 ## 缓存
@@ -823,8 +829,152 @@ try {
 
 另外，在 Redis 5.0 增加了 Stream 功能，一个新的强大的支持多播的可持久化的消息队列，提供类似 Kafka 的功能。
 
+# 八、Redis集群
+
+Redis 集群方案如下：
+
+- 1、Redis Sentinel
+- 2、Redis Cluster
+- 3、Twemproxy
+- 4、Codis
+- 5、客户端分片
+
+与Redis分区类似，参照： [《Redis 分区》](http://www.runoob.com/redis/redis-partitioning.html) 文章。
+
+> Redis 分区方案，主要分成两种类型：
+>
+> - **客户端分区**，就是在客户端就已经决定数据会被存储到哪个 Redis 节点或者从哪个 Redis 节点读取。大多数客户端已经实现了客户端分区。
+>   - 案例：Redis Cluster 和客户端分区。
+> - **代理分区**，意味着客户端将请求发送给代理，然后代理决定去哪个节点写数据或者读数据。代理根据分区规则决定请求哪些 Redis 实例，然后根据 Redis 的响应结果返回给客户端。
+>   - 案例：Twemproxy 和 Codis 。
+>
+> 查询路由(Query routing)的意思，是客户端随机地请求任意一个 Redis 实例，然后由 Redis 将请求转发给正确的 Redis 节点。Redis Cluster 实现了一种混合形式的查询路由，但并不是直接将请求从一个Redis 节点转发到另一个 Redis 节点，而是在客户端的帮助下直接 redirect 到正确的 Redis 节点。
+
+关于前四种参照 [《Redis 实战（四）集群机制》](http://blog.720ui.com/2016/redis_action_04_cluster/) 这篇文章。
+
+关于最后一种，客户端分片，在 Redis Cluster 出现之前使用较多，目前已经使用比较少了。实现方式如下：
+
+> ​	在业务代码层实现，起几个毫无关联的 Redis 实例，**在代码层，对 Key 进行 hash 计算，然后去对应的 Redis 实例操作数据。**
+>
+> ​	这种方式对 hash 层代码要求比较高，考虑部分包括，节点失效后的替代算法方案，数据震荡后的自动脚本恢复，实例的监控，等等。
+
+目前一般在选型上来说：
+
+- 体量较小时，选择 Redis Sentinel ，单主 Redis 足以支撑业务。
+- 体量较大时，选择 Redis Cluster ，通过分片，使用更多内存。
+
+ **Redis 集群扩容**
+
+- 如果 Redis 被当做**缓存**使用，使用一致性哈希实现动态扩容缩容。
+- 如果 Redis 被当做一个**持久化存**储使用，必须使用固定的 keys-to-nodes 映射关系，节点的数量一旦确定不能变化。否则的话(即Redis 节点需要动态变化的情况），必须使用可以在运行时进行数据再平衡的一套系统，而当前只有 Redis Cluster、Codis 可以做到这样。
+
+# 九、Redis 主从同步
+
+​	==Redis 的主从同步(replication)机制，允许 Slave 从 Master 那里，通过网络传输拷贝到完整的数据备份，从而达到主从机制。==
+
+- 主数据库可以进行读写操作，当发生写操作的时候自动将数据同步到从数据库，而从数据库一般是只读的，并接收主数据库同步过来的数据。
+- 一个主数据库可以有多个从数据库，而一个从数据库只能有一个主数据库。
+- 第一次同步时，主节点做一次 bgsave 操作，并同时将后续修改操作记录到内存 buffer ，待完成后将 RDB 文件全量同步到复制节点，复制节点接受完成后将 RDB 镜像加载到内存。加载完成后，再通知主节点将期间修改的操作记录同步到复制节点进行重放就完成了同步过程。
+
+**好处**
+
+通过 Redis 的复制功，能可以很好的实现数据库的读写分离，提高服务器的负载能力。主数据库主要进行写操作，而从数据库负责读操作。
+
+​	为了使在部分节点失败或者大部分节点无法通信的情况下集群仍然可用，所以集群使用了**主从复制**模型，每个节点都会有 N-1 个复制节点。
+
+所以，Redis Cluster 可以说是 Redis Sentinel 带分片的加强版。也可以说：
+
+- Redis Sentinel 着眼于高可用，在 master 宕机时会自动将 slave 提升为 master ，继续提供服务。
+- Redis Cluster 着眼于扩展性，在单个 Redis 内存不足时，使用Cluster 进行分片存储。
+
+Redis 主从同步，是很多 Redis 集群方案的基础，例如 Redis Sentinel、Redis Cluster 等等。
+
+更多详细，可以看看 [《Redis 主从架构》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-master-slave.md) 。
+
+高可用可以看：
+
+ [《Redis 哨兵集群实现高可用》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-sentinel.md) 。
+
+- [《Redis 集群教程》](http://redis.cn/topics/cluster-tutorial.html) 完整版
+- [《Redis 集群模式的工作原理能说一下么？》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-cluster.md) 精简版
+
+## Redis 哈希槽
+
+​	Redis Cluster 没有使用一致性 hash ，而是引入了哈希槽的概念。
+
+Redis 集群有 16384 个哈希槽，每个 key 通过 CRC16 校验后对 16384 取模来决定放置哪个槽，集群的每个节点负责一部分 hash 槽。
+
+因为最大是 16384 个哈希槽，所以考虑 Redis 集群中的每个节点都能分配到一个哈希槽，所以最多支持 16384 个 Redis 节点。
+
+# 十、Redis的部署
+
+- Redis Cluster，10 台机器，5 台机器部署了 redis 主实例，另外 5 台机器部署了 redis 的从实例，每个主实例挂了一个从实例，5 个节点对外提供读写服务，每个节点的读写高峰 qps 可能可以达到每秒 5 万，5 台机器最多是 25 万读写请求每秒。
+- 机器配置：32G 内存 + 8 核 CPU + 1T 磁盘，但是分配给 Redis 进程的是 10g 内存，一般线上生产环境，Redis 的内存尽量不要超过 10g，超过 10g 可能会有问题。那么，5 台机器对外提供读写，一共有 50g 内存。
+- 因为每个主实例都挂了一个从实例，所以是高可用的，任何一个主实例宕机，都会自动故障迁移，Redis 从实例会自动变成主实例继续提供读写服务。
+- 你往内存里写的是什么数据？每条数据的大小是多少？商品数据，每条数据是 10kb 。100 条数据是 1mb ，10 万条数据是 1g 。常驻内存的是 200 万条商品数据，占用内存是 20g，仅仅不到总内存的 50%。目前高峰期每秒就是 3500 左右的请求量。
+- 其实大型的公司，会有基础架构的 team 负责缓存集群的运维。
+
+## Redis 的健康指标
+
+推荐阅读 [《Redis 几个重要的健康指标》](https://mp.weixin.qq.com/s/D_khsApGkRckEoV75pYpDA)
+
+- 存活情况
+- 连接数
+- 阻塞客户端数量
+- 使用内存峰值
+- 内存碎片率
+- 缓存命中率
+- OPS
+- 持久化
+- 失效KEY
+- 慢日志
+
+**提高 Redis 命中率**：推荐阅读 [《如何提高缓存命中率（Redis）》](http://www.cnblogs.com/shamo89/p/8383915.html) 。
+
+## 优化 Redis 的内存占用
+
+推荐阅读 [《Redis 的内存优化》](https://www.jianshu.com/p/8677603d3865)
+
+- redisObject 对象
+- 缩减键值对象
+- 共享对象池
+- 字符串优化
+- 编码优化
+- 控制 key 的数量
+
+> **假如 Redis 里面有 1 亿个 key，其中有 10w 个 key 是以某个固定的已知的前缀开头的，如果将它们全部找出来？**
+>
+> 使用 keys 指令可以扫出指定模式的 key 列表。
+>
+> - 对方接着追问：如果这个 Redis 正在给线上的业务提供服务，那使用keys指令会有什么问题？
+> - 这个时候你要回答 Redis 关键的一个特性：Redis 的单线程的。keys 指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。这个时候可以使用 scan 指令，scan 指令可以无阻塞的提取出指定模式的 key 列表，但是会有一定的重复概率，在客户端做一次去重就可以了，但是整体所花费的时间会比直接用 keys 指令长。
+
+## Redis 常见的性能问题
+
+1、Master 最好不要做任何持久化工作，如 RDB 内存快照和 AOF 日志文件。
+
+- Master 写内存快照，save 命令调度 rdbSave 函数，会阻塞主线程的工作，当快照比较大时对性能影响是非常大的，会间断性暂停服务，所以 Master 最好不要写内存快照。
+- Master AOF 持久化，如果不重写 AOF 文件，这个持久化方式对性能的影响是最小的，但是 AOF 文件会不断增大，AOF 文件过大会影响 Master 重启的恢复速度。
+- 所以，Master 最好不要做任何持久化工作，包括内存快照和 AOF 日志文件，特别是不要启用内存快照做持久化。如果数据比较关键，某个 Slave 开启AOF备份数据，策略为每秒同步一次。
+
+2、Master 调用 BGREWRITEAOF 重写 AOF 文件，AOF 在重写的时候会占大量的 CPU 和内存资源，导致服务 load 过高，出现短暂服务暂停现象。
+
+3、尽量避免在压力很大的主库上增加从库。
+
+4、主从复制不要用图状结构，用单向链表结构更为稳定，即：Master <- Slave1 <- Slave2 <- Slave3...。
+
+- 这样的结构，也方便解决单点故障问题，实现 Slave 对 Master 的替换。如果 Master挂了，可以立刻启用 Slave1 做 Master ，其他不变。
+
+5、Redis 主从复制的性能问题，为了主从复制的速度和连接的稳定性，Slave 和 Master 最好在同一个局域网内。
 
 
 
+参照：
 
-参照：[芋道源码](http://svip.iocoder.cn/Redis/Interview/)
+- [芋道源码](http://svip.iocoder.cn/Redis/Interview/)
+
+- JeffreyLcm [《Redis 面试题》](https://segmentfault.com/a/1190000014507534)
+- 烙印99 [《史上最全 Redis 面试题及答案》](https://www.imooc.com/article/36399)
+- yanglbme [《Redis 和 Memcached 有什么区别？Redis 的线程模型是什么？为什么单线程的 Redis 比多线程的 Memcached 效率要高得多？》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-single-thread-model.md)
+- 老钱 [《天下无难试之 Redis 面试题刁难大全》](https://zhuanlan.zhihu.com/p/32540678)
+- yanglbme [《Redis 的持久化有哪几种方式？不同的持久化机制都有什么优缺点？持久化机制具体底层是如何实现的？》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-persistence.md)
