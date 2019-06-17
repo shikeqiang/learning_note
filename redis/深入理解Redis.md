@@ -839,6 +839,157 @@ Redis 集群方案如下：
 - 4、Codis
 - 5、客户端分片
 
+下面主要看前四种的具体实现：
+
+### 1.Replication（主从复制）
+
+​	Redis的replication机制允许slave从master那里通过网络传输拷贝到完整的数据备份，从而达到主从机制。为了实现主从复制，我们准备三个redis服务，依次命名为master，slave1，slave2。
+
+**配置主服务器**
+
+修改主服务器的配置文件redis.conf的端口信息	port 6300
+
+**配置从服务器**
+
+​	replication相关的配置比较简单，只需要把下面一行加到slave的配置文件中。你只需要把ip地址和端口号改一下。
+
+```
+slaveof 192.168.1.1 6379
+```
+
+修改从服务器1的配置文件redis.conf的端口信息和从服务器配置。
+
+```
+port 6301slaveof 127.0.0.1 6300
+```
+
+再修改从服务器2的配置文件redis.conf的端口信息和从服务器配置。
+
+```
+port 6302slaveof 127.0.0.1 6300
+```
+
+​	从redis2.6版本开始，slave支持只读模式，而且是默认的。可以通过配置项slave-read-only来进行配置。
+此外，**如果master通过requirepass配置项设置了密码，slave每次同步操作都需要验证密码，可以通过在slave的配置文件中添加以下配置项**
+
+```
+masterauth <password>
+```
+
+### 2.Sentinel（哨兵）
+
+​	主从机制，上面的方案中主服务器可能存在单点故障，万一主服务器宕机，这是个麻烦事情，所以Redis提供了Redis-Sentinel，**以此来实现主从切换的功能，类似与zookeeper。**
+
+​	Redis-Sentinel是Redis官方推荐的高可用性(HA)解决方案，当用Redis做master-slave的高可用方案时，假如master宕机了，Redis本身(包括它的很多客户端)都没有实现自动进行主备切换，而Redis-Sentinel本身也是一个独立运行的进程，它能监控多个master-slave集群，发现master宕机后能进行自动切换。
+
+它的主要功能有以下几点
+
+- 监控（Monitoring）：不断地检查redis的主服务器和从服务器是否运作正常。
+- 提醒（Notification）：如果发现某个redis服务器运行出现状况，可以通过 API 向管理员或者其他应用程序发送通知。
+- 自动故障迁移（Automatic failover）：能够进行自动切换。当一个主服务器不能正常工作时，会将失效主服务器的其中一个从服务器升级为新的主服务器，并让失效主服务器的其他从服务器改为复制新的主服务器； 当客户端试图连接失效的主服务器时， 集群也会向客户端返回新主服务器的地址， 使得集群可以使用新主服务器代替失效服务器。
+
+Redis Sentinel 兼容 Redis 2.4.16 或以上版本， 推荐使用 Redis 2.8.0 或以上的版本。
+
+#### 配置Sentinel
+
+​	必须指定一个sentinel的配置文件sentinel.conf，如果不指定将无法启动sentinel。首先，我们先创建一个配置文件sentinel.conf
+
+```
+port 26379sentinel monitor mymaster 127.0.0.1 6300 2
+```
+
+官方典型的配置如下
+
+```conf
+sentinel monitor mymaster 127.0.0.1 6379 2
+sentinel down-after-milliseconds mymaster 60000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+sentinel monitor resque 192.168.1.3 6380 4
+sentinel down-after-milliseconds resque 10000
+sentinel failover-timeout resque 180000
+sentinel parallel-syncs resque 5
+```
+
+​	配置文件只需要配置master的信息就好啦，不用配置slave的信息，因为slave能够被自动检测到(master节点会有关于slave的消息)。
+
+​	**需要注意的是，配置文件在sentinel运行期间是会被动态修改的，例如当发生主备切换时候，配置文件中的master会被修改为另外一个slave。这样，之后sentinel如果重启时，就可以根据这个配置来恢复其之前所监控的redis集群的状态。**
+
+接下来我们将一行一行地解释上面的配置项：
+
+> **上面的配置中，第一行指示 Sentinel 去监视一个名为 mymaster 的主服务器， 这个主服务器的 IP 地址为 127.0.0.1 ， 端口号为 6300， 而将这个主服务器判断为失效至少需要 2 个 Sentinel 同意，只要同意 Sentinel 的数量不达标，自动故障迁移就不会执行。**
+>
+> ​	不过要注意， 无论设置要多少个 Sentinel ，只有统一才能判断一个服务器失效， 一个 Sentinel 都需要获得系统中多数（majority） Sentinel 的支持， 才能发起一次自动故障迁移， 并预留一个给定的配置纪元 （configuration Epoch ，一个配置纪元就是一个新主服务器配置的版本号）。换句话说， 在只有少数（minority） Sentinel 进程正常运作的情况下， Sentinel 是不能执行自动故障迁移的。sentinel集群中各个sentinel也有互相通信，通过gossip协议。
+>
+> 第二行开始：
+>
+> ```
+> sentinel <option_name> <master_name> <option_value>
+> ```
+>
+> - down-after-milliseconds 选项指定了 Sentinel 认为服务器已经断线所需的毫秒数。
+>
+> - parallel-syncs 选项指定了在执行故障转移时， 最多可以有多少个从服务器同时对新的主服务器进行同步， 这个数字越小， 完成故障转移所需的时间就越长。
+
+#### 启动 Sentinel
+
+对于 redis-sentinel 程序， 你可以用以下命令来启动 Sentinel 系统
+
+```
+redis-sentinel sentinel.conf
+```
+
+对于 redis-server 程序， 你可以用以下命令来启动一个运行在 Sentinel 模式下的 Redis 服务器
+
+```
+redis-server sentinel.conf --sentinel
+```
+
+​	以上两种方式，都必须指定一个sentinel的配置文件sentinel.conf， 如果不指定将无法启动sentinel。sentinel默认监听26379端口，所以运行前必须确定该端口没有被别的进程占用。
+
+### 3.Twemproxy
+
+​	Twemproxy是由Twitter开源的Redis代理， Redis客户端把请求发送到Twemproxy，Twemproxy根据路由规则发送到正确的Redis实例，最后Twemproxy把结果汇集返回给客户端。
+
+​	Twemproxy通过引入一个代理层，将多个Redis实例进行统一管理，使Redis客户端只需要在Twemproxy上进行操作，而不需要关心后面有多少个Redis实例，从而实现了Redis集群。Twemproxy本身也是单点，需要用Keepalived做高可用方案。
+
+​	但是，Twemproxy存在诸多不方便之处，最主要的是，Twemproxy无法平滑地增加Redis实例，业务量突增，需增加Redis服务器；业务量萎缩，需要减少Redis服务器。但对Twemproxy而言，基本上都很难操作。其次，没有友好的监控管理后台界面，不利于运维监控。
+
+### 4.Codis
+
+​	Codis解决了Twemproxy的这两大痛点，由豌豆荚于2014年11月开源，基于Go和C开发、现已广泛用于豌豆荚的各种Redis业务场景。
+
+Codis 3.x 由以下组件组成：
+
+- Codis Server：基于 redis-2.8.21 分支开发。增加了额外的数据结构，以支持 slot 有关的操作以及数据迁移指令。具体的修改可以参考文档 redis 的修改。
+- Codis Proxy：客户端连接的 Redis 代理服务, 实现了 Redis 协议。 除部分命令不支持以外(不支持的命令列表)，表现的和原生的 Redis 没有区别（就像 Twemproxy）。对于同一个业务集群而言，可以同时部署多个 codis-proxy 实例；不同 codis-proxy 之间由 codis-dashboard 保证状态同步。
+- Codis Dashboard：集群管理工具，支持 codis-proxy、codis-server 的添加、删除，以及据迁移等操作。在集群状态发生改变时，codis-dashboard 维护集群下所有 codis-proxy 的状态的一致性。对于同一个业务集群而言，同一个时刻 codis-dashboard 只能有 0个或者1个；所有对集群的修改都必须通过 codis-dashboard 完成。
+- Codis Admin：集群管理的命令行工具。可用于控制 codis-proxy、codis-dashboard 状态以及访问外部存储。
+- Codis FE：集群管理界面。多个集群实例共享可以共享同一个前端展示页面；通过配置文件管理后端 codis-dashboard 列表，配置文件可自动更新。
+- Codis HA：为集群提供高可用。依赖 codis-dashboard 实例，自动抓取集群各个组件的状态；会根据当前集群状态自动生成主从切换策略，并在需要时通过 codis-dashboard 完成主从切换。
+- Storage：为集群状态提供外部存储。提供 Namespace 概念，不同集群的会按照不同 product name 进行组织；目前仅提供了 Zookeeper 和 Etcd 两种实现，但是提供了抽象的 interface 可自行扩展。
+
+Codis引入了Group的概念，每个Group包括1个Redis Master及一个或多个Redis Slave，这是和Twemproxy的区别之一，实现了Redis集群的高可用。当1个Redis Master挂掉时，Codis不会自动把一个Slave提升为Master，这涉及数据的一致性问题，Redis本身的数据同步是采用主从异步复制，当数据在Maste写入成功时，Slave是否已读入这个数据是没法保证的，需要管理员在管理界面上手动把Slave提升为Master。
+
+Codis使用，可以参考官方文档<https://github.com/CodisLabs/codis/blob/release3.0/doc/tutorial_zh.md>
+
+### 5.Redis 3.0集群
+
+​	Redis 3.0集群采用了P2P的模式，完全去中心化。支持多节点数据集自动分片，提供一定程度的分区可用性，部分节点挂掉或者无法连接其他节点后，服务可以正常运行。Redis 3.0集群采用Hash Slot方案，而不是一致性哈希。Redis把所有的Key分成了16384个slot，每个Redis实例负责其中一部分slot。集群中的所有信息（节点、端口、slot等），都通过节点之间定期的数据交换而更新。
+
+​	Redis客户端在任意一个Redis实例发出请求，如果所需数据不在该实例中，通过重定向命令引导客户端访问所需的实例。
+
+Redis 3.0集群，目前支持的cluster特性
+
+- 节点自动发现
+- slave->master 选举,集群容错
+- Hot resharding:在线分片
+- 集群管理:cluster xxx
+- 基于配置(nodes-port.conf)的集群管理
+- ASK 转向/MOVED 转向机制
+
+关于前四种参照 [《Redis 实战（四）集群机制》](http://blog.720ui.com/2016/redis_action_04_cluster/) 。
+
 与Redis分区类似，参照： [《Redis 分区》](http://www.runoob.com/redis/redis-partitioning.html) 文章。
 
 > Redis 分区方案，主要分成两种类型：
@@ -849,8 +1000,6 @@ Redis 集群方案如下：
 >   - 案例：Twemproxy 和 Codis 。
 >
 > 查询路由(Query routing)的意思，是客户端随机地请求任意一个 Redis 实例，然后由 Redis 将请求转发给正确的 Redis 节点。Redis Cluster 实现了一种混合形式的查询路由，但并不是直接将请求从一个Redis 节点转发到另一个 Redis 节点，而是在客户端的帮助下直接 redirect 到正确的 Redis 节点。
-
-关于前四种参照 [《Redis 实战（四）集群机制》](http://blog.720ui.com/2016/redis_action_04_cluster/) 这篇文章。
 
 关于最后一种，客户端分片，在 Redis Cluster 出现之前使用较多，目前已经使用比较少了。实现方式如下：
 
@@ -889,7 +1038,88 @@ Redis 集群方案如下：
 
 Redis 主从同步，是很多 Redis 集群方案的基础，例如 Redis Sentinel、Redis Cluster 等等。
 
-更多详细，可以看看 [《Redis 主从架构》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-master-slave.md) 。
+## redis replication 的核心机制
+
+- redis 采用**异步方式**复制数据到 slave 节点，不过 redis2.8 开始，slave node 会周期性地确认自己每次复制的数据量；
+- 一个 master node 是可以配置多个 slave node 的；
+- slave node 也可以连接其他的 slave node；
+- slave node 做复制的时候，不会 block master node 的正常工作；
+- slave node 在做复制的时候，也不会 block 对自己的查询操作，它会用旧的数据集来提供服务；但是复制完成的时候，需要删除旧数据集，加载新数据集，这个时候就会暂停对外服务了；
+- slave node 主要用来进行横向扩容，做读写分离，扩容的 slave node 可以提高读的吞吐量。
+
+注意，如果采用了主从架构，那么建议必须**开启** master node 的[持久化](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-persistence.md)，**不建议用 slave node 作为 master node 的数据热备，因为那样的话，如果你关掉 master 的持久化，可能在 master 宕机重启的时候数据是空的，然后可能一经过复制， slave node 的数据也丢了。**
+
+​	另外，master 的各种备份方案，也需要做。万一本地的所有文件丢失了，从备份中挑选一份 rdb 去恢复 master，这样才能**确保启动的时候，是有数据的**，即使采用了后续讲解的[高可用机制](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-sentinel.md)，slave node 可以自动接管 master node，但也可能 sentinel 还没检测到 master failure，master node 就自动重启了，还是可能导致上面所有的 slave node 数据被清空。
+
+## redis 主从复制的核心原理
+
+==当启动一个 slave node 的时候，它会发送一个 `PSYNC` 命令给 master node。==
+
+​	如果这是 slave node 初次连接到 master node，那么会触发一次 `full resynchronization` 全量复制。==此时 master 会启动一个后台线程，开始生成一份 `RDB` 快照文件，同时还会将从客户端 client 新收到的所有写命令缓存在内存中。`RDB` 文件生成完毕后， master 会将这个 `RDB` 发送给 slave，slave 会先**写入本地磁盘，然后再从本地磁盘加载到内存**中，接着 master 会将内存中缓存的写命令发送到 slave，slave 也会同步这些数据。slave node 如果跟 master node 有网络故障，断开了连接，会自动重连，连接之后 master node 仅会复制给 slave 部分缺少的数据。==
+
+[![redis-master-slave-replication](/Users/jack/Desktop/md/images/redis-master-slave-replication.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication.png)
+
+### 主从复制的断点续传
+
+​	从 redis2.8 开始，就支持主从复制的断点续传，**如果主从复制过程中，网络连接断掉了，那么可以接着上次复制的地方，继续复制下去，而不是从头开始复制一份。**
+
+​	master node 会在内存中维护一个 backlog，master 和 slave 都会保存一个 replica offset 还有一个 master run id，offset 就是保存在 backlog 中的。如果 master 和 slave 网络连接断掉了，slave 会让 master 从上次 replica offset 开始继续复制，如果没有找到对应的 offset，那么就会执行一次 `resynchronization`。
+
+> 如果根据 host+ip 定位 master node，是不靠谱的，如果 master node 重启或者数据出现了变化，那么 slave node 应该根据不同的 run id 区分。
+
+### 无磁盘化复制
+
+​	master 在内存中直接创建 `RDB`，然后发送给 slave，不会在自己本地落地磁盘了。只需要在配置文件中开启 `repl-diskless-sync yes` 即可。
+
+```conf
+repl-diskless-sync yes
+# 等待 5s 后再开始复制，因为要等更多 slave 重新连接过来
+repl-diskless-sync-delay 5
+```
+
+### 过期 key 处理
+
+​	**slave 不会过期 key，只会等待 master 过期 key。如果 master 过期了一个 key，或者通过 LRU 淘汰了一个 key，那么会模拟一条 del 命令发送给 slave。**
+
+## 复制的完整流程
+
+​	slave node 启动时，会在自己本地保存 master node 的信息，包括 master node 的`host`和`ip`，但是复制流程没开始。
+
+​	slave node 内部有个定时任务，每秒检查是否有新的 master node 要连接和复制，如果发现，就跟 master node 建立 socket 网络连接。然后 slave node 发送 `ping` 命令给 master node。如果 master 设置了 requirepass，那么 slave node 必须发送 masterauth 的口令过去进行认证。master node **第一次执行全量复制**，将所有数据发给 slave node。而在后续，master node 持续将写命令，异步复制给 slave node。
+
+[![redis-master-slave-replication-detail](/Users/jack/Desktop/md/images/redis-master-slave-replication-detail.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication-detail.png)
+
+### 全量复制
+
+- master 执行 bgsave ，在本地生成一份 RDB 快照文件。
+- master node 将 RDB 快照文件发送给 slave node，如果 rdb 复制时间超过 60秒（repl-timeout），那么 slave node 就会认为复制失败，可以适当调大这个参数(对于千兆网卡的机器，一般每秒传输 100MB，6G 文件，很可能超过 60s)
+- master node 在生成 RDB 时，会将所有新的写命令缓存在内存中，在 slave node 保存了 rdb 之后，再将新的写命令复制给 slave node。
+- 如果在复制期间，内存缓冲区持续消耗超过 64MB，或者一次性超过 256MB，那么停止复制，复制失败。
+
+```
+client-output-buffer-limit slave 256MB 64MB 60
+```
+
+- slave node 接收到 RDB 之后，清空自己的旧数据，然后重新加载 RDB 到自己的内存中，同时**基于旧的数据版本**对外提供服务。
+- 如果 slave node 开启了 AOF，那么会立即执行 BGREWRITEAOF，重写 AOF。
+
+### 增量复制
+
+- 如果全量复制过程中，master-slave 网络连接断掉，那么 slave 重新连接 master 时，会触发增量复制。
+- master 直接从自己的 backlog 中获取部分丢失的数据，发送给 slave node，默认 backlog 就是 1MB。
+- master 就是根据 slave 发送的 psync 中的 offset 来从 backlog 中获取数据的。
+
+### heartbeat
+
+主从节点互相都会发送 heartbeat 信息。
+
+master 默认每隔 10秒 发送一次 heartbeat，slave node 每隔 1秒 发送一个 heartbeat。
+
+### 异步复制
+
+master 每次接收到写命令之后，先在内部写入数据，然后异步发送给 slave node。
+
+参照： [《Redis 主从架构》](https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/redis-master-slave.md) 。
 
 高可用可以看：
 
