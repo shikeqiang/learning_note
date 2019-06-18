@@ -1,4 +1,4 @@
-# 一、基础
+ping'pang一、基础
 
 ## 1.扩展插件及MVVM
 
@@ -483,6 +483,416 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
     })
 </script>
 ```
+
+### 5.事件处理
+
+#### 绑定监听:
+
+v-on:xxx="fun"
+  @xxx="fun"
+  @xxx="fun(参数)"
+  默认事件形参: event，方法内 *`this`* 指向 *vm*， `event`是原生 *DOM* 事件
+  隐含属性对象: $event
+
+#### 事件修饰符:
+
+.prevent : 阻止事件的默认行为，即event.preventDefault(),比如点击链接之后，不会跳转，而是做出其他定义的行为
+  .stop : 停止事件冒泡，即event.stopPropagation()，即一个div内，点击外层按钮后，不会继续响应里层按钮，如下面的test6
+
+#### 按键修饰符
+
+ .keycode : 操作的是某个keycode值的健，即键盘上按键对应的数值
+ .enter : 操作的是enter键
+
+```html
+<div id="example">
+    <h2>1. 绑定监听</h2>
+    <button @click="test1()">test1</button>
+    <button @click="test2('abc')">test2</button>
+    <!--$event代表事件对象，传入参数和事件对象，获取当前属性值test3-->
+    <button @click="test3('abcd', $event)">test3</button>
+    <h2>2. 事件修饰符</h2>
+    <a href="http://www.baidu.com" @click.prevent="test4">百度一下</a>
+    <div style="width: 200px;height: 200px;background: red" @click="test5">
+        <div style="width: 100px;height: 100px;background: blue" @click.stop="test6"></div>
+    </div>
+    <h2>3. 按键修饰符</h2>
+    <input type="text" @keyup.13="test7">
+    <input type="text" @keyup.enter="test7">
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#example',
+        data: {},
+        methods: {
+            test1(event,msg) {  // 不传参数时，调用test1可以直接用 @click="test1"
+                alert(event.target.innerHTML)
+            },
+            test2(msg) {
+                alert(msg)
+            },
+            test3(msg, event) { // 传入参数和得到当前属性值test3
+                alert(msg + '---' + event.target.textContent)
+            },
+            test4() {
+                alert('点击了链接')
+            },
+            test5() {
+                alert('out')
+            },
+            test6() {
+                alert('inner')
+            },
+            test7(event) {
+                console.log(event.keyCode)
+                alert(event.target.value)
+            }
+        }
+    })
+</script>
+```
+
+### 6.表单输入绑定
+
+​	使用v-model(双向数据绑定)自动收集数据
+
+```html
+<div id="demo">
+    <!--调用handleSubmit方法，.prevent : 阻止事件的默认行为，这里表示不提交表单-->
+    <form action="/xxx" @submit.prevent="handleSubmit">
+        <span>用户名: </span>
+        <input type="text" v-model="username"><br>
+        <span>密码: </span>
+        <input type="password" v-model="pwd"><br>
+        <span>性别: </span>
+        <input type="radio" id="female" value="女" v-model="sex">
+        <label for="female">女</label>
+        <input type="radio" id="male" value="男" v-model="sex">
+        <label for="male">男</label><br>
+
+        <span>爱好: </span>
+        <input type="checkbox" id="basket" value="basket" v-model="likes">
+        <label for="basket">篮球</label>
+        <input type="checkbox" id="foot" value="foot" v-model="likes">
+        <label for="foot">足球</label>
+        <input type="checkbox" id="pingpang" value="pingpang" v-model="likes">
+        <label for="pingpang">乒乓</label><br>
+
+        <span>城市: </span>
+        <select v-model="cityId">
+            <option value="">未选择</option>
+            <!--遍历选项,:value会转变成表达式-->
+            <option :value="city.id" v-for="(city, index) in allCitys" :key="city.id">{{city.name}}</option>
+        </select><br>
+        <span>介绍: </span>
+        <textarea rows="10" v-model="info"></textarea><br><br>
+        <input type="submit" value="注册">
+    </form>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#demo',
+        data: { // 这里是对表单数据进行赋值
+            username: '',
+            pwd: '',
+            sex: '男',   // 默认勾选为 男
+            likes: ['foot'],    // 默认选中 足球，foot是value对应的值
+            allCitys: [{id: 1, name: 'BJ'}, {id: 2, name: 'SS'}, {id: 3, name: 'SZ'}],
+            cityId: '2',    // 绑定城市ID，默认为第二个城市
+            info: ''
+        },
+        methods: {
+            handleSubmit() {
+                console.log(this.username, this.pwd, this.sex, this.likes, this.cityId, this.info)
+                alert('提交注册的ajax请求')
+            }
+        }
+    })
+</script>
+```
+
+### 7.Vue实例的生命周期
+
+![lifecycle](/Users/jack/Desktop/md/images/lifecycle.png)
+
+#### vue对象的生命周期
+
+ 1). 初始化显示
+
+beforeCreate()
+
+created()
+
+beforeMount()
+
+==mounted()==	挂载
+
+2). 更新状态:this.xxx=value
+
+beforeUpdate()
+
+updated()
+3). 销毁vue实例: vm.$destroy()
+
+==beforeDestory()==
+
+destroyed()
+
+#### 常用的生命周期方法
+
+created()/mounted(): 	发送ajax请求, 启动定时器等**异步任务**
+ beforeDestroy(): 	做收尾工作, 如: 清除定时器
+
+```html
+<div id="test">
+    <button @click="destroyVue">destroy vm</button>
+    <p v-if="isShow">间隔显示/隐藏文本</p>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#test',
+        data: {
+            isShow: true
+        },
+        beforeCreate() {
+            console.log('beforeCreate()')
+        },
+        created() {
+            console.log('created()')
+        },
+        beforeMount() {
+            console.log('beforeMount()')
+        },
+        mounted() {     // 初始化显示之后立即调用,调用一次
+            console.log('mounted()')
+            // 执行异步任务
+            this.intervalId = setInterval(() => {
+                console.log('-----')
+                this.isShow = !this.isShow
+            }, 1000)    // 指定变化时间为一秒钟
+        },
+        beforeUpdate() {
+            console.log('beforeUpdate()')
+        },
+        updated () {
+            console.log('updated()')
+        },
+        destroyed() {
+            console.log('destroyed()')
+        },
+        beforeDestroy() {   // 实例死亡之前调用，只调用一次
+            console.log('beforeDestroy()')
+            // 执行收尾的工作,清除定时器
+            clearInterval(this.intervalId)
+        },
+        methods: {
+            destroyVue() {
+                this.$destroy()
+            }
+        }
+    })
+</script>
+```
+
+### 8.过渡和动画效果(渐变和移动)
+
+#### vue动画的理解
+
+操作css的transition或animation
+==vue会给目标元素添加/移除特定的class==
+
+#### 基本过渡动画的编码
+
+1). 在目标元素外包裹\<transition name="xxx">
+2). 定义class样式
+	1>. 指定过渡样式: transition
+	2>. 指定隐藏时的样式: opacity/其它
+
+#### 过渡的类名
+
+ xxx-enter-active: 指定显示的transition，即过渡的效果，有move，fade等等，或者自定义，样式中定义过渡效果，并且要与transition中的name的值一致，如：\<transition name="xxx">
+ xxx-leave-active: 指定隐藏的transition
+ xxx-enter: 指定隐藏时的样式
+
+![transition](/Users/jack/Desktop/md/images/transition.png)
+
+```html
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>10_过渡&动画1</title>
+    <style>
+        /*指定过渡样式*/
+        .xxx-enter-active, .xxx-leave-active {
+            transition: opacity 1s
+        }
+        /*指定隐藏时的样式*/
+        .xxx-enter, .xxx-leave-to {
+            opacity: 0;
+        }
+        /*显示的过渡效果*/
+        .move-enter-active {
+            transition: all 1s
+        }
+        /*隐藏的过滤效果*/
+        .move-leave-active {
+            transition: all 3s
+        }
+        /*指定隐藏时的样式*/
+        .move-enter, .move-leave-to {
+            opacity: 0;
+            transform: translateX(20px)     /*在水平方向上移动*/
+        }
+    </style>
+</head>
+<body>
+<div id="demo">
+    <button @click="isShow = !isShow">Toggle</button>
+    <transition name="xxx">
+        <p v-show="isShow">hello</p>
+    </transition>
+</div>
+<hr>
+<div id="demo2">
+    <button @click="isShow = !isShow">Toggle2</button>
+    <transition name="move">
+        <p v-show="isShow">hello</p>
+    </transition>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    // 两个Vue实例，因为el标签不同
+    new Vue({
+        el: '#demo,#demo2',
+        data: {
+            isShow: true
+        }
+    })
+    new Vue({
+        el: '#demo2',
+        data: {
+            isShow: true
+        }
+    })
+</script>
+</body>
+</html>
+```
+
+放大后隐藏
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>10_过渡&动画2</title>
+    <style>
+        .bounce-enter-active {      /*进入的动画*/
+            animation: bounce-in .5s;
+        }
+        .bounce-leave-active {      /*离开的动画，加了reverse，与进入的时候相反*/
+            animation: bounce-in .5s reverse;
+        }
+        @keyframes bounce-in {	
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="example-2">
+    <button @click="show = !show">Toggle show</button>
+    <br>
+    <transition name="bounce">
+        <p v-if="show" style="display: inline-block;background: red">放大/缩小</p>
+    </transition>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script>
+    new Vue({
+        el: '#example-2',
+        data: {
+            show: true
+        }
+    })
+</script>
+</body>
+</html>
+```
+
+### 9.过滤器
+
+  功能: 对要显示的数据进行特定格式化后再显示
+  注意: 并没有改变原本的数据, 可是产生新的对应的数据
+
+#### 编码
+
+1). 定义过滤器
+
+```html
+Vue.filter(filterName, function(value[,arg1,arg2,...]){
+  // 进行一定的数据处理
+  return newValue
+})
+```
+
+  2). 使用过滤器
+
+```html
+<div>{{myData | filterName}}</div>
+<div>{{myData | filterName(arg)}}</div>
+```
+
+对当前时间进行指定格式显示:
+
+```html
+<div id="test">
+    <h2>显示格式化的日期时间</h2>
+    <p>{{time}}</p>
+    <p>最完整的: {{time | dateString}}</p>
+    <p>年月日: {{time | dateString('YYYY-MM-DD')}}</p>
+    <p>时分秒: {{time | dateString('HH:mm:ss')}}</p>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/moment.js/2.22.1/moment.js"></script>
+<script>
+    // 自定义过滤器，函数对象，指定过滤器名字dateString，将要被格式化的参数value
+    Vue.filter('dateString', function (value, format) {
+        // moment JavaScript 日期处理类库,如果有格式参数，就按照新格式显示，如果没有就按照原来的格式显示
+        return moment(value).format(format||'YYYY-MM-DD HH:mm:ss');
+    })
+    new Vue({
+        el: '#test',
+        data: {
+            time: new Date()    // Date对象time,time可以随意起名
+        },
+        mounted() {     // 实时按秒更新时间
+            setInterval(() => {
+                this.time = new Date()
+            }, 1000)
+        }
+    })
+</script>
+```
+
+
+
+
+
+
+
+
 
 
 
