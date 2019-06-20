@@ -1,5 +1,7 @@
 ping'pang一、基础
 
+# 一、Vue基础语法
+
 ## 1.扩展插件及MVVM
 
 1)  vue-cli: vue 脚手架 
@@ -697,6 +699,8 @@ created()/mounted(): 	发送ajax请求, 启动定时器等**异步任务**
 </script>
 ```
 
+> 不要在选项属性或回调上使用[箭头函数](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions)，比如 `created: () => console.log(this.a)` 或 `vm.$watch('a', newValue => this.myMethod())`。因为箭头函数并没有 `this`，`this`会作为变量一直向上级词法作用域查找，直至找到为止，经常导致 `Uncaught TypeError: Cannot read property of undefined` 或 `Uncaught TypeError: this.myMethod is not a function` 之类的错误。
+
 ### 8.过渡和动画效果(渐变和移动)
 
 #### vue动画的理解
@@ -886,6 +890,562 @@ Vue.filter(filterName, function(value[,arg1,arg2,...]){
 </script>
 ```
 
+### 10.指令
+
+​	指令是为了操作HTML标签的。
+
+#### 常用内置指令
+
+- v:text : 更新元素的 textContent
+
+- v-html : 更新元素的 innerHTML
+
+- v-if : 如果为true, 当前标签才会输出到页面
+
+- v-else: 如果为false, 当前标签才会输出到页面
+
+- v-show : **通过控制display样式来控制显示/隐藏**
+
+- v-for : 遍历数组/对象
+
+- v-on : 绑定事件监听, 一般简写为@，如：@click=hint  ,hint为方法名
+
+- v-bind : 强制绑定解析表达式, 可以省略v-bind，即 :key=key 
+
+- v-model : 双向数据绑定
+
+- ref : 为某个元素注册一个唯一标识, vue对象通过$refs属性访问这个元素对象
+
+- **v-cloak : 使用它防止闪现表达式,即页面加载时还没读取到数据，而先显示了表达式, 与css配合: [v-cloak] { display: none }**
+
+  > [v-cloak] 是属性选择器，找到v-cloak这个属性名所属的标签p
+
+```html
+<style>
+        [v-cloak] {     /*属性选择器，找到v-cloak这个属性名所属的标签p*/
+            display: none
+        }
+    </style>
+<div id="example">
+    <p v-cloak>{{content}}</p>
+    <p v-text="content"></p>   <!--p.textContent = content-->
+    <p v-html="content"></p>  <!--p.innerHTML = content-->
+    <p ref="msg">在当前页面跳转到百度首页</p>
+    <button @click="hint">提示</button>
+</div>
+
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: '#example',
+        data: {
+            content: '<a href="http://www.baidu.com">百度一下</a>'
+        },
+        methods: {
+            hint() {
+                alert(this.$refs.msg.innerHTML)     // 显示msg的具体内容
+            }
+        }
+    })
+</script>
+```
+
+#### 自定义指令
+
+##### 注册全局指令
+
+```js
+// my-directive是指令名，通过v-my-directive 可以调用指令；
+// el: 指令所在的标签对象
+// binding: 包含指令相关数据的容器对象
+Vue.directive('my-directive', function(el, binding){
+el.innerHTML = binding.value.toupperCase()
+  })
+```
+
+##### 注册局部指令
+
+```js
+// my-directive是指令名，通过v-my-directive 可以调用指令
+directives : {
+'my-directive' : {
+    bind (el, binding) {
+      el.innerHTML = binding.value.toupperCase()
+    	}
+	}
+  }
+```
+
+##### 使用指令
+
+```js
+v-my-directive='xxx'		//xxx 是data中的key，即数据
+```
+
+```html
+<!--
+需求: 自定义2个指令
+  1. 功能类型于v-text, 但转换为全大写，自定义的指令：v-upper-text，指令名为upper-text
+  2. 功能类型于v-text, 但转换为全小写，自定义的指令：v-lower-text，指令名为lower-text
+-->
+<div id="test">
+    <p v-upper-text="msg"></p>
+    <p v-lower-text="msg"></p>
+</div>
+<div id="test2">
+    <p v-upper-text="msg"></p>
+    <p v-lower-text="msg"></p>      <!--不在局部指令的vm内，无效-->
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript">
+    // 定义全局指令
+    // upper-text为指令名
+    // el: 指令属性所在的标签对象
+    // binding: 包含指令相关数据的容器对象
+    Vue.directive('upper-text', function (el, binding) {
+        console.log(el, binding)
+        // textContent 属性设置或者返回指定节点的文本内容。
+        el.textContent = binding.value.toUpperCase()   // 指定文本内容，这里转换为大写
+    })
+    new Vue({
+        el: '#test',
+        data: {
+            msg: "I Like You"
+        },
+        directives: {   // 注册局部指令,只在当前vm(Vue实例)管理范围内有效
+// 下面这句相当于：'lower-text':function(el, binding) {...}，属性如果有特殊符号的话要用''括起来
+            'lower-text'(el, binding) {
+                console.log(el, binding)
+                el.textContent = binding.value.toLowerCase()
+            }
+        }
+    })
+    new Vue({
+        el: '#test2',
+        data: {
+            msg: "I Like You Too"
+        }
+    })
+</script>
+```
+
+### 11.自定义插件
+
+```js
+// 自定义插件,Vue的插件库,通过匿名函数(function (window) {...}调用
+(function (window) {
+    const MyPlugin = {}     /*先定义一个对象类型的变量*/
+    MyPlugin.install = function (Vue, options) {    // 插件对象必须有一个install方法
+        // 1. 添加全局方法或属性
+        Vue.myGlobalMethod = function () {
+            console.log('Vue函数对象的myGlobalMethod()')
+        }
+
+        // 2. 添加全局资源，自定义指令
+        Vue.directive('my-directive', function (el, binding) {
+            el.textContent = '自定义插件加上绑定属性的值-----' + binding.value
+        })
+
+        // 4. 添加实例方法，实例方法要放在原型上面
+        Vue.prototype.$myMethod = function () {
+            console.log('Vue实例对象的方法$myMethod()')
+        }
+    }
+    window.MyPlugin = MyPlugin
+})(window)
+```
+
+```html
+<div id="test">
+    <p v-my-directive="msg"></p>
+</div>
+<script type="text/javascript" src="../js/vue.js"></script>
+<script type="text/javascript" src="vue-myPlugin.js"></script>      <!--引入自定义的插件，要在引入Vue下面引入-->
+<script type="text/javascript">
+    // 声明使用插件(安装插件: 调用插件的install())
+    Vue.use(MyPlugin)   // 内部会调用插件对象的install()
+    const vm = new Vue({
+        el: '#test',
+        data: {
+            msg: '绑定的属性'
+        }
+    })
+    Vue.myGlobalMethod()    //  插件定义的全局方法
+    vm.$myMethod()          // 插件定义的Vue实例对象方法
+    new Object()
+</script>
+```
+
+# 二、Vue组件化编码
+
+## 1、使用vue-cli 创建模板项目
+
+### **1.使用 **vue-cli创建模板项目 
+
+- 1)  vue-cli 是 vue 官方提供的脚手架工具 
+- 2)  github: https://github.com/vuejs/vue-cli 
+- 3)  作用: 从 https://github.com/vuejs-templates 下载模板项目 
+
+### 2.创建 **vue** 项目 
+
+- npm install -g vue-cli
+
+- vue init webpack vue_demo cd vue_demo
+
+  > 这里的webpack 是模板的意思，vue-cli官方提供了多个模板
+
+- npm install
+
+- npm run dev
+
+- 访问: http://localhost:8080/ 
+
+### 3.模板项目的结构
+
+![image-20190620110616919](/Users/jack/Desktop/md/images/image-20190620110616919.png)
+
+## 2、项目的打包和发布
+
+### 打包：npm run build 
+
+### 发布 **1:** 使用静态服务器工具包 
+
+npm install -g serve
+serve dist
+ 访问: http://localhost:5000 
+
+### 发布 **2:** 使用动态 **web** 服务器**(tomcat)** 
+
+修改配置: webpack.prod.conf.js 
+
+​	output: { 
+
+​		publicPath: '/xxx/' //打包文件夹的名称 
+
+​		} 
+
+重新打包:
+ npm run build 
+
+修改 dist 文件夹为项目名称: xxx
+ 将 xxx 拷贝到运行的 tomcat 的 webapps 目录下 ，访问: http://localhost:8080/xxx 
+
+## 3、**eslint**
+
+### **3.1.** 说明、提供的支持及校验
+
+#### 说明：
+
+1)  ESLint 是一个代码规范检查工具 
+
+2)  它定义了很多特定的规则, 一旦你的代码违背了某一规则, eslint 会作出非常有用的提示 
+
+3)  官网: http://eslint.org/ 
+
+4)  基本已替代以前的 JSLint 
+
+#### 提供以下支持：
+
+1)  ES 
+
+2)  JSX 
+
+3)  style 检查 
+
+4)  自定义错误和提示 
+
+#### 提供的校验：
+
+1)  语法错误校验 
+
+2)  不重要或丢失的标点符号，如分号 
+
+3)  没法运行到的代码块(使用过 WebStorm 的童鞋应该了解) 
+
+4)  未被使用的参数提醒 
+
+5)  确保样式的统一规则，如 sass 或者 less 
+
+6)  检查变量的命名 
+
+### 3.2 规则的错误等级有三种 
+
+1)  0:关闭规则。 
+
+2)  1:打开规则，并且作为一个警告(信息打印黄色字体) 
+
+3)  2:打开规则，并且作为一个错误(信息打印红色字体) 
+
+### 3.3 相关配置文件
+
+1)  .eslintrc.js : 全局规则配置文件 
+
+```
+'rules': { 
+	'no-new': 1 
+} 
+```
+
+2)  在 js/vue 文件中修改局部规则 
+
+```
+/* eslint-disable no-new */ 
+new Vue({ 
+	el: 'body', 
+	components: { App } 
+}) 
+```
+
+3)  .eslintignore: 指令检查忽略的文件 
+
+​	*.js 	*.vue 
+
+## 4、组件定义与使用
+
+​	组件系统是 Vue 的另一个重要概念，**因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树：**
+
+![Component Tree](/Users/jack/Desktop/md/images/components.png)
+
+在 Vue 里，一个组件本质上是一个拥有预定义选项的一个 Vue 实例。在 Vue 中注册组件很简单：
+
+```js
+// 定义名为 todo-item 的新组件
+Vue.component('todo-item', {
+  template: '<li>这是个待办项</li>'
+})
+```
+
+现在你可以用它构建另一个组件模板：
+
+```html
+<ol>
+  <!-- 创建一个 todo-item 组件的实例 -->
+  <todo-item></todo-item>
+</ol>
+```
+
+​	但是这样会为每个待办项渲染同样的文本，**应该能从父作用域将数据传到子组件才对。**修改一下组件的定义，使之能够接受一个 [prop](https://cn.vuejs.org/v2/guide/components.html#%E9%80%9A%E8%BF%87-Prop-%E5%90%91%E5%AD%90%E7%BB%84%E4%BB%B6%E4%BC%A0%E9%80%92%E6%95%B0%E6%8D%AE)：
+
+```js
+Vue.component('todo-item', {
+  // todo-item 组件现在接受一个"prop"，类似于一个自定义特性,这个 prop 名为 todo。
+  props: ['todo'],
+  template: '<li>{{ todo.text }}</li>'
+})
+```
+
+接下来使用 `v-bind` 指令将待办项传到循环输出的每个组件中：
+
+```html
+<div id="app-7">
+  <ol>
+<!--现在为每个todo-item提供todo对象,todo对象是变量，即其内容可以是动态的。也需要为每个组件提供一个“key”。-->
+    <todo-item
+      v-for="item in groceryList"
+      v-bind:todo="item"
+      v-bind:key="item.id"
+    ></todo-item>
+  </ol>
+</div>
+Vue.component('todo-item', {
+  props: ['todo'],
+  template: '<li>{{ todo.text }}</li>'
+})
+
+var app7 = new Vue({
+  el: '#app-7',
+  data: {
+    groceryList: [
+      { id: 0, text: '蔬菜' },
+      { id: 1, text: '奶酪' },
+      { id: 2, text: '随便其它什么人吃的东西' }
+    ]
+  }
+})
+```
+
+> 输出：
+>
+> 1. 蔬菜
+> 2. 奶酪
+> 3. 随便其它什么人吃的东西
+
+​	上面代码设法将应用分割成了两个更小的单元。**子单元通过 prop 接口与父单元进行了良好的解耦。**现在可以进一步改进 `<todo-item>` 组件，提供更为复杂的模板和逻辑，而不会影响到父单元。
+
+​	在一个大型应用中，有必要将整个应用程序划分为组件，以使开发更易管理。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -907,3 +1467,5 @@ Vue.filter(filterName, function(value[,arg1,arg2,...]){
 
 
 参照：尚硅谷
+
+Vue官方文档
