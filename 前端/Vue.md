@@ -1,5 +1,3 @@
-ping'pang一、基础
-
 # 一、Vue基础语法
 
 ## 1.扩展插件及MVVM
@@ -84,7 +82,31 @@ ViewModel：视图模型(即Vue实例)，就是与界面(view)对应的Model。*
 
 ​	b. 指令(以 v-开头的自定义标签属性) 
 
-“” 双引号表示的是变量，'' 单引号表示的是属性，在data里面，属性都要用单引号
+指令的职责是，当表达式的值改变时，将其产生的连带影响，响应式地作用于 DOM。
+
+**“” 双引号表示的是变量，'' 单引号表示的是属性，在data里面，属性都要用单引号**
+
+> ```html
+> <p v-if="seen">现在你看到我了</p>
+> ```
+>
+> 这里，`v-if` 指令将根据表达式 `seen` 的值的真假来**插入/移除 `<p>` 元素。**
+>
+> [参数](https://cn.vuejs.org/v2/guide/syntax.html#%E5%8F%82%E6%95%B0)
+>
+> 一些指令能够接收一个“参数”，在指令名称之后以冒号表示。例如，`v-bind` 指令可以用于响应式地更新 HTML 特性：
+>
+> ```HTML
+> <a v-bind:href="url">...</a>
+> ```
+>
+> 在这里 `href` 是参数，告知 `v-bind` 指令将该元素的 `href` 特性与表达式 `url` 的值绑定。
+>
+> 另一个例子是 `v-on` 指令，它用于监听 DOM 事件：
+>
+> ```HTML
+> <a v-on:click="doSomething">...</a>
+> ```
 
 ### 双大括号表达式 
 
@@ -162,9 +184,11 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
 
 2) 在页面中使用{{方法名}}来显示计算的结果
 
+> 注意：computed属性对象中定义的方法返回的还是一个属性，所以可以直接用{{方法名}}绑定数据和显示。
+
 #### 监视属性 
 
-1)  通过通过 vm 对象的$watch()或 watch 配置来监视指定的属性 
+1)  通过通过 vm 对象的 $watch()或 watch 配置来监视指定的属性 
 
 2)  当属性变化时, 回调函数自动调用, 在函数内部进行计算 
 
@@ -248,6 +272,27 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
 
 4)  表达式是数组: ['classA', 'classB'] 
 
+> 绑定的class属性不一定需要在模板里，也可以在Vue实例的data中，此外，还可以绑定计算属性
+>
+> ```HTML
+> <div v-bind:class="classObject"></div>
+> // js
+> data: {
+>   isActive: true,
+>   error: null
+> },
+> computed: {
+>   classObject: function () {
+>     return {
+>       active: this.isActive && !this.error,
+>       'text-danger': this.error && this.error.type === 'fatal'
+>     }
+>   }
+> }
+> ```
+>
+> 
+
 #### **style**绑定 
 
 1)  :style="{ color: activeColor, fontSize: fontSize + 'px' }" 
@@ -273,13 +318,12 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
 <body>
 <!--
 1. 理解
-  在应用界面中, 某个(些)元素的样式是变化的
-  class/style绑定就是专门用来实现动态样式效果的技术
+  在应用界面中, 某个(些)元素的样式是变化的，class/style绑定就是专门用来实现动态样式效果的技术
 2. class绑定: :class='xxx'，注意要用单引号
   xxx是字符串
   xxx是对象,根据对象class的值判断class生效,即key是类名，value是布尔类型
   xxx是数组,数组中写class样式类名
-3. style绑定,style是key-value形式的
+3. style绑定,style是key-value形式
   :style="{ color: activeColor, fontSize: fontSize + 'px' }"
   其中activeColor/fontSize是data属性
 -->
@@ -326,6 +370,10 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
 > 如果需要频繁切换 v-show 较好 
 >
 > 当条件不成立时, v-if 的所有子节点不会解析(项目中使用) 
+>
+> 带有 `v-show` 的元素始终会被渲染并保留在 DOM 中。`v-show` 只是简单地切换元素的 CSS 属性 `display`。
+>
+> ==注意，`v-show` 不支持 `<template>` 元素，也不支持 `v-else`。==
 
 ```html
 <!--1. 条件渲染指令
@@ -349,6 +397,8 @@ v-on:keyup='xxx'	 v-on:keyup='xxx(参数)' 	v-on:keyup.enter='xxx'
   })
 </script>
 ```
+
+> ​	==一般来说，`v-if` 有更高的切换开销，而 `v-show` 有更高的初始渲染开销。因此，如果需要非常频繁地切换，则使用 `v-show` 较好；如果在运行时条件很少改变，则使用 `v-if` 较好。==
 
 ### 4.列表渲染
 
