@@ -203,6 +203,16 @@
 - 注意，图中的【代理】指的是 **proxy 代理服务层**，和 Consumer 或 Provider 在同一进程中。
 - 注意，图中的【负载均衡】指的是 **cluster 路由层**，和 Consumer 或 Provider 在同一进程中。
 
+### 注册中心挂了Dubbo还可以通信
+
+​	**对于正在运行的 Consumer 调用 Provider 是不需要经过注册中心，所以不受影响。并且，Consumer 进程中，内存已经缓存了 Provider 列表。**
+
+​	那么，此时 Provider 如果下线呢？如果 Provider 是**正常关闭**，它会主动且直接对和其处于连接中的 Consumer 们，发送一条“我要关闭”了的消息。那么，Consumer 们就不会调用该 Provider ，而调用其它的 Provider 。
+
+另外，因为 Consumer 也会持久化 Provider 列表到本地文件。所以，此处如果 Consumer 重启，依然能够通过本地缓存的文件，获得到 Provider 列表。
+
+==再另外，一般情况下，注册中心是一个集群，如果一个节点挂了，Dubbo Consumer 和 Provider 将自动切换到集群的另外一个节点上。==
+
 # 四、Dubbo异常处理
 
 ​	Dubbo 异常处理机制涉及的内容比较多，核心在于 Provider 的 异常过滤器 **ExceptionFilter** 对调用结果的各种情况的处理。
@@ -839,7 +849,7 @@ public class ThreadLocalCache implements Cache {
 ```
 
 - 基于 ThreadLocal 实现，相当于一个线程，一个 ThreadLocalCache 对象。
-- ThreadLocalCache 目前没有过期或清理机制，所以**需要注意**。
+- ==ThreadLocalCache 目前没有过期或清理机制==，所以**需要注意**。
 
 #### 4.2 ThreadLocalCacheFactory
 
@@ -930,6 +940,731 @@ public class JCacheFactory extends AbstractCacheFactory {
 ```
 
 参见 [《精尽 Dubbo 源码分析 —— 过滤器（十）之 CacheFilter》](http://svip.iocoder.cn/Dubbo/filter-cache-filter/) 。
+
+# 七、Zookeeper存储的Dubbo信息
+
+## 1.zookeeper 注册中心
+
+​	[Zookeeper](http://zookeeper.apache.org/) 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支持变更推送，适合作为 Dubbo 服务的注册中心，工业强度较高，可用于生产环境，并推荐使用 [1](https://dubbo.gitbooks.io/dubbo-user-book/references/registry/zookeeper.html#fn_1)。
+
+![/user-guide/images/zookeeper.jpg](/Users/jack/Desktop/md/images/zookeeper.jpg)
+
+> - 在图中，我们可以看到 Zookeeper 的节点层级，自上而下是：
+>   - **Root** 层：根目录，**可通过 `<dubbo:registry group="dubbo" />` 的 `"group"` 设置 Zookeeper 的根节点，缺省使用 `"dubbo"` 。**
+>   - **Service** 层：服务接口全名。
+>   - **Type** 层：分类。目前除了我们在图中看到的 `"providers"`( 服务提供者列表 ) `"consumers"`( 服务消费者列表 ) 外，还有 [`"routes"`](https://dubbo.gitbooks.io/dubbo-user-book/demos/routing-rule.html)( 路由规则列表 ) 和 [`"configurations"`](https://dubbo.gitbooks.io/dubbo-user-book/demos/config-rule.html)( 配置规则列表 )。
+>   - **URL** 层：URL ，根据不同 Type 目录，**下面可以是服务提供者 URL 、服务消费者 URL 、路由规则 URL 、配置规则 URL 。**
+>   - 实际上 URL 上带有 `"category"` 参数，已经能判断每个 URL 的分类，但是 Zookeeper 是基于节点目录订阅的，所以增加了 **Type**层。
+> - 实际上，**服务消费者**启动后，不仅仅订阅了 `"providers"` 分类，也订阅了 `"routes"` `"configurations"` 分类。
+
+流程说明：
+
+- 服务提供者启动时: 向 `/dubbo/com.foo.BarService/providers` 目录下写入自己的 URL 地址
+- 服务消费者启动时: **订阅 `/dubbo/com.foo.BarService/providers` 目录下的提供者 URL 地址。并向 `/dubbo/com.foo.BarService/consumers` 目录下写入自己的 URL 地址**
+- 监控中心启动时: 订阅 `/dubbo/com.foo.BarService` 目录下的所有提供者和消费者 URL 地址。
+
+支持以下功能：
+
+- 当提供者出现断电等异常停机时，注册中心能自动删除提供者信息
+- 当注册中心重启时，能自动恢复注册数据，以及订阅请求
+- 当会话过期时，能自动恢复注册数据，以及订阅请求
+- 当设置 `<dubbo:registry check="false" />` 时，记录失败注册和订阅请求，后台定时重试
+- 可通过 `<dubbo:registry username="admin" password="1234" />` 设置 zookeeper 登录信息
+- 可通过 `<dubbo:registry group="dubbo" />` 设置 zookeeper 的根节点，不设置将使用无根树
+- 支持 `*` 号通配符 `<dubbo:reference group="*" version="*" />`，可订阅服务的所有分组和所有版本的提供者
+
+### 使用 
+
+在 provider 和 consumer 中增加 zookeeper 客户端 jar 包依赖，Dubbo 支持 zkclient 和 curator 两种 Zookeeper 客户端实现：
+
+#### 使用 zkclient 客户端
+
+从 `2.2.0` 版本开始缺省为 zkclient 实现，以提升 zookeeper 客户端的健状性。[zkclient](https://github.com/sgroschupf/zkclient) 是 Datameer 开源的一个 Zookeeper 客户端实现。
+
+缺省配置：
+
+```xml
+<dubbo:registry ... client="zkclient" />
+```
+
+或：
+
+```sh
+dubbo.registry.client=zkclient
+```
+
+或：
+
+```sh
+zookeeper://10.20.153.10:2181?client=zkclient
+```
+
+需添加依赖或直接[下载](http://repo1.maven.org/maven2/com/github/sgroschupf/zkclient)：
+
+```xml
+<dependency>
+    <groupId>com.github.sgroschupf</groupId>
+    <artifactId>zkclient</artifactId>
+    <version>0.1</version>
+</dependency>
+```
+
+#### 使用 curator 客户端
+
+从 `2.3.0` 版本开始支持可选 curator 实现。[Curator](https://github.com/Netflix/curator) 是 Netflix 开源的一个 Zookeeper 客户端实现。
+
+如果需要改为 curator 实现，请配置：
+
+```xml
+<dubbo:registry ... client="curator" />
+```
+
+或：
+
+```sh
+dubbo.registry.client=curator
+```
+
+或：
+
+```sh
+zookeeper://10.20.153.10:2181?client=curator
+```
+
+需依赖或直接[下载](http://repo1.maven.org/maven2/com/netflix/curator/curator-framework)：
+
+```xml
+<dependency>
+    <groupId>com.netflix.curator</groupId>
+    <artifactId>curator-framework</artifactId>
+    <version>1.1.10</version>
+</dependency>
+```
+
+#### Zookeeper 单机配置:
+
+```xml
+<dubbo:registry address="zookeeper://10.20.153.10:2181" />
+```
+
+或：
+
+```xml
+<dubbo:registry protocol="zookeeper" address="10.20.153.10:2181" />
+```
+
+#### Zookeeper 集群配置：
+
+```xml
+<dubbo:registry address="zookeeper://10.20.153.10:2181?backup=10.20.153.11:2181,10.20.153.12:2181" />
+```
+
+或：
+
+```xml
+<dubbo:registry protocol="zookeeper" address="10.20.153.10:2181,10.20.153.11:2181,10.20.153.12:2181" />
+```
+
+同一 Zookeeper，分成多组注册中心:
+
+```xml
+<dubbo:registry id="chinaRegistry" protocol="zookeeper" address="10.20.153.10:2181" group="china" />
+<dubbo:registry id="intlRegistry" protocol="zookeeper" address="10.20.153.10:2181" group="intl" />
+```
+
+参照： [《Dubbo 用户指南 —— zookeeper 注册中心》](https://dubbo.gitbooks.io/dubbo-user-book/references/registry/zookeeper.html)
+
+# 八、Dubbo Provider 优雅停机
+
+​	Dubbo 是通过 JDK 的 ShutdownHook 来完成优雅停机的，所以如果用户使用 `kill -9 PID` 等强制关闭指令，是不会执行优雅停机的，只有通过 `kill PID` 时，才会执行。
+
+## 原理
+
+### 服务提供方
+
+- 停止时，先标记为不接收新请求，新请求过来时直接报错，让客户端重试其它机器。
+- 然后，检测线程池中的线程是否正在运行，如果有，等待所有线程执行完成，除非超时，则强制关闭。
+
+### 服务消费方
+
+- 停止时，不再发起新的调用请求，所有新的调用在客户端即报错。
+- 然后，检测有没有请求的响应还没有返回，等待响应返回，除非超时，则强制关闭。
+
+## 设置方式
+
+设置优雅停机超时时间，缺省超时时间是 10 秒，如果超时则强制关闭。
+
+```properties
+# dubbo.properties
+dubbo.service.shutdown.wait=15000
+```
+
+​	如果 ShutdownHook 不能生效，可以自行调用，**使用tomcat等容器部署的場景，建议通过扩展ContextListener等自行调用以下代码实现优雅停机**：
+
+```java
+ProtocolConfig.destroyAll();
+```
+
+参照：[《Dubbo 用户指南 —— 优雅停机》](http://dubbo.apache.org/zh-cn/docs/user/demos/graceful-shutdown.html)
+
+**服务提供方的优雅停机过程**
+
+1. 首先，从注册中心中取消注册自己，从而使消费者不要再拉取到它。
+2. 然后，sleep 10 秒( 可以自己配置 )，等到服务消费，接收到注册中心通知到该服务提供者已经下线，加大了在不重试情况下优雅停机的成功率。
+3. 之后，广播 READONLY 事件给所有 Consumer 们，告诉它们不要在调用我了！**并且，如果此处注册中心挂掉的情况，依然能达到告诉 Consumer ，我要下线了的功能。**
+4. 再之后，sleep 10 毫秒，保证 Consumer 们，尽可能接收到该消息。
+5. 再再之后，先标记为不接收新请求，新请求过来时直接报错，让客户端重试其它机器。
+6. 再再再之后，关闭心跳线程。
+7. 最后，检测线程池中的线程是否正在运行，如果有，等待所有线程执行完成，除非超时，则强制关闭。
+8. 最最后，关闭服务器。
+
+详细参照： [《精尽 Dubbo 源码解析 —— 优雅停机》](http://svip.iocoder.cn/Dubbo/graceful-shutdown/) 。
+
+**服务消费方的优雅停机过程**
+
+1. 停止时，不再发起新的调用请求，所有新的调用在客户端即报错。
+2. 然后，检测有没有请求的响应还没有返回，等待响应返回，除非超时，则强制关闭。
+
+在使用Zookeeper作为注册中心时，服务提供者，注册到 Zookeeper 上时，创建的是 EPHEMERAL 临时节点。所以在服务提供者异常关闭时，等待 Zookeeper 会话超时，那么该临时节点就会自动删除。这样就可以解决Dubbo Provider 异步关闭时，从注册中心下线。
+
+# 九、Dubbo Consumer 可调用注册中心外的 Provider
+
+## 直连提供者
+
+​	Consumer 可以强制直连 Provider 。在**开发及测试环境**下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要点对点直连，点对点直连方式，将以服务接口为单位，忽略注册中心的提供者列表，A 接口配置点对点，不影响 B 接口从注册中心获取列表。
+
+![/user-guide/images/dubbo-directly.jpg](/Users/jack/Desktop/md/images/dubbo-directly-20190703112226503.jpg)
+
+### 通过 XML 配置
+
+​	如果是线上需求需要点对点，可在 `<dubbo:reference>` 中配置 url 指向提供者，将绕过注册中心，多个地址用分号隔开，配置如下 ：
+
+```xml
+<dubbo:reference id="xxxService" interface="com.alibaba.xxx.XxxService" url="dubbo://localhost:20890" />
+```
+
+### 通过 -D 参数指定
+
+在 JVM 启动参数中加入-D参数映射服务地址，如：
+
+```sh
+java -Dcom.alibaba.xxx.XxxService=dubbo://localhost:20890
+```
+
+### 通过文件映射
+
+如果服务比较多，也可以用文件映射，用 `-Ddubbo.resolve.file` 指定映射文件路径，此配置优先级高于 `<dubbo:reference>` 中的配置，如：
+
+```sh
+java -Ddubbo.resolve.file=xxx.properties
+```
+
+然后在映射文件 `xxx.properties` 中加入配置，其中 key 为服务名，value 为服务提供者 URL：
+
+```properties
+com.alibaba.xxx.XxxService=dubbo://localhost:20890
+```
+
+**注意** 为了避免复杂化线上环境，不要在线上使用这个功能，只应在测试阶段使用。
+
+参见 [《Dubbo 用户指南 —— 直连提供者》](http://dubbo.apache.org/zh-cn/docs/user/demos/explicit-target.html) 。
+
+​	另外，直连 Dubbo Provider 时，如果要 Debug 调试 Dubbo Provider ，可以通过配置，禁用该 Provider 注册到注册中心。否则，会被其它 Consumer 调用到。
+
+## 只订阅
+
+为方便开发测试，经常会在线下共用一个所有服务可用的注册中心，这时，如果一个正在开发中的服务提供者注册，可能会影响消费者不能正常运行。
+
+可以让服务提供者开发方，只订阅服务(开发的服务可能依赖其它服务)，而不注册正在开发的服务，通过直连测试正在开发的服务。
+
+![/user-guide/images/subscribe-only.jpg](/Users/jack/Desktop/md/images/subscribe-only.jpg)
+
+禁用注册配置
+
+```xml
+<dubbo:registry address="10.20.153.10:9090" register="false" />
+```
+
+或者
+
+```xml
+<dubbo:registry address="10.20.153.10:9090?register=false" />
+```
+
+参照： [《Dubbo 用户指南 —— 只订阅》](http://dubbo.apache.org/zh-cn/docs/user/demos/subscribe-only.html) 。
+
+# 十、Dubbo 支持的通信协议
+
+> 对应【protocol 远程调用层】。
+
+Dubbo 目前支持如下 9 种通信协议：
+
+- 【重要】`dubbo://` ，默认协议。参见 [《Dubbo 用户指南 —— dubbo://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/dubbo.html) 。
+
+  ==Dubbo 缺省协议采用单一长连接和 NIO 异步通讯，适合于小数据量大并发的服务调用，以及服务消费者机器数远大于服务提供者机器数的情况。==
+
+  反之，Dubbo 缺省协议不适合传送大数据量的服务，比如传文件，传视频等，除非请求量很低。
+
+  ![dubbo-protocol.jpg](/Users/jack/Desktop/md/images/dubbo-protocol.jpg)
+
+  > ## 配置
+  >
+  > 配置协议：
+  >
+  > ```xml
+  > <dubbo:protocol name="dubbo" port="20880" />
+  > ```
+  >
+  > 设置默认协议：
+  >
+  > ```xml
+  > <dubbo:provider protocol="dubbo" />
+  > ```
+  >
+  > 设置服务协议：
+  >
+  > ```xml
+  > <dubbo:service protocol="dubbo" />
+  > ```
+  >
+  > 多端口：
+  >
+  > ```xml
+  > <dubbo:protocol id="dubbo1" name="dubbo" port="20880" />
+  > <dubbo:protocol id="dubbo2" name="dubbo" port="20881" />
+  > ```
+  >
+  > 配置协议选项：
+  >
+  > ```xml
+  > <dubbo:protocol name=“dubbo” port=“9090” server=“netty” client=“netty” codec=“dubbo” serialization=“hessian2” charset=“UTF-8” threadpool=“fixed” threads=“100” queues=“0” iothreads=“9” buffer=“8192” accepts=“1000” payload=“8388608” />
+  > ```
+  >
+  > 多连接配置：
+  >
+  > Dubbo 协议缺省每服务每提供者每消费者使用单一长连接，如果数据量较大，可以使用多个连接。
+  >
+  > ```xml
+  > <dubbo:service connections="1"/>
+  > <dubbo:reference connections="1"/>
+  > ```
+  >
+  > - `<dubbo:service connections="0">` 或 `<dubbo:reference connections="0">` 表示该服务使用 JVM 共享长连接。**缺省**
+  > - `<dubbo:service connections="1">` 或 `<dubbo:reference connections="1">` 表示该服务使用独立长连接。
+  > - `<dubbo:service connections="2">` 或`<dubbo:reference connections="2">` 表示该服务使用独立两条长连接。
+  >
+  > 为防止被大量连接撑挂，可在服务提供方限制大接收连接数，以实现服务提供方自我保护。
+  >
+  > ```xml
+  > <dubbo:protocol name="dubbo" accepts="1000" />
+  > ```
+  >
+  > `dubbo.properties` 配置：
+  >
+  > ```sh
+  > dubbo.service.protocol=dubbo
+  > ```
+
+- 【重要】`rest://` ，贡献自 Dubbox ，目前最合适的 HTTP Restful API 协议。参见 [《Dubbo 用户指南 —— rest://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/rest.html) 。
+
+  > ## 快速入门
+  >
+  > 在dubbo中开发一个REST风格的服务会比较简单，下面以一个注册用户的简单服务为例说明。
+  >
+  > 这个服务要实现的功能是提供如下URL（注：这个URL不是完全符合REST的风格，但是更简单实用）：
+  >
+  > ```
+  > http://localhost:8080/users/register
+  > ```
+  >
+  > 而任何客户端都可以将包含用户信息的JSON字符串POST到以上URL来完成用户注册。
+  >
+  > 首先，开发服务的接口：
+  >
+  > ```java
+  > public interface UserService {    
+  >    void registerUser(User user);
+  > }
+  > ```
+  >
+  > 然后，开发服务的实现：
+  >
+  > ```java
+  > @Path("/users")
+  > public class UserServiceImpl implements UserService {
+  >        
+  >     @POST
+  >     @Path("/register")
+  >     @Consumes({MediaType.APPLICATION_JSON})
+  >     public void registerUser(User user) {
+  >         // save the user...
+  >     }
+  > }
+  > ```
+  >
+  > 上面的实现非常简单，但是由于该 REST 服务是要发布到指定 URL 上，供任意语言的客户端甚至浏览器来访问，所以这里额外添加了几个 JAX-RS 的标准 annotation 来做相关的配置。
+  >
+  > @Path("/users")：指定访问UserService的URL相对路径是/users，即http://localhost:8080/users
+  >
+  > @Path("/register")：指定访问registerUser()方法的URL相对路径是/register，再结合上一个@Path为UserService指定的路径，则调用UserService.register()的完整路径为http://localhost:8080/users/register
+  >
+  > @POST：指定访问registerUser()用HTTP POST方法
+  >
+  > @Consumes({MediaType.APPLICATION_JSON})：指定registerUser()接收JSON格式的数据。REST框架会自动将JSON数据反序列化为User对象
+  >
+  > 最后，在spring配置文件中添加此服务，即完成所有服务开发工作：
+  >
+  > ```xml
+  > <!-- 用rest协议在8080端口暴露服务 -->
+  > <dubbo:protocol name="rest" port="8080"/>
+  > 
+  > <!-- 声明需要暴露的服务接口 -->
+  > <dubbo:service interface="xxx.UserService" ref="userService"/>
+  > 
+  > <!-- 和本地bean一样实现服务 -->
+  > <bean id="userService" class="xxx.UserServiceImpl" />
+  > ```
+
+- `rmi://` ，参见 [《Dubbo 用户指南 —— rmi://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/rmi.html) 。
+
+- `webservice://` ，参见 [《Dubbo 用户指南 —— webservice://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/webservice.html) 。
+
+- `hessian://` ，参见 [《Dubbo 用户指南 —— hessian://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/hessian.html) 。
+
+- `thrift://` ，参见 [《Dubbo 用户指南 —— thrift://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/thrift.html) 。
+
+- `memcached://` ，参见 [《Dubbo 用户指南 —— memcached://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/memcached.html) 。
+
+- `redis://` ，参见 [《Dubbo 用户指南 —— redis://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/redis.html) 。
+
+- `http://` ，参见 [《Dubbo 用户指南 —— http://》](http://dubbo.apache.org/zh-cn/docs/user/references/protocol/http.html) 。注意，这个和我们理解的 HTTP 协议有差异，而是 Spring 的 HttpInvoker 实现。
+
+实际上，社区里还有其他通信协议正处于孵化：
+
+- `jsonrpc://` ，对应 Github 仓库为 <https://github.com/apache/incubator-dubbo-rpc-jsonrpc> ，来自千米网的贡献。
+
+每一种通信协议的实现，在 [《精尽 Dubbo 源码解析》](http://svip.iocoder.cn/categories/Dubbo/) 中，都有详细解析。
+
+另外，在 [《Dubbo 用户指南 —— 性能测试报告》](http://dubbo.apache.org/zh-cn/docs/user/perf-test.html) 中，官方提供了上述协议的性能测试对比。
+
+## Dubbo使用的通信框架
+
+Dubbo 在通信层拆分成了 API 层、实现层。项目结构如下：
+
+- API 层：
+  - `dubbo-remoting-api`
+- 实现层：
+  - `dubbo-remoting-netty3`
+  - `dubbo-remoting-netty4`
+  - `dubbo-remoting-mina`
+  - `dubbo-remoting-grizzly`
+
+再配合上 Dubbo SPI 的机制，使用者可以自定义使用哪一种具体的实现。美滋滋。
+
+在 Dubbo 的最新版本，默认使用 **Netty4** 的版本。
+
+# 十一、本地调用和远程调用
+
+​	每次 Consumer 调用 Provider 都是跨进程，需要进行网络通信。
+
+### 本地调用
+
+本地调用使用了 injvm 协议，是一个伪协议，它不开启端口，不发起远程调用，只在 JVM 内直接关联，但执行 Dubbo 的 Filter 链。
+
+### 配置
+
+定义 injvm 协议
+
+```xml
+<dubbo:protocol name="injvm" />
+```
+
+设置默认协议
+
+```xml
+<dubbo:provider protocol="injvm" />
+```
+
+设置服务协议
+
+```xml
+<dubbo:service protocol="injvm" />
+```
+
+优先使用 injvm
+
+```xml
+<dubbo:consumer injvm="true" .../>
+<dubbo:provider injvm="true" .../>
+```
+
+或
+
+```xml
+<dubbo:reference injvm="true" .../>
+<dubbo:service injvm="true" .../>
+```
+
+注意：dubbo从 `2.2.0` 每个服务默认都会在本地暴露,无需进行任何配置即可进行本地引用,如果不希望服务进行远程暴露,只需要在provider将protocol设置成injvm即可
+
+### 自动暴露、引用本地服务
+
+从 `2.2.0` 开始，每个服务默认都会在本地暴露。在引用服务的时候，默认优先引用本地服务。如果希望引用远程服务可以使用一下配置强制引用远程服务。
+
+```xml
+<dubbo:reference ... scope="remote" />
+```
+
+# 十二、Dubbo序列化的方式
+
+> 对应【serialize 数据序列化层】。
+
+Dubbo 目前支付如下 7 种序列化方式：
+
+- 【重要】Hessian2 ：基于 Hessian 实现的序列化拓展。dubbo://   协议的默认序列化方案。
+
+  - Hessian 除了是 Web 服务，也提供了其序列化实现，因此 Dubbo 基于它实现了序列化拓展。
+  - 另外，Dubbo 维护了自己的 [`hessian-lite`](https://github.com/alibaba/dubbo/tree/4bbc0ddddacc915ddc8ff292dd28745bbc0031fd/hessian-lite) ，对 [Hessian 2](http://hessian.caucho.com/) 的 **序列化** 部分的精简、改进、BugFix 。
+
+- Dubbo ：Dubbo 自己实现的序列化拓展。
+
+  - 具体可参见 [《精尽 Dubbo 源码分析 —— 序列化（二）之 Dubbo 实现》](http://svip.iocoder.cn/Dubbo/serialize-2-dubbo/) 。
+
+- Kryo ：基于Kryo实现的序列化拓展。
+
+- FST ：基于FST实现的序列化拓展。
+
+  > ## 启用Kryo和FST
+  >
+  > 使用Kryo和FST非常简单，只需要在dubbo RPC的XML配置中添加一个属性即可：
+  >
+  > ```xml
+  > <dubbo:protocol name="dubbo" serialization="kryo"/>
+  > <dubbo:protocol name="dubbo" serialization="fst"/>
+  > ```
+  >
+  > ## 注册被序列化类
+  >
+  > 要让Kryo和FST完全发挥出高性能，最好将那些需要被序列化的类注册到dubbo系统中，例如，我们可以实现如下回调接口：
+  >
+  > ```java
+  > public class SerializationOptimizerImpl implements SerializationOptimizer {
+  >     public Collection<Class> getSerializableClasses() {
+  >         List<Class> classes = new LinkedList<Class>();
+  >         classes.add(BidRequest.class);
+  >         classes.add(BidResponse.class);
+  >         classes.add(Device.class);
+  >         classes.add(Geo.class);
+  >         classes.add(Impression.class);
+  >         classes.add(SeatBid.class);
+  >         return classes;
+  >     }
+  > }
+  > ```
+  >
+  > 然后在XML配置中添加：
+  >
+  > ```xml
+  > <dubbo:protocol name="dubbo" serialization="kryo" optimizer="org.apache.dubbo.demo.SerializationOptimizerImpl"/>
+  > ```
+  >
+  > 在注册这些类后，序列化的性能可能被大大提升，特别针对小数量的嵌套对象的时候。
+  >
+  > 当然，在对一个类做序列化的时候，可能还级联引用到很多类，比如Java集合类。针对这种情况，我们已经自动将JDK中的常用类进行了注册，所以你不需要重复注册它们（当然你重复注册了也没有任何影响），包括：
+  >
+  > ```
+  > GregorianCalendar
+  > InvocationHandler
+  > BigDecimal
+  > BigInteger
+  > Pattern
+  > BitSet
+  > URI
+  > UUID
+  > HashMap
+  > ArrayList
+  > LinkedList
+  > HashSet
+  > TreeSet
+  > Hashtable
+  > Date
+  > Calendar
+  > ConcurrentHashMap
+  > SimpleDateFormat
+  > Vector
+  > BitSet
+  > StringBuffer
+  > StringBuilder
+  > Object
+  > Object[]
+  > String[]
+  > byte[]
+  > char[]
+  > int[]
+  > float[]
+  > double[]
+  > ```
+  >
+  > 由于注册被序列化的类仅仅是出于性能优化的目的，所以即使你忘记注册某些类也没有关系。事实上，即使不注册任何类，Kryo和FST的性能依然普遍优于hessian和dubbo序列化。
+  >
+  > 参照 [《Dubbo 用户指南 —— FST 序列化》](http://dubbo.apache.org/zh-cn/docs/user/demos/serialization.html)
+
+- JSON ：基于 [Fastjson](https://www.oschina.net/p/fastjson) 实现的序列化拓展。
+
+- NativeJava ：基于 Java 原生的序列化拓展。
+
+- CompactedJava ：在 **NativeJava** 的基础上，实现了对 ClassDescriptor 的处理。
+
+微博的 Motan 有实现对 Protobuf 序列化的支持，可以看 [《深入理解RPC之序列化篇 —— 总结篇》](https://www.cnkirito.moe/rpc-serialize-2/) 的 [「Protostuff实现」](http://svip.iocoder.cn/Dubbo/Interview/#) 小节。
+
+# 十三、Dubbo负载均衡策略
+
+ Dubbo 内置 4 种负载均衡策略。其中，默认使用 `random` 随机调用策略。
+
+## 负载均衡策略
+
+### Random LoadBalance
+
+- **随机**，按权重设置随机概率。
+- 在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
+
+### RoundRobin LoadBalance
+
+- **轮询**，按公约后的权重设置轮询比率。
+- 存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
+
+### LeastActive LoadBalance
+
+- **最少活跃调用数**，相同活跃数的随机，活跃数指调用前后计数差。
+- 使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
+
+### ConsistentHash LoadBalance
+
+- **一致性 Hash**，相同参数的请求总是发到同一提供者。
+- 当某一台提供者挂时，原本发往该提供者的请求，基于虚拟节点，平摊到其它提供者，不会引起剧烈变动。
+- 缺省只对第一个参数 Hash，如果要修改，请配置 `<dubbo:parameter key="hash.arguments" value="0,1" />`
+- 缺省用 160 份虚拟节点，如果要修改，请配置 `<dubbo:parameter key="hash.nodes" value="320" />`
+
+## 配置
+
+### 服务端服务级别
+
+```xml
+<dubbo:service interface="..." loadbalance="roundrobin" />
+```
+
+### 客户端服务级别
+
+```xml
+<dubbo:reference interface="..." loadbalance="roundrobin" />
+```
+
+### 服务端方法级别
+
+```xml
+<dubbo:service interface="...">
+    <dubbo:method name="..." loadbalance="roundrobin"/>
+</dubbo:service>
+```
+
+### 客户端方法级别
+
+```xml
+<dubbo:reference interface="...">
+    <dubbo:method name="..." loadbalance="roundrobin"/>
+</dubbo:reference>
+```
+
+参照：[《Dubbo 用户指南 —— 负载均衡》](http://dubbo.apache.org/zh-cn/docs/user/demos/loadbalance.html) 
+
+# 十四、Dubbo集群容错策略
+
+> 对应【cluster 路由层】的 Cluster 组件。
+
+​	在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 failover 重试。
+
+![cluster](/Users/jack/Desktop/md/images/cluster.jpg)
+
+各节点关系：
+
+- 这里的 `Invoker` 是 `Provider` 的一个可调用 `Service` 的抽象，`Invoker` 封装了 `Provider` 地址及 `Service` 接口信息
+- `Directory` 代表多个 `Invoker`，可以把它看成 `List<Invoker>` ，但与 `List` 不同的是，它的值可能是动态变化的，比如**注册中心推送变更**
+- `Cluster` 将 `Directory` 中的多个 `Invoker` 伪装成一个 `Invoker`，对上层透明，伪装过程包含了容错逻辑，调用失败后，重试另一个
+- `Router` 负责从多个 `Invoker` 中按路由规则选出子集，比如读写分离，应用隔离等
+- `LoadBalance` 负责从多个 `Invoker` 中选出具体的一个用于本次调用，选的过程包含了负载均衡算法，调用失败后，需要重选
+
+Dubbo提供了6种集群容错策略：
+
+### Failover Cluster
+
+​	失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 `retries="2"` 来设置重试次数(不含第一次)。
+
+重试次数配置有以下三种方式：
+
+```xml
+<dubbo:service retries="2" />
+<dubbo:reference retries="2" />
+<dubbo:reference>
+    <dubbo:method name="findFoo" retries="2" />
+</dubbo:reference>
+```
+
+### Failfast Cluster
+
+​	快速失败，只发起一次调用，失败立即报错。通常用于非幂等性的写操作，比如新增记录。
+
+### Failsafe Cluster
+
+​	失败安全，出现异常时，直接忽略。通常用于写入审计日志等操作。
+
+### Failback Cluster
+
+​	失败自动恢复，后台记录失败请求，定时重发。通常用于消息通知操作。
+
+### Forking Cluster
+
+​	并行调用多个服务器，只要一个成功即返回。通常用于实时性要求较高的读操作，但需要浪费更多服务资源。可通过 `forks="2"` 来设置最大并行数。
+
+### Broadcast Cluster
+
+​	广播调用所有提供者，逐个调用，任意一台报错则报错 [[2\]](http://dubbo.apache.org/zh-cn/docs/user/demos/fault-tolerent-strategy.html#fn2)。通常用于通知所有提供者更新缓存或日志等本地资源信息。
+
+## 集群模式配置
+
+按照以下两种方式在服务提供方和消费方配置集群模式
+
+```xml
+<dubbo:service cluster="failsafe" />
+<dubbo:reference cluster="failsafe" />
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
