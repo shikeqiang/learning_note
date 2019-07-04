@@ -1638,23 +1638,152 @@ Dubbo提供了6种集群容错策略：
 <dubbo:reference cluster="failsafe" />
 ```
 
+# 十五、Dubbo的动态代理策略
 
+> 对应【proxy 服务代理层】。
 
+通过动态创建对应调用 Dubbo 服务的实现类。简化代码如下：
 
+```java
+// ProxyFactory.java
+/**
+ * create proxy.
+ * 创建 Proxy ，在引用服务调用。
+ * @param invoker Invoker 对象
+ * @return proxy
+ */
+@Adaptive({Constants.PROXY_KEY})
+<T> T getProxy(Invoker<T> invoker) throws RpcException;
+```
 
+- 方法参数 `invoker` ，实现了调用 Dubbo 服务的逻辑。
+- 返回的 `<T>` 结果，就是 XXXService 的实现类，而这个实现类，就是通过动态代理的**工具类**进行生成。
 
+通过动态代理的方式，实现了对于我们开发使用 Dubbo 时，透明的效果。当然，因为实际场景下，我们是结合 Spring 场景在使用，所以不会直接使用该 API 。
 
+------
 
+目前实现动态代理的**工具类**还是蛮多的，如下：
 
+- Javassist
+- JDK *原生自带*
+- CGLIB
+- ASM
 
+其中，Dubbo 动态代理使用了 Javassist 和 JDK 两种方式。
 
+- 默认情况下，使用 Javassist 。
+- 可通过 SPI 机制，切换使用 JDK 的方式。
 
+**为什么默认使用 Javassist？**
 
+在 Dubbo 开发者【梁飞】的博客 [《动态代理方案性能对比》](https://javatar.iteye.com/blog/814426) 中，我们可以看到这几种方式的性能差异，而 Javassit 排在第一。也就是说，因为**性能**的原因。
 
+​	有一点需要注意，Javassit 提供**字节码** bytecode 生成方式和动态代理接口两种方式。后者的性能比 JDK 自带的还慢，所以 Dubbo 使用的是前者**字节码** bytecode 生成方式。
 
+​	实际上，JDK 代理在 JDK 1.8 版本下，性能已经有很大的提升，并且无需引入三方工具的依赖，也是非常棒的选择。所以，Spring 和 Motan 在动态代理生成上，优先选择 JDK 代理。
 
+> 注意，Spring 同时也选择了 CGLIB 作为生成动态代理的工具之一。
 
+推荐阅读徐妈的 [《深入理解 RPC 之动态代理篇》](http://www.iocoder.cn/RPC/laoxu/rpc-dynamic-proxy/) 。
 
+# 十六、Dubbo的SPI实现思想
+
+## 1.SPI机制
+
+​	JDK提供的SPI(Service Provider Interface)机制，主要是针对厂商或者插件的，也可以在一些框架的扩展中看到。其核心类`java.util.ServiceLoader`可以在[jdk1.8](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html)的文档中看到详细的介绍，这个类用于加载固定类路径下文件的一个加载器，正是它加载了对应接口声明的实现类。
+
+### SPI 在实际项目中的应用
+
+​	通过SPI扩展的包或者插件，在其jar包目录下都会有个resources/META-INF/services这样子的文件，比如下面的数据库驱动包。
+
+![image-20190704152931432](/Users/jack/Desktop/md/images/image-20190704152931432.png)
+
+1. 在mysql-connector-java-xxx.jar中发现了META-INF\services\java.sql.Driver文件，里面只有两行记录：
+
+   ```
+   com.mysql.jdbc.Driver
+   com.mysql.fabric.jdbc.FabricMySQLDriver
+   ```
+
+   `java.sql.Driver`是一个规范接口，`com.mysql.jdbc.Driver`
+   `com.mysql.fabric.jdbc.FabricMySQLDriver`则是mysql-connector-java-xxx.jar对这个规范的实现接口。
+
+2. 在jcl-over-slf4j-xxxx.jar中发现了META-INF\services\org.apache.commons.logging.LogFactory文件，里面只有一行记录：
+
+   ```
+   org.apache.commons.logging.impl.SLF4JLogFactory
+   ```
+
+### SPI 在扩展方面的应用
+
+​	SPI不仅仅是为厂商指定的标准，同样也为框架扩展提供了一个思路。框架可以预留出SPI接口，这样可以在不侵入代码的前提下，通过增删依赖来扩展框架。前提是，框架得预留出核心接口，也就是本例中interface模块中类似的接口，剩下的适配工作便留给了开发者。
+
+参照：[《JAVA 拾遗 —— 关于 SPI 机制》](http://www.iocoder.cn/Fight/xuma/spi/) 。
+
+## 2.Dubbo中SPI的实现
+
+​	之所以Dubbo会自己实现SPI主要是因为：
+
+- **JDK 标准的 SPI 会一次性实例化扩展点所有实现，**如果有扩展实现初始化很耗时，但如果没用上也加载，会很浪费资源。
+
+  Dubbo 有很多的拓展点，例如 Protocol、Filter 等等。并且每个拓展点有多种的实现，例如 Protocol 有 DubboProtocol、InjvmProtocol、RestProtocol 等等。那么使用 JDK SPI 机制，会初始化无用的拓展点及其实现，造成不必要的耗时与资源浪费。
+
+- 如果扩展点加载失败，连扩展点的名称都拿不到了。比如：JDK 标准的 ScriptEngine，通过 getName() 获取脚本类型的名称，但如果 RubyScriptEngine 因为所依赖的 jruby.jar 不存在，导致 RubyScriptEngine 类加载失败，这个失败原因被吃掉了，和 ruby 对应不起来，当用户执行 ruby 脚本时，会报不支持 ruby，而不是真正失败的原因。
+
+- 增加了对扩展点 IoC 和 AOP 的支持，一个扩展点可以直接 setter 注入其它扩展点。
+
+想要自定义一个 Dubbo SPI 某个拓展点的实现，可以阅读 [《Dubbo 开发指南 —— 扩展点加载》](http://dubbo.apache.org/zh-cn/docs/dev/SPI.html) 。当然，如果你是首次写，可能会有一丢丢复杂。实际场景下，我们写的最多的是 [Filter 调用拦截扩展](http://dubbo.apache.org/zh-cn/docs/dev/impls/filter.html) 。
+
+# 十七、Dubbo服务降级
+
+比如说服务 A 调用服务 B，结果服务 B 挂掉了。服务 A 再重试几次调用服务 B，还是不行，那么直接降级，走一个备用的逻辑，给用户返回响应。
+
+在 Dubbo 中，实现服务降级的功能，一共有两大种方式。
+
+**① Dubbo 原生自带的服务降级功能**
+
+​	可以通过服务降级功能临时屏蔽某个出错的非关键服务，并定义降级后的返回策略。向注册中心写入动态配置覆盖规则：
+
+```java
+RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
+Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://10.20.153.10:2181"));
+registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=configurators&dynamic=false&application=foo&mock=force:return+null"));
+```
+
+其中：
+
+- `mock=force:return+null` 表示消费方对该服务的方法调用都直接返回 null 值，不发起远程调用。用来屏蔽不重要服务不可用时对调用方的影响。
+- 还可以改为 `mock=fail:return+null` 表示消费方对该服务的方法调用在失败后，再返回 null 值，不抛异常。用来容忍不重要服务不稳定时对调用方的影响。
+
+**② 引入支持服务降级的组件**
+
+目前开源社区常用的有两种组件支持服务降级的功能，分别是：
+
+- Alibaba Sentinel
+- Netflix Hystrix
+
+目前 Hystrix 已经停止维护，并且和 Dubbo 的集成度不是特别高，需要做二次开发，所以推荐使用 Sentinel 。
+
+> 随着微服务的流行，服务和服务之间的稳定性变得越来越重要。Sentinel 以流量为切入点，从流量控制、熔断降级、系统负载保护等多个维度保护服务的稳定性。
+>
+> Sentinel 具有以下特征:
+>
+> - **丰富的应用场景**：Sentinel 承接了阿里巴巴近 10 年的双十一大促流量的核心场景，例如秒杀（即突发流量控制在系统容量可以承受的范围）、消息削峰填谷、集群流量控制、实时熔断下游不可用应用等。
+> - **完备的实时监控**：Sentinel 同时提供实时的监控功能。您可以在控制台中看到接入应用的单台机器秒级数据，甚至 500 台以下规模的集群的汇总运行情况。
+> - **广泛的开源生态**：Sentinel 提供开箱即用的与其它开源框架/库的整合模块，例如与 Spring Cloud、Dubbo、gRPC 的整合。您只需要引入相应的依赖并进行简单的配置即可快速地接入 Sentinel。
+> - **完善的 SPI 扩展点**：Sentinel 提供简单易用、完善的 SPI 扩展接口。您可以通过实现扩展接口来快速地定制逻辑。例如定制规则管理、适配动态数据源等。
+>
+> Sentinel 的主要特性：
+>
+> ![Sentinel-features-overview](/Users/jack/Desktop/md/images/50505538-2c484880-0aaf-11e9-9ffc-cbaaef20be2b.png)
+>
+> Sentinel 分为两个部分:
+>
+> - 核心库（Java 客户端）不依赖任何框架/库，能够运行于所有 Java 运行时环境，同时对 Dubbo / Spring Cloud 等框架也有较好的支持。
+> - 控制台（Dashboard）基于 Spring Boot 开发，打包后可以直接运行，不需要额外的 Tomcat 等应用容器。
+>
+> 参照： [《Sentinel 介绍》](https://github.com/alibaba/Sentinel/wiki/%E4%BB%8B%E7%BB%8D)
 
 
 
