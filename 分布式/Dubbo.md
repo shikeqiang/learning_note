@@ -128,7 +128,7 @@
 
 ​	总共有10层，主要分为Business、RPC、Remoting **三大层**。如下：
 
-###      Business
+###      Business层
 
 - **Service 业务层**：业务代码的接口与实现。我们实际使用 Dubbo 的业务层级。
 
@@ -1638,6 +1638,22 @@ Dubbo提供了6种集群容错策略：
 <dubbo:reference cluster="failsafe" />
 ```
 
+## 失败重试
+
+​	所谓失败重试，就是 consumer 调用 provider 要是失败了，比如抛异常了，此时应该是可以重试的，或者调用超时了也可以重试。
+
+​	实际场景下，我们一般会**禁用掉重试**。因为，因为超时后重试会有问题，超时你不知道是成功还是失败。例如，可能会导致两次扣款的问题。
+
+所以，**我们一般使用 failfast 集群容错策略，而不是 failover 策略。**配置如下：
+
+```xml
+<dubbo:service cluster="failfast" timeout="2000" />
+```
+
+另外，一定一定一定要配置适合自己业务的**超时时间**。
+
+当然，可以将操作分成**读**和**写**两种，前者支持重试，后者不支持重试。因为，**读**操作天然具有幂等性。
+
 # 十五、Dubbo的动态代理策略
 
 > 对应【proxy 服务代理层】。
@@ -1785,6 +1801,81 @@ registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=co
 >
 > 参照： [《Sentinel 介绍》](https://github.com/alibaba/Sentinel/wiki/%E4%BB%8B%E7%BB%8D)
 
+# 十八、Dubbo升级接口及令牌验证
+
+当一个接口实现，出现不兼容升级时，**可以用版本号过渡**，版本号不同的服务相互间不引用。
+
+可以按照以下的步骤进行版本迁移：
+
+1. 在低压力时间段，先升级一半提供者为新版本。
+2. 再将所有消费者升级为新版本。
+3. 然后将剩下的一半提供者升级为新版本。
+
+利用多版本的特性，我们也能实现灰度的功能。对于第 2 步，不要升级所有消费者为新版本，而是一半。
+
+老版本服务提供者配置：
+
+```xml
+<dubbo:service interface="com.foo.BarService" version="1.0.0" />
+```
+
+新版本服务提供者配置：
+
+```xml
+<dubbo:service interface="com.foo.BarService" version="2.0.0" />
+```
+
+老版本服务消费者配置：
+
+```xml
+<dubbo:reference id="barService" interface="com.foo.BarService" version="1.0.0" />
+```
+
+新版本服务消费者配置：
+
+```xml
+<dubbo:reference id="barService" interface="com.foo.BarService" version="2.0.0" />
+```
+
+如果不需要区分版本，可以按照以下的方式配置:
+
+```xml
+<dubbo:reference id="barService" interface="com.foo.BarService" version="*" />
+```
+
+## 令牌验证
+
+​	通过令牌验证在注册中心控制权限，以决定要不要下发令牌给消费者，可以防止消费者绕过注册中心访问提供者，另外通过注册中心可灵活改变授权方式，而不需修改或升级提供者
+
+![/user-guide/images/dubbo-token.jpg](/Users/jack/Desktop/md/images/dubbo-token.jpg)
+
+可以全局设置开启令牌验证：
+
+```xml
+<!--随机token令牌，使用UUID生成-->
+<dubbo:provider interface="com.foo.BarService" token="true" />
+```
+
+或
+
+```xml
+<!--固定token令牌，相当于密码-->
+<dubbo:provider interface="com.foo.BarService" token="123456" />
+```
+
+也可在服务级别设置：
+
+```xml
+<!--随机token令牌，使用UUID生成-->
+<dubbo:service interface="com.foo.BarService" token="true" />
+```
+
+或
+
+```xml
+<!--固定token令牌，相当于密码-->
+<dubbo:service interface="com.foo.BarService" token="123456" />
+```
 
 
 
@@ -1798,9 +1889,19 @@ registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=co
 
 
 
+参考与推荐如下文章：
 
-
-
-
-
-参照：芋道源码
+- [《Dubbo 用户指南》](http://dubbo.apache.org/zh-cn/docs/user/quick-start.html) 必选。
+- [《Dubbo 开发指南》](http://dubbo.apache.org/zh-cn/docs/dev/build.html) 进阶。
+- [《Dubbo 运维管理》](http://dubbo.apache.org/zh-cn/docs/admin/install/provider-demo.html) 可选。
+- [《分布式系统互斥性与幂等性问题的分析与解决》](https://tech.meituan.com/distributed_system_mutually_exclusive_idempotence_cerberus_gtis.html)
+- 黑马程序员 [《【上海校区】整理的 Dubbo 面试题》](https://blog.csdn.net/liyanlei5858/article/details/79236685)
+- 美团 [《说一下 Dubbo 的工作原理？注册中心挂了可以继续通信吗？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/dubbo-operating-principle.md)
+- lijiaccy [《Java 面试之 Dubbo》](https://www.jianshu.com/p/9d062eceb765)
+- Java 知音 [Dubbo 面试题](https://juejin.im/entry/5b3af5fd518825621d57791a)
+- [《Dubbo 支持哪些序列化协议？说一下 Hessian 的数据结构？PB 知道吗？为什么 PB 的效率是最高的？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/dubbo-serialization-protocol.md)
+- [《Dubbo 的 SPI 思想是什么？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/dubbo-spi.md)
+- [《如何基于 Dubbo 进行服务治理、服务降级、失败重试以及超时重试？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/dubbo-service-management.md)
+- [《分布式服务接口的幂等性如何设计（比如不能重复扣款）？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/distributed-system-idempotency.md)
+- [《为什么要进行系统拆分？如何进行系统拆分？拆分后不用 Dubbo 可以吗？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/why-dubbo.md)
+- [《如何自己设计一个类似 Dubbo 的 rpc 框架？》](https://github.com/doocs/advanced-java/blob/master/docs/distributed-system/dubbo-rpc-design.md)
