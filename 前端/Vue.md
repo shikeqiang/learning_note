@@ -1297,7 +1297,7 @@ new Vue({
 
 ## 4、组件定义与使用
 
-​	组件系统是 Vue 的另一个重要概念，**因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树：**
+​	组件是一个局部的功能模块，包括JS、HTML和CSS等，组件系统是 Vue 的另一个重要概念，**因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树：**
 
 ![Component Tree](/Users/jack/Desktop/md/images/components.png)
 
@@ -1369,7 +1369,46 @@ var app7 = new Vue({
 
 ​	在一个大型应用中，有必要将整个应用程序划分为组件，以使开发更易管理。
 
+```vue
+<!--组件是一个局部的功能模块，包括JS、HTML和CSS等，下面即HTML+JS+CSS
+    这是一个根组件-->
+<template>
+  <div>
+    <div class="row">
+      <div class="col-xs-offset-2 col-xs-8">
+        <div class="page-header"><h2>Router Test</h2></div>
+      </div>
+    </div>
 
+    <div class="row">
+      <div class="col-xs-2 col-xs-offset-2">
+        <div class="list-group">
+          <!--生成路由链接-->
+          <router-link to="/about" class="list-group-item">About</router-link>
+          <router-link to="/home" class="list-group-item">Home</router-link>
+        </div>
+      </div>
+      <div class="col-xs-6">
+        <div class="panel">
+          <div class="panel-body">
+            <!--显示当前组件-->
+            <keep-alive>
+              <router-view msg="abc"></router-view>
+            </keep-alive>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  export default {}		// 向外默认暴露一个配置对象（与Vue一致），里面必须写函数
+</script>
+
+<style>
+</style>
+```
 
 
 
