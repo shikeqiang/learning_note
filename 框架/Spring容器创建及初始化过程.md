@@ -64,33 +64,33 @@ postProcessor.postProcessBeanFactory()
 		SmartInstantiationAwareBeanPostProcessor、
 		MergedBeanDefinitionPostProcessor【internalPostProcessors】、
 		
-		1）、获取所有的 BeanPostProcessor;后置处理器都默认可以通过PriorityOrdered、Ordered接口来执行优先级
-		2）、先注册PriorityOrdered优先级接口的BeanPostProcessor；
-			把每一个BeanPostProcessor；添加到BeanFactory中
-			beanFactory.addBeanPostProcessor(postProcessor);
-		3）、再注册Ordered接口的
-		4）、最后注册没有实现任何优先级接口的
-		5）、最终注册MergedBeanDefinitionPostProcessor；
-		6）、注册一个ApplicationListenerDetector；来在Bean创建完成后检查是否是ApplicationListener，如果是
-			applicationContext.addApplicationListener((ApplicationListener<?>) bean);
-7、initMessageSource();初始化MessageSource组件（做国际化功能；消息绑定，消息解析）；
+
+​	1）、获取所有的 BeanPostProcessor;**后置处理器都默认可以通过PriorityOrdered、Ordered接口来执行优先级**
+​	2）、先注册PriorityOrdered优先级接口的BeanPostProcessor；把每一个BeanPostProcessor；添加到BeanFactory中beanFactory.addBeanPostProcessor(postProcessor);
+​	3）、再注册Ordered接口的
+​	4）、最后注册没有实现任何优先级接口的
+​	5）、最终注册MergedBeanDefinitionPostProcessor；
+​	6）、注册一个ApplicationListenerDetector；来在Bean创建完成后检查是否是ApplicationListener，如果是
+​		applicationContext.addApplicationListener((ApplicationListener<?>) bean);
+
+7、initMessageSource();	初始化MessageSource组件（做国际化功能；消息绑定，消息解析）；
 		1）、获取BeanFactory
-		2）、看容器中是否有id为messageSource的，类型是MessageSource的组件
-			如果有赋值给messageSource，如果没有自己创建一个DelegatingMessageSource；
-				MessageSource：取出国际化配置文件中的某个key的值；能按照区域信息获取；
+		2）、判断容器中是否有id为messageSource的组件，即类型是MessageSource的组件，
+			如果有，则赋值给messageSource，如果没有自己创建一个DelegatingMessageSource；
+			MessageSource：取出国际化配置文件中的某个key的值，能按照区域信息获取；
 		3）、把创建好的MessageSource注册在容器中，以后获取国际化配置文件的值的时候，可以自动注入MessageSource；
 			beanFactory.registerSingleton(MESSAGE_SOURCE_BEAN_NAME, this.messageSource);	
 			MessageSource.getMessage(String code, Object[] args, String defaultMessage, Locale locale);
-8、initApplicationEventMulticaster();初始化事件派发器；
+8、initApplicationEventMulticaster();	初始化事件派发器、监听器等；
 		1）、获取BeanFactory
 		2）、从BeanFactory中获取applicationEventMulticaster的ApplicationEventMulticaster；
-		3）、如果上一步没有配置；创建一个SimpleApplicationEventMulticaster
-		4）、将创建的ApplicationEventMulticaster添加到BeanFactory中，以后其他组件直接自动注入
-9、onRefresh();留给子容器（子类）
+		3）、如果上一步没有配置，则创建一个简单的时间派发器：SimpleApplicationEventMulticaster
+		4）、将创建的ApplicationEventMulticaster添加到BeanFactory中，以后其他组件可以直接自动注入
+9、onRefresh();	留给子容器（子类）
 		1、子类重写这个方法，在容器刷新的时候可以自定义逻辑；
-10、registerListeners();给容器中将所有项目里面的ApplicationListener注册进来；
+10、registerListeners()：给容器中将所有项目里面的ApplicationListener(监听器)注册进来；
 		1、从容器中拿到所有的ApplicationListener
-		2、将每个监听器添加到事件派发器中；
+		2、将每个监听器添加到事件派发器中：
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		3、派发之前步骤产生的事件；
 11、finishBeanFactoryInitialization(beanFactory);初始化所有剩下的单实例bean；

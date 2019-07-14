@@ -654,6 +654,25 @@ v-on:xxx="fun"
 
 ​	使用v-model(双向数据绑定)自动收集数据
 
+在文本区域插值 (`<textarea>{{text}}</textarea>`) 并不会生效，应用 `v-model` 来代替。
+
+> ==v-model==在内部为不同的输入元素使用不同的属性并抛出不同的事件：
+>
+> - text 和 textarea 元素使用 `value` 属性和 `input` 事件；
+> - checkbox 和 radio 使用 `checked` 属性和 `change` 事件；
+> - select 字段将 `value` 作为 prop 并将 `change` 作为事件。
+>
+> 如果 `v-model` 表达式的初始值未能匹配任何选项，`<select>` 元素将被渲染为“未选中”状态。在 iOS 中，这会使用户无法选择第一个选项。因为这样的情况下，iOS 不会触发 change 事件。因此，更推荐像上面这样提供一个值为空的禁用选项。如:
+>
+> ```html
+> new Vue({
+>   el: '...',
+>   data: {
+>     selected: ''
+>   }
+> })
+> ```
+
 ```html
 <div id="demo">
     <!--调用handleSubmit方法，.prevent : 阻止事件的默认行为，这里表示不提交表单-->
@@ -1171,6 +1190,70 @@ v-my-directive='xxx'		//xxx 是data中的key，即数据
 </script>
 ```
 
+### 12.组件
+
+例子：
+
+```js
+// 定义一个名为 button-counter 的新组件
+Vue.component('button-counter', {
+  data: function () {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+})
+```
+
+组件是可复用的 Vue 实例，且带有一个名字：在这个例子中是 `<button-counter>`。我们可以在一个通过 `new Vue` 创建的 Vue 根实例中，把这个组件作为自定义元素来使用：
+
+```html
+<div id="components-demo">
+  <button-counter></button-counter>
+</div>
+new Vue({ el: '#components-demo' })
+```
+
+![image-20190713001729083](/Users/jack/Desktop/md/images/image-20190713001729083.png)
+
+将组件进行任意次数的复用,注意当点击按钮时，每个组件都会各自独立维护它的 `count`。因为你每用一次组件，就会有一个它的新**实例**被创建。
+
+​	**一个组件的 data 选项必须是一个函数**，因此每个实例可以维护一份被返回对象的独立的拷贝：
+
+```js
+data: function () {
+  return {
+    count: 0
+  }
+}
+```
+
+​	子组件可以通过调用内建的 [**$emit** 方法](https://cn.vuejs.org/v2/api/#vm-emit) 并传入事件名称来触发一个事件：
+
+```
+<button v-on:click="$emit('enlarge-text')">
+  Enlarge text
+</button>
+```
+
+​	有的时候用一个事件来抛出一个特定的值是非常有用的。**例如我们可能想让 `<blog-post>` 组件决定它的文本要放大多少。这时可以使用 `$emit` 的第二个参数来提供这个值：**
+
+```
+<button v-on:click="$emit('enlarge-text', 0.1)">
+  Enlarge text
+</button>
+```
+
+然后当在父级组件监听这个事件的时候，我们可以通过 `$event` 访问到被抛出的这个值：
+
+```
+<blog-post
+  ...
+  v-on:enlarge-text="postFontSize += $event"
+></blog-post>
+```
+
 # 二、Vue组件化编码
 
 ## 1、使用vue-cli 创建模板项目
@@ -1319,7 +1402,9 @@ Vue.component('todo-item', {
 </ol>
 ```
 
-​	但是这样会为每个待办项渲染同样的文本，**应该能从父作用域将数据传到子组件才对。**修改一下组件的定义，使之能够接受一个 [prop](https://cn.vuejs.org/v2/guide/components.html#%E9%80%9A%E8%BF%87-Prop-%E5%90%91%E5%AD%90%E7%BB%84%E4%BB%B6%E4%BC%A0%E9%80%92%E6%95%B0%E6%8D%AE)：
+### 通过 Prop 向子组件传递数据
+
+​	Prop 是你可以在组件上注册的一些自定义特性。当一个值传递给一个 prop 特性的时候，它就变成了那个组件实例的一个属性。为了给博文组件传递一个标题，**我们可以用一个 `props` 选项将其包含在该组件可接受的 prop 列表中：**
 
 ```js
 Vue.component('todo-item', {
@@ -1344,7 +1429,7 @@ Vue.component('todo-item', {
 </div>
 Vue.component('todo-item', {
   props: ['todo'],
-  template: '<li>{{ todo.text }}</li>'
+  template: '<li>{{ todo.text }}</li>'		// 静态模块会渲染输出到HTML
 })
 
 var app7 = new Vue({
@@ -1410,25 +1495,88 @@ var app7 = new Vue({
 </style>
 ```
 
+### **vue** 文件的组成**(3** 个部分**)** 
 
+1) 模板页面 	：\<template> 
 
+页面模板 	：\</template> 
 
+2)JS 模块对象 
 
+```
+<script>
+export default {
+	data() {return {}}, 
+	methods: {}, 
+	computed: {}, 
+	components: {}
+} </script>
+```
 
+3) 样式 
 
+\<style> 
 
+### 项目的打包与发布	
 
+> 打包：npm run build
+>
+> 发布 **1:** 使用静态服务器工具包
+>
+> npm install -g serve
+> serve dist
+> 访问: http://localhost:5000
+>
+> 发布 **2:** 使用动态 **web** 服务器**(tomcat)**
+>
+> 修改配置: webpack.prod.conf.js 
+>
+> ​	output: { 
+>
+> ​		publicPath: '/xxx/' //打包文件夹的名称
+>
+> ​	 } 
+>
+> 重新打包: npm run build 
+>
+> 修改 dist 文件夹为项目名称: xxx
+>  将 xxx 拷贝到运行的 tomcat 的 webapps 目录下 
+>
+> 访问: http://localhost:8080/xxx 
 
+### **ESLint**代码规范检查
 
+提供的支持：
 
+> 1)  ES 
+>
+> 2)  JSX 
+>
+> 3)  style 检查 
+>
+> 4)  自定义错误和提示 
 
+提供的校验：
 
+> 1)  语法错误校验 
+>
+> 2)  不重要或丢失的标点符号，如分号 
+>
+> 3)  没法运行到的代码块(使用过 WebStorm 的童鞋应该了解) 
+>
+> 4)  未被使用的参数提醒 
+>
+> 5)  确保样式的统一规则，如 sass 或者 less 
+>
+> 6)  检查变量的命名 
 
+规则的错误等级有三种：
 
-
-
-
-
+> 1)  0:关闭规则。 
+>
+> 2)  1:打开规则，并且作为一个警告(信息打印黄色字体) 
+>
+> 3)  2:打开规则，并且作为一个错误(信息打印红色字体) 
 
 
 
