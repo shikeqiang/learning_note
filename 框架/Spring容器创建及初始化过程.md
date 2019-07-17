@@ -33,7 +33,7 @@ Spring容器的refresh()【创建刷新】，refresh()中调用了多个方法�
 4、postProcessBeanFactory(beanFactory)：BeanFactory准备工作完成后进行的后置处理工作；
 
 ​	子类通过重写这个方法来在BeanFactory创建并预准备完成以后做进一步的设置
-=====================以上是BeanFactory的创建及预准备工作==(接下来就是利用beanFactory创建各种组件)==============================
+=======================以上是BeanFactory的创建及预准备工作(接下来就是利用beanFactory创建各种组件)==============================
 
 5、invokeBeanFactoryPostProcessors(beanFactory)：执行BeanFactoryPostProcessor的方法；
 
