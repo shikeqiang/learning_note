@@ -443,7 +443,7 @@ css({"*propertyname*":"*value*","*propertyname*":"*value*",...});		设置多个�
 
 ## 尺寸
 
-![image-20190512121844324](/Users/jack/Desktop/md/images/image-20190512121844324.png)
+![image-20190512121844324](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190512121844324.png)
 
 jQuery 提供多个处理尺寸的重要方法：
 
@@ -458,7 +458,7 @@ jQuery 提供多个处理尺寸的重要方法：
 
 ​	下图展示了一个家族树。通过 jQuery 遍历，您能够从被选（当前的）元素开始，轻松地在家族树中向上移动（祖先），向下移动（子孙），水平移动（同胞）。这种移动被称为对 DOM 进行遍历。
 
-![jQuery Dimensions](/Users/jack/Desktop/md/images/img_travtree.png)
+![jQuery Dimensions](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/img_travtree.png)
 
 - <div> 元素是 <ul> 的父元素，同时是其中所有内容的祖先。
 - <ul> 元素是 <li> 元素的父元素，同时是 <div> 的子元素

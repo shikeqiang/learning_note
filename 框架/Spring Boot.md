@@ -14,7 +14,7 @@
 
   Spring 提供了一系列的 starter pom 来简化 Maven 的依赖加载。例如，当你使用了 `spring-boot-starter-web` ，会自动加入如下依赖：
 
-![`spring-boot-starter-web` ç pom æä"¶](/Users/jack/Desktop/md/images/01-6804336-8711964.png)
+![`spring-boot-starter-web` ç pom æä"¶](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01-6804336-8711964.png)
 
 - 4、[自动配置 Spring Bean](https://www.jianshu.com/p/ddb6e32e3faf)
 

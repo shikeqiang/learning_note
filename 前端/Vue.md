@@ -20,7 +20,7 @@
 
 ### mvvm
 
-![image-20190614183759665](/Users/jack/Desktop/md/images/image-20190614183759665.png)
+![image-20190614183759665](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190614183759665.png)
 
 VM：主要是DOM监听和数据绑定实现。
 
@@ -34,7 +34,7 @@ ViewModel：视图模型(即Vue实例)，就是与界面(view)对应的Model。*
 
 　　简单的说，ViewModel就是View与Model的连接器，View与Model通过ViewModel实现双向绑定。
 
-![img](/Users/jack/Desktop/md/images/1050920-20161207111940601-1823413171.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1050920-20161207111940601-1823413171.png)
 
 参照：[VUE的MVVM框架解析](https://www.cnblogs.com/carr-css/p/6140450.html)
 
@@ -731,7 +731,7 @@ v-on:xxx="fun"
 
 ### 7.Vue实例的生命周期
 
-![lifecycle](/Users/jack/Desktop/md/images/lifecycle.png)
+![lifecycle](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/lifecycle.png)
 
 #### vue对象的生命周期
 
@@ -835,7 +835,7 @@ created()/mounted(): 	发送ajax请求, 启动定时器等**异步任务**
  xxx-leave-active: 指定隐藏的transition
  xxx-enter: 指定隐藏时的样式
 
-![transition](/Users/jack/Desktop/md/images/transition.png)
+![transition](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/transition.png)
 
 ```html
 <html lang="en">
@@ -1215,7 +1215,7 @@ Vue.component('button-counter', {
 new Vue({ el: '#components-demo' })
 ```
 
-![image-20190713001729083](/Users/jack/Desktop/md/images/image-20190713001729083.png)
+![image-20190713001729083](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190713001729083.png)
 
 将组件进行任意次数的复用,注意当点击按钮时，每个组件都会各自独立维护它的 `count`。因为你每用一次组件，就会有一个它的新**实例**被创建。
 
@@ -1280,7 +1280,7 @@ data: function () {
 
 ### 3.模板项目的结构
 
-![image-20190620110616919](/Users/jack/Desktop/md/images/image-20190620110616919.png)
+![image-20190620110616919](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190620110616919.png)
 
 ## 2、项目的打包和发布
 
@@ -1382,7 +1382,7 @@ new Vue({
 
 ​	组件是一个局部的功能模块，包括JS、HTML和CSS等，组件系统是 Vue 的另一个重要概念，**因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树：**
 
-![Component Tree](/Users/jack/Desktop/md/images/components.png)
+![Component Tree](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/components.png)
 
 在 Vue 里，一个组件本质上是一个拥有预定义选项的一个 Vue 实例。在 Vue 中注册组件很简单：
 

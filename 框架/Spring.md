@@ -1,10 +1,10 @@
-![image-20190416164514391](/Users/jack/Desktop/md/images/image-20190416164514391.png)
+![image-20190416164514391](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190416164514391.png)
 
-![image-20190416164642115](/Users/jack/Desktop/md/images/image-20190416164642115.png)
+![image-20190416164642115](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190416164642115.png)
 
 # 一、IoC
 
-![image-20190416172122134](/Users/jack/Desktop/md/images/image-20190416172122134.png)
+![image-20190416172122134](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190416172122134.png)
 
 ## 1、IoC 容器
 
@@ -14,7 +14,7 @@
 - **容器通过读取提供的配置元数据Bean Definition，** 来接收对象进行实例化，配置和组装的指令。
 - ==该配置元数据 Bean Definition 可以通过 XML，Java 注解或 Java Config 代码提供。==
 
-![Spring IoC](/Users/jack/Desktop/md/images/02.jpg)
+![Spring IoC](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/02.jpg)
 
 ## 2、依赖注入
 
@@ -116,7 +116,7 @@ BeanFactory ，就像一个包含 Bean 集合的工厂类。它会在客户端�
 
 ​	为了更直观的展示 “低级容器” 和 “高级容器” 的关系，下面通过常用的 ClassPathXmlApplicationContext 类，来展示整个容器的层级 UML 关系。
 
-![img](/Users/jack/Desktop/md/images/4236553-1e6ca4c8a58c9e8e.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/4236553-1e6ca4c8a58c9e8e.png)
 
 *ListableBeanFactory* 
 
@@ -236,7 +236,7 @@ class Client {
 
 下图是 ClassPathXmlApplicationContext 的构造过程，**实际就是 Spring IoC 的初始化过程**。
 
-![img](/Users/jack/Desktop/md/images/4236553-db065eecf16176c3.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/4236553-db065eecf16176c3.png)
 
 1. 用户构造 **ClassPathXmlApplicationContext**（简称 CPAC）
 2. CPAC 首先访问了 “抽象高级容器” 中由final修饰的refresh 方法，这个方法是模板方法。所以要回调子类（低级容器）的 **refreshBeanFactory 方法，这个方法的作用是使用低级容器加载所有 BeanDefinition 和  Properties 到容器中。**
@@ -249,7 +249,7 @@ class Client {
 
 当我们创建好容器，就会使用 getBean 方法，获取 Bean，而 getBean 的流程如下：
 
-![img](/Users/jack/Desktop/md/images/4236553-da9a2f92e4dfa9db.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/4236553-da9a2f92e4dfa9db.png)
 
 
 
@@ -509,9 +509,9 @@ Spring Bean 的**初始化**流程如下：
 <bean id="" class="" init-method="初始化方法" destroy-method="销毁方法"> 
 ```
 
-![image-20190331211349307](/Users/jack/Desktop/md/images/image-20190331211349307.png)
+![image-20190331211349307](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190331211349307.png)
 
-![æµç¨å¾](/Users/jack/Desktop/md/images/08.png)
+![æµç¨å¾](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/08.png)
 
 ## 4、内部Bean
 
@@ -595,7 +595,7 @@ Spring 框架并没有对[单例](http://howtodoinjava.com/2012/10/22/singleton-
 
 ​	循环依赖，其实就是循环引用，就是两个或者两个以上的 bean 互相引用对方，最终形成一个闭环，如 A 依赖 B，B 依赖 C，C 依赖 A。如下图所示：
 
-![循环依赖](/Users/jack/Desktop/md/images/20170912082357749.jpeg)
+![循环依赖](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20170912082357749.jpeg)
 
 ​	循环依赖，其实就是一个**死循环**的过程，在初始化 A 的时候发现引用了 B，这时就会去初始化 B，然后又发现 B 引用 C，跑去初始化 C，初始化 C 的时候发现引用了 A，则又会去初始化 A，依次循环永不退出，除非有**终结条件**。
 
@@ -674,7 +674,7 @@ Spring 循环依赖的**场景**有两种：
 
       结果：项目启动失败，发现了一个cycle
 
-      ![img](/Users/jack/Desktop/md/images/auto-orient.png)
+      ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/auto-orient.png)
 
 ​	**对于构造器的循环依赖，Spring 是无法解决的，只能抛出 BeanCurrentlyInCreationException 异常表示循环依赖，**所以下面我们分析的都是基于 field 属性的循环依赖。
 
@@ -863,7 +863,7 @@ protected void addSingleton(String beanName, Object singletonObject) {
 
 - 这个方法在 `doGetBean(...)` 方法中，**处理不同 scope 时，如果是 singleton，则调用 `getSingleton(...)` 方法，如下图所示：**
 
-  ![getSingleton](/Users/jack/Desktop/md/images/20170912091609918.jpeg)
+  ![getSingleton](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20170912091609918.jpeg)
 
 - `getSingleton(String beanName, ObjectFactory<?> singletonFactory)` 方法，代码如下：
 
@@ -908,15 +908,15 @@ protected void addSingleton(String beanName, Object singletonObject) {
 
 > 如下是《Spring 源码深度解析》P114 页的一张图，非常有助于理解。
 >
-> ![处理依赖循环](/Users/jack/Desktop/md/images/01.png)
+> ![处理依赖循环](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01.png)
 
-![img](/Users/jack/Desktop/md/images/auto-orient-20190402104237476.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/auto-orient-20190402104237476.png)
 
 参照：<https://www.jianshu.com/p/8bb67ca11831>
 
 # 三、注解
 
-![image-20190416165220081](/Users/jack/Desktop/md/images/image-20190416165220081.png)
+![image-20190416165220081](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190416165220081.png)
 
 ## 1、@Component, @Controller, @Repository, @Service 的区别
 
@@ -1013,7 +1013,7 @@ public Result test(@PathVariable("id")String id)
 
 # 四、AOP
 
-![image-20190417163118123](/Users/jack/Desktop/md/images/image-20190417163118123.png)
+![image-20190417163118123](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190417163118123.png)
 
 ## 1、简介
 
@@ -1055,7 +1055,7 @@ AOP 的工作重心在于如何将增强编织目标对象的连接点上, 这�
 
 **可以简单地认为, 使用 @Aspect 注解的类就是切面**
 
-![流程图](/Users/jack/Desktop/md/images/04.jpg)
+![流程图](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/04.jpg)
 
 ## 3、AOP相关术语
 
@@ -1218,7 +1218,7 @@ Spring AOP 中的动态代理主要有两种方式，
 
 指的是 **ACID** ，如下图所示：
 
-![事务的特性](/Users/jack/Desktop/md/images/06-20190402181033382.png)
+![事务的特性](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/06-20190402181033382.png)
 
 1. **原子性** Atomicity ：一个事务（transaction）中的所有操作，或者全部完成，或者全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被恢复（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。即，事务不可分割、不可约简。
 2. **一致性** Consistency ：在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的资料必须完全符合所有的预设[约束](https://zh.wikipedia.org/wiki/%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7)、[触发器](https://zh.wikipedia.org/wiki/%E8%A7%A6%E5%8F%91%E5%99%A8_(%E6%95%B0%E6%8D%AE%E5%BA%93))、[级联回滚](https://zh.wikipedia.org/w/index.php?title=%E7%BA%A7%E8%81%94%E5%9B%9E%E6%BB%9A&action=edit&redlink=1)等。
@@ -1376,7 +1376,7 @@ public class UserService {
 
 ##### @Transactional注解的完整属性信息如下表：
 
-![image-20190402182417942](/Users/jack/Desktop/md/images/image-20190402182417942.png)
+![image-20190402182417942](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190402182417942.png)
 
 ​	**基于命名空间和基于注解的事务声明各有优缺点：基于命名空间的方式一个配置可以匹配多个方法，但配置较注解方式复杂；基于注解的方式需要在每个需要使用事务的方法或类上标注，但基于标注的方法学习成本更低。**
 
@@ -1589,11 +1589,11 @@ public interface PlatformTransactionManager {
 
 **Spring中PlatformTransactionManager根据不同持久层框架所对应的接口实现类,几个比较常见的如下图所示**
 
-![PlatformTransactionManager根据不同持久层框架所对应的接口实现](/Users/jack/Desktop/md/images/1637b21877cf626d.png)
+![PlatformTransactionManager根据不同持久层框架所对应的接口实现](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1637b21877cf626d.png)
 
 `org.springframework.transaction.support.AbstractPlatformTransactionManager` ，基于 [模板方法模式](https://blog.csdn.net/carson_ho/article/details/54910518) ，实现事务整体逻辑的骨架，而抽象 `doCommit(DefaultTransactionStatus status)`、`doRollback(DefaultTransactionStatus status)` 等等方法，交由子类类来实现。
 
-④ 最后，不同的数据持久层框架，会有其对应的 PlatformTransactionManager 实现类，如下图所示：![事务的特性](/Users/jack/Desktop/md/images/07.png)
+④ 最后，不同的数据持久层框架，会有其对应的 PlatformTransactionManager 实现类，如下图所示：![事务的特性](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/07.png)
 
 - 所有的实现类，都基于 AbstractPlatformTransactionManager 这个骨架类。
 - HibernateTransactionManager ，和 Hibernate5 的事务管理做集成。
@@ -1617,7 +1617,7 @@ class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 
 #### 事务属性
 
-​	事务属性可以理解成事务的一些基本配置，描述了事务策略如何应用到方法上。事务属性包含了5个方面。 ![äºå¡å±æ§](/Users/jack/Desktop/md/images/1637b43a47916b2d.png)
+​	事务属性可以理解成事务的一些基本配置，描述了事务策略如何应用到方法上。事务属性包含了5个方面。 ![äºå¡å±æ§](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1637b43a47916b2d.png)
 
 #### TransactionDefinition接口中的方法如下：
 
