@@ -1,15 +1,8 @@
-# 今日内容：
-	1. JavaScript：
-		1. ECMAScript：
-		2. BOM：
-		3. DOM：
-			1. 事件
-
 ## DOM简单学习：为了满足案例要求
 	* 功能：控制html文档的内容
 	* 获取页面标签(元素)对象：Element
 		* document.getElementById("id值"):通过元素的id获取元素对象
-
+	
 	* 操作Element对象：
 		1. 修改属性值：
 			1. 明确获取的对象是哪一个？
@@ -24,13 +17,13 @@
 		* 造句：  xxx被xxx,我就xxx
 			* 我方水晶被摧毁后，我就责备对友。
 			* 敌方水晶被摧毁后，我就夸奖自己。
-
+	
 	* 如何绑定事件
 		1. 直接在html标签上，指定事件的属性(操作)，属性值就是js代码
 			1. 事件：onclick--- 单击事件
-
+	
 		2. 通过js获取元素对象，指定事件属性，设置一个函数
-
+	
 		* 代码：
 			<body>
 				<img id="light" src="img/off.gif"  onclick="fun();">
@@ -50,8 +43,9 @@
 				    var light2 = document.getElementById("light2");
 				    //2.绑定事件
 				    light2.onclick = fun2;
-				
-				
+
+
+​				
 				</script>
 			</body>
 	
@@ -97,8 +91,9 @@
 		            light.src = "img/on.gif";
 		            flag = true;
 		        }
-		
-		
+
+
+​		
 		    }
 		    
 		</script>
@@ -109,14 +104,14 @@
 # BOM:
 	1. 概念：Browser Object Model 浏览器对象模型
 		* 将浏览器的各个组成部分封装成对象。
-
+	
 	2. 组成：
 		* Window：窗口对象
 		* Navigator：浏览器对象
 		* Screen：显示器屏幕对象
 		* History：历史记录对象
 		* Location：地址栏对象
-
+	
 	3. Window：窗口对象
 	    1. 创建
 	    2. 方法
@@ -160,7 +155,7 @@
 		1. 创建(获取)：
 			1. window.location
 			2. location
-
+	
 		2. 方法：
 			* reload()	重新加载当前文档。刷新
 		3. 属性
@@ -168,19 +163,19 @@
 
 
 	5. History：历史记录对象
-        1. 创建(获取)：
-            1. window.history
-            2. history
-
-        2. 方法：
-            * back()	加载 history 列表中的前一个 URL。
-            * forward()	加载 history 列表中的下一个 URL。
-            * go(参数)	加载 history 列表中的某个具体页面。
-                * 参数：
-                    * 正数：前进几个历史记录
-                    * 负数：后退几个历史记录
-        3. 属性：
-            * length	返回当前窗口历史列表中的 URL 数量。
+	    1. 创建(获取)：
+	        1. window.history
+	        2. history
+	
+	    2. 方法：
+	        * back()	加载 history 列表中的前一个 URL。
+	        * forward()	加载 history 列表中的下一个 URL。
+	        * go(参数)	加载 history 列表中的某个具体页面。
+	            * 参数：
+	                * 正数：前进几个历史记录
+	                * 负数：后退几个历史记录
+	    3. 属性：
+	        * length	返回当前窗口历史列表中的 URL 数量。
 
 
 
@@ -188,16 +183,16 @@
 ## DOM：
 	* 概念： Document Object Model 文档对象模型
 		* 将标记语言文档的各个组成部分，封装为对象。可以使用这些对象，对标记语言文档进行CRUD的动态操作
-
+	
 	* W3C DOM 标准被分为 3 个不同的部分：
-
+	
 		* 核心 DOM - 针对任何结构化文档的标准模型
 			* Document：文档对象
 			* Element：元素对象
 			* Attribute：属性对象
 			* Text：文本对象
 			* Comment:注释对象
-
+	
 			* Node：节点对象，其他5个的父对象
 		* XML DOM - 针对 XML 文档的标准模型
 		* HTML DOM - 针对 HTML 文档的标准模型
@@ -219,9 +214,9 @@
 					4. getElementsByName(): 根据name属性值获取元素对象们。返回值是一个数组
 				2. 创建其他DOM对象：
 					createAttribute(name)
-                	createComment()
-                	createElement()
-                	createTextNode()
+	            	createComment()
+	            	createElement()
+	            	createTextNode()
 			3. 属性
 		* Element：元素对象
 			1. 获取/创建：通过document来获取和创建
@@ -268,27 +263,28 @@
 		2. 焦点事件
 			1. onblur：失去焦点
 			2. onfocus:元素获得焦点。
-
+	
 		3. 加载事件：
 			1. onload：一张页面或一幅图像完成加载。
-
+	
 		4. 鼠标事件：
 			1. onmousedown	鼠标按钮被按下。
 			2. onmouseup	鼠标按键被松开。
 			3. onmousemove	鼠标被移动。
 			4. onmouseover	鼠标移到某元素之上。
 			5. onmouseout	鼠标从某元素移开。
-			
-			
+
+
+​			
 		5. 键盘事件：
 			1. onkeydown	某个键盘按键被按下。	
 			2. onkeyup		某个键盘按键被松开。
 			3. onkeypress	某个键盘按键被按下并松开。
-
+	
 		6. 选择和改变
 			1. onchange	域的内容被改变。
 			2. onselect	文本被选中。
-
+	
 		7. 表单事件：
 			1. onsubmit	确认按钮被点击。
 			2. onreset	重置按钮被点击。
