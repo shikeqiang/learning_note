@@ -5,7 +5,7 @@
     * 客户端不需要等待服务器端的响应。在服务器处理请求的过程中，客户端可以进行其他的操作。
 
     Ajax 是一种在无需重新加载整个网页的情况下，能够更新部分网页的技术。 通过在后台与服务器进行少量数据交换，**Ajax 可以使网页实现异步更新**。这意味着可以在不重新加载整个网页的情况下，对网页的某部分进行更新。
-    传统的网页（不使用 Ajax）如果需要更新内容，必须重载整个网页页面，升用户的体验
+    传统的网页（不使用 Ajax）如果需要更新内容，必须重载整个网页页面
 
 2. 实现方式：
   1. 原生的JS实现方式（了解）
@@ -16,16 +16,14 @@
               if (window.XMLHttpRequest)
               {// code for IE7+, Firefox, Chrome, Opera, Safari
                   xmlhttp=new XMLHttpRequest();
-              }
-              else
-              {// code for IE6, IE5
+              }else{// code for IE6, IE5
                   xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
               }
         //2. 建立连接
               /*
                参数：
         	 1. 请求方式：GET、POST
-           	- get方式，请求参数在URL后边拼接。send方法为空参
+           	- get方式，请求参数在URL后边拼接，send方法为空参
            	- post方式，请求参数在send方法中定义
              2. 请求的URL：
              3. 同步或异步请求：true（异步）或 false（同步）
@@ -99,7 +97,7 @@
   var p = {"name":"张三","age":23,"gender":"男"};
   ```
 
-  * json现在多用于存储和交换文本信息的语法
+  * **json现在多用于存储和交换文本信息的语法**
   * 进行数据的传输
   * JSON 比 XML 更小、更快，更易解析。
 
@@ -107,7 +105,7 @@
   1. 基本规则
     * 数据在名称/值对中：json数据是由键值对构成的
     	* 键用引号(单双都行)引起来，也可以不使用引号
-    	* 值得取值类型：
+    	* 值的取值类型：
     		1. 数字（整数或浮点数）
     		2. 字符串（在双引号中）
     		3. 逻辑值（true 或 false）
@@ -124,7 +122,7 @@
     4. 遍历
 
 ```js
-		       //1.定义基本格式
+//1.定义基本格式
    var person = {"name": "张三", age: 23, 'gender': true};
    var ps = [{"name": "张三", "age": 23, "gender": true},
        {"name": "李四", "age": 24, "gender": true},
@@ -158,8 +156,8 @@
 	2. Java对象转换JSON
 		1. 使用步骤：
 			1. 导入jackson的相关jar包
-			2. 创建Jackson核心对象 ObjectMapper
-			3. 调用ObjectMapper的相关方法进行转换
+			2. **创建Jackson核心对象 ObjectMapper**
+			3. **调用ObjectMapper的相关方法进行转换**
 				1. 转换方法：
 					* writeValue(参数1，obj):
 	                    参数1：
@@ -179,11 +177,11 @@
 
 
 # 案例：
-	* 校验用户名是否存在
-		1. 服务器响应的数据，在客户端使用时，要想当做json数据格式使用。有两种解决方案：
-			1. $.get(type):将最后一个参数type指定为"json"
-			2. 在服务器端设置MIME类型
-				response.setContentType("application/json;charset=utf-8");
+* 校验用户名是否存在
+  服务器响应的数据，在客户端使用时，要想当做json数据格式使用。有两种解决方案：
+  1. $.get(type):将最后一个参数type指定为"json"
+  2. 在服务器端设置MIME类型
+  	response.setContentType("application/json;charset=utf-8");
 
 
 
