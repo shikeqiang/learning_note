@@ -119,6 +119,96 @@ SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
         .build();
 ```
 
+#### CronTrigger
+
+​	基于日历的作业调度器(比如：每个月的某天某时某分执行任务)，而不是像SimpleTrigger那样精确指定间隔时间，比SimpleTriigger更常用。
+
+##### Cron表达式
+
+​	用于配置CronTrigger实例，是由7个子表达式组成的字符串，描述了时间表的详细信息。
+
+​	格式：\[秒] \[分] \[小时] [日] \[月] \[周] [年]
+
+![img_0903](/Users/jack/Desktop/md/images/img_0903.png)
+
+![img_0904](/Users/jack/Desktop/md/images/img_0904.png)
+
+> \#  表示第几的意思, 逗号 表示或 ，/ 表示每隔多久触发
+
+![img_0905](/Users/jack/Desktop/md/images/img_0905.png)
+
+- 'L'和'W'可以一起组合使用
+- 周字段英文字母不区分大小写，即MON与mon相同
+- [在线工具](http://cron.qqe2.com/)
+
+### Scheduler-工厂模式
+
+​	所有Scheduler实例都是由SchedulerFactory来创建。
+
+![img_0906](/Users/jack/Desktop/md/images/img_0906.png)
+
+![img_0907](/Users/jack/Desktop/md/images/img_0907.png)
+
+
+
+#### StdSchedulerFactory
+
+- 使用一组参数(Java.util.Properties)来创建和初始化Quartz调度器
+- 配置参数一般存储在quartz.properties中
+- 调用getScheduler方法就能创建和初始化调度器对象
+
+#### Scheduler的主要函数
+
+- Date scheduleJob(JobDetail jobDetail, Trigger trigger) throws SchedulerException;
+- void start()
+- void standby()        调用之后可以重启
+- void shutdown()    调用之后无法重启，可以传入true/false，当传入参数为true时，表示等待所有正在执行的job执行完毕后，再关闭scheduler。传入false时表示直接关闭scheduler
+
+### quartz.properties
+
+​	如果项目中没有自定义quartz.properties，则会读取jar包中的quartz.properties。
+
+#### 组成部分
+
+- 调度器属性
+
+  > org.quartz.scheduler.instanceName: 用来区分特定的调度器实例，可以按照功能用途来给调度器起名
+  >
+  > org.quartz.scheduler.instanceId: 和上面的一样，也允许任何字符串，但这个值必须是在所有调度器实例中是唯一的，尤其是在一个集群当中，作为集群的唯一key。假如你想Quartz帮你生成这个值的话，可以设置为AUTO。
+
+- 线程池属性
+
+  > threadCount：线程大小，必须大于0
+  >
+  > threadPriority：线程的优先级
+  >
+  > org.quartz.threadPool.class：可以自定义实现线程池，配置到这个属性
+
+- 作业存储设置
+
+  描述了在调度器实例的生命周期中，Job和Trigger信息是如何被存储的，是保存到内存或者DB
+
+- 插件配置
+
+  满足特定需求用到的Quartz插件的配置。
+
+默认的配置文件：
+
+```properties
+org.quartz.scheduler.instanceName: DefaultQuartzScheduler
+org.quartz.scheduler.rmi.export: false
+org.quartz.scheduler.rmi.proxy: false
+org.quartz.scheduler.wrapJobExecutionInUserTransaction: false
+
+org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
+org.quartz.threadPool.threadCount: 10
+org.quartz.threadPool.threadPriority: 5
+org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread: true
+
+org.quartz.jobStore.misfireThreshold: 60000
+
+org.quartz.jobStore.class: org.quartz.simpl.RAMJobStore
+```
 
 
 
@@ -128,28 +218,7 @@ SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+参照：[慕课Quartz课程](https://www.imooc.com/learn/846)
 
 
 
