@@ -4,7 +4,7 @@
 
 - JobDetail：实现类和业务逻辑信息，通过JobBuilder的newJob方法创建一个任务；
 - Trigger：触发器，时间触发规则，主要有SimpleTrigger(定频率执行任务)和CronTrigger(可以执行更复杂的任务)
-- Scheduler：调度器，主要有start等方法
+- Scheduler：调度器，主要有start等方法,与调度程序交互的主要API。
 - Job：接口，只有一个execute方法，
 - JobBuilder：定义或者创建JobDetail实例，即Job实例
 - JobStore：保存Job数据
