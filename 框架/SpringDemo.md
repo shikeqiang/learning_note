@@ -34,7 +34,9 @@ pom.xml
 - spring.datasource.druid.filter.stat.log-slow-sql=true
 - spring.datasource.druid.filter.stat.slow-sql-millis=3000
 
-# 常用JPA注解
+# JPA
+
+## 常用注解
 
 ![image-20190812232647436](/Users/jack/Desktop/md/images/image-20190812232647436.png)
 
@@ -91,9 +93,31 @@ public class CoffeeOrder implements Serializable {
 }
 ```
 
+![image-20190813222442457](/Users/jack/Desktop/md/images/image-20190813222442457.png)
 
+![image-20190813230236586](/Users/jack/Desktop/md/images/image-20190813230236586.png)
 
+![image-20190813230400409](/Users/jack/Desktop/md/images/image-20190813230400409.png)
 
+![image-20190813231810303](/Users/jack/Desktop/md/images/image-20190813231810303.png)
 
+==接口中的方法是如何被解释的：==
 
+![image-20190813232020848](/Users/jack/Desktop/md/images/image-20190813232020848.png)
 
+Part类中解析。
+
+# mybatis
+
+## 配置
+
+- mybatis.mapper-locations = classpath*:mapper/**/*.xml 
+- mybatis.type-aliases-package = 类型别名的包名 
+- mybatis.type-handlers-package = TypeHandler扫描包名 
+- mybatis.configuration.map-underscore-to-camel-case = true 
+
+## 定义与扫描
+
+- @MapperScan 配置扫描位置 
+- @Mapper 定义接⼝
+- 映射的定义—— XML 与注解 
