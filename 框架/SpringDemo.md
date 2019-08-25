@@ -121,3 +121,30 @@ Part类中解析。
 - @MapperScan 配置扫描位置 
 - @Mapper 定义接⼝
 - 映射的定义—— XML 与注解 
+
+# Spring
+
+## Spring 的应⽤程序上下⽂
+
+![image-20190825224643010](/Users/jack/Desktop/md/images/image-20190825224643010.png)
+
+![image-20190825224931325](/Users/jack/Desktop/md/images/image-20190825224931325.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
