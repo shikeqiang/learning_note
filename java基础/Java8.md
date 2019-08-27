@@ -312,6 +312,152 @@ public class TestMethodRef {
 
 # 二、Stream API
 
+​	Java8中有两大最为重要的改变。第一个是 Lambda 表达式;另外一个则是 Stream API(java.util.stream.*)。
+Stream 是 Java8 中处理集合的关键抽象概念，**它可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作。**使用Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询。也可以使用 Stream API 来并行执行操作。简而言之，Stream API 提供了一种高效且易于使用的处理数据的方式。
+
+​	流是数据渠道，用于操作数据源(集合、数组等)所生成的元素序列。==“集合讲的是数据，流讲的是计算!”==
+
+> 注意: 
+>
+> Stream 自己不会存储元素。
+>
+> Stream 不会改变源对象。相反，他们会返回一个持有结果的新Stream。 
+>
+> Stream 操作是延迟执行的。这意味着他们会等到需要结果的时候才执行。 
+
+## **Stream** 的操作三个步骤：
+
+- 创建 Stream：一个数据源(如:集合、数组)，获取一个流 
+
+- 中间操作 ：一个中间操作链，对数据源的数据进行处理
+- 终止操作(终端操作) ：一个终止操作，执行中间操作链，并产生结果 
+
+![image-20190827223703602](/Users/jack/Desktop/md/images/image-20190827223703602.png)
+
+## 中间操作
+
+​	多个中间操作可以连接起来形成一个流水线，除非流水线上触发终止操作，否则中间操作不会执行任何的处理!而在终止操作时一次性全部处理，称为“惰性求值”。
+
+### 筛选与切片
+
+![image-20190827230245507](/Users/jack/Desktop/md/images/image-20190827230245507.png)
+
+### 映射
+
+![image-20190827230301342](/Users/jack/Desktop/md/images/image-20190827230301342.png)
+
+### 排序
+
+![image-20190827230322396](/Users/jack/Desktop/md/images/image-20190827230322396.png)
+
+例子：
+
+```java
+public class TestStreamaAPI {
+
+    //1. 创建 Stream，有4种方式
+    @Test
+    public void test1() {
+        //1. Collection 提供了两个方法  stream() 与 parallelStream()[并行流]
+        List<String> list = new ArrayList<>();
+        Stream<String> stream = list.stream(); //获取一个顺序流
+        Stream<String> parallelStream = list.parallelStream(); //获取一个并行流
+
+        //2. 通过 Arrays 中的 stream() 获取一个数组流,流类型跟数组类型一样
+        Integer[] nums = new Integer[10];
+        Stream<Integer> stream1 = Arrays.stream(nums);
+
+        //3. 通过 Stream 类中静态方法 of()
+        Stream<Integer> stream2 = Stream.of(1, 2, 3, 4, 5, 6);
+
+        //4. 创建无限流
+        //迭代，seed是起始值
+        Stream<Integer> stream3 = Stream.iterate(0, (x) -> x + 2).limit(10);
+        stream3.forEach(System.out::println);
+
+        //生成
+        Stream<Double> stream4 = Stream.generate(Math::random).limit(2);
+        stream4.forEach(System.out::println);
+
+    }
+
+    //2. 中间操作
+    List<Employee> emps = Arrays.asList(
+            new Employee(102, "李四", 59, 6666.66),
+            new Employee(101, "张三", 18, 9999.99),
+            new Employee(103, "王五", 28, 3333.33),
+            new Employee(104, "赵六", 8, 7777.77),
+            new Employee(104, "赵六", 8, 7777.77),
+            new Employee(104, "赵六", 8, 7777.77),
+            new Employee(105, "田七", 38, 5555.55)
+    );
+   /*
+     筛选与切片
+      filter——接收 Lambda ， 从流中排除某些元素。
+      limit——截断流，使其元素不超过给定数量。
+      skip(n) —— 跳过元素，返回一个扔掉了前 n 个元素的流。若流中元素不足 n 个，则返回一个空流。与 limit(n) 互补
+      distinct——筛选，通过流所生成元素的 hashCode() 和 equals() 去除重复元素，需要重写这两个方法
+    */
+
+    //内部迭代(遍历数据)：迭代操作 Stream API 内部完成
+    @Test
+    public void test2() {
+        //中间操作，所有的中间操作不会做任何的处理
+        Stream<Employee> stream = emps.stream()
+                .filter((e) -> {// 过滤操作
+                    System.out.println("测试中间操作");
+                    return e.getAge() <= 35;
+                });
+        //终止操作，只有当做终止操作时，所有的中间操作会一次性的全部执行，称为“惰性求值”
+        stream.forEach(System.out::println);
+    }
+
+    //外部迭代
+    @Test
+    public void test3() {
+        Iterator<Employee> it = emps.iterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+    }
+
+//    截断流，使其元素不超过给定数量
+    @Test
+    public void test4() {
+        emps.stream()
+                .filter((e) -> {
+                    System.out.println("短路！"); // &&  ||
+                    return e.getSalary() >= 5000;
+                }).limit(3)// 只迭代3次
+                .forEach(System.out::println);// 终止操作
+    }
+
+// 跳过元素，返回一个扔掉了前 n 个元素的流。若流中元素不足 n 个，则返回一个空流。与 limit(n) 互补
+    @Test
+    public void test5() {
+        emps.parallelStream()
+                .filter((e) -> e.getSalary() >= 5000)
+                .skip(2)
+                .forEach(System.out::println);
+    }
+
+    @Test
+    public void test6() {
+        emps.stream()
+                .distinct()// 去重
+                .forEach(System.out::println);
+    }
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
