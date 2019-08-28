@@ -354,7 +354,6 @@ Stream 是 Java8 中处理集合的关键抽象概念，**它可以指定你希�
 
 ```java
 public class TestStreamaAPI {
-
     //1. 创建 Stream，有4种方式
     @Test
     public void test1() {
@@ -447,8 +446,458 @@ public class TestStreamaAPI {
                 .distinct()// 去重
                 .forEach(System.out::println);
     }
+    /**
+     * 映射
+     * map -- 接收Lambda，将元素转换成其他形式或提取信息。接受一个函数作为参数，
+     * 该函数会被应用到每个元素上，并将其映射成一个新的元素
+     * flatMap -- 接受一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流
+     * 这两个类似于List中的add和addAll，前者是添加了一个list，后者是将一个list中的元素一个个取出添加到list
+     */
+    @Test
+    public void test7() {
+        List<String> list = Arrays.asList("aaa", "bbb", "ccc");
+        list.stream()
+                .map((str) -> str.toUpperCase())    // 转为大写
+                .forEach(System.out::println);
+
+        System.out.println("-------------------------------");
+//        emps.stream().map(Employee::getName).forEach(System.out::println);// 获取员工姓名
+        // 嵌套流，最里层是字符
+//        Stream<Stream<Character>> stream = list.stream().map(TestStreamaAPI::filterCharacter);
+//        stream.forEach((sm) -> sm.forEach(System.out::println));//遍历流和字符串
+
+        //将所有流转为一个流
+        Stream<Character> stream1 = list.stream().flatMap(TestStreamaAPI::filterCharacter);
+        stream1.forEach(System.out::println);
+    }
+
+    // 将字符串转为字符
+    public static Stream<Character> filterCharacter(String str) {
+        List<Character> list = new ArrayList<>();
+
+        for (Character ch : str.toCharArray()) {
+            list.add(ch);
+        }
+        return list.stream();
+    }
+
+    /*
+		sorted()——自然排序(Comparable)
+		sorted(Comparator com)——定制排序(Comparator,即自定义排序)
+	 */
+    @Test
+    public void test8() {
+        emps.stream()
+                .map(Employee::getName)
+                .sorted()
+                .forEach(System.out::println);
+
+        System.out.println("------------------------------------");
+
+        emps.stream()
+                .sorted((x, y) -> {
+                    if (x.getAge() == y.getAge()) {//先按年龄排，然后再按姓名排
+                        return x.getName().compareTo(y.getName());
+                    } else {
+                        return Integer.compare(x.getAge(), y.getAge());
+                    }
+                }).forEach(System.out::println);
+    }
 }
 ```
+
+## 终止操作
+
+​	终端操作会从流的流水线生成结果。其结果可以是任何不是流的值，例如:List、Integer，甚至是 void 。 
+
+### 查找与匹配
+
+![image-20190828215433175](/Users/jack/Desktop/md/images/image-20190828215433175.png)
+
+![image-20190828215444160](/Users/jack/Desktop/md/images/image-20190828215444160.png)
+
+### 归约
+
+![image-20190828215505325](/Users/jack/Desktop/md/images/image-20190828215505325.png)
+
+备注:map 和 reduce 的连接通常称为 map-reduce 模式，因 Google 用它来进行网络搜索而出名
+
+### 收集
+
+![image-20190828215528865](/Users/jack/Desktop/md/images/image-20190828215528865.png)
+
+> Collector 接口中方法的实现决定了如何对流执行收集操作(如收集到 List、Set、Map)。但是 Collectors 实用类提供了很多静态方法，可以方便地创建常见收集器实例，具体方法与实例如下表:
+>
+> ![image-20190828223745114](/Users/jack/Desktop/md/images/image-20190828223745114.png)
+>
+> ![image-20190828223810308](/Users/jack/Desktop/md/images/image-20190828223810308.png)
+
+例子：
+
+```java
+public class TestStreamAPI2 {
+    List<Employee> emps = Arrays.asList(
+            new Employee(102, "李四", 59, 6666.66, Status.BUSY),
+            new Employee(101, "张三", 18, 9999.99, Status.FREE),
+            new Employee(103, "王五", 28, 3333.33, Status.VOCATION),
+            new Employee(104, "赵六", 8, 7777.77, Status.BUSY),
+            new Employee(104, "赵六", 8, 7777.77, Status.FREE),
+            new Employee(104, "赵六", 8, 7777.77, Status.FREE)
+    );
+    //3. 终止操作
+   /*
+      allMatch——检查是否匹配所有元素
+      anyMatch——检查是否至少匹配一个元素
+      noneMatch——检查是否没有匹配的元素
+      findFirst——返回第一个元素
+      findAny——返回当前流中的任意元素
+      count——返回流中元素的总个数
+      max——返回流中最大值
+      min——返回流中最小值
+    */
+    @Test
+    public void test1() {
+        boolean bl = emps.stream()
+                .allMatch((e) -> e.getStatus().equals(Status.BUSY));
+
+        System.out.println("是否匹配所有元素：" + bl);
+        boolean bl1 = emps.stream()
+                .anyMatch((e) -> e.getStatus().equals(Status.BUSY));
+        System.out.println("是否至少匹配一个元素：" + bl1);
+        boolean bl2 = emps.stream()
+                .noneMatch((e) -> e.getStatus().equals(Status.BUSY));
+        System.out.println("是否没有匹配的元素：" + bl2);
+    }
+
+    @Test
+    public void test2() {
+        Optional<Employee> op = emps.stream()//Optional可以避免空指针,空的值可以存到Optional中
+                .sorted((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary()))// 按工资排序
+                .findFirst();
+        System.out.println(op.get());
+        System.out.println("--------------------------------");
+        Optional<Employee> op2 = emps.parallelStream()
+                .filter((e) -> e.getStatus().equals(Status.FREE))
+                .findAny();// 返回任意空闲的员工
+        System.out.println(op2.get());
+    }
+
+    @Test
+    public void test3() {
+        long count = emps.stream()
+                .filter((e) -> e.getStatus().equals(Status.FREE))
+                .count();
+        System.out.println("空闲的员工数量：" + count);
+        Optional<Double> op = emps.stream()
+                .map(Employee::getSalary)
+                .max(Double::compare);// 工资最高的，先用map提取工资
+
+        System.out.println(op.get());
+
+        Optional<Employee> op2 = emps.stream()
+                .min((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary()));// 工资最低
+
+        System.out.println(op2.get());
+    }
+
+    //注意：流进行了终止操作后，不能再次使用
+    @Test
+    public void test4() {
+        Stream<Employee> stream = emps.stream()
+                .filter((e) -> e.getStatus().equals(Status.FREE));
+
+        long count = stream.count();
+
+        stream.map(Employee::getSalary)
+                .max(Double::compare);
+    }
+
+    //3. 终止操作
+   /*
+   归约
+   reduce(T identity, BinaryOperator) / reduce(BinaryOperator) ——可以将流中元素反复结合起来，得到一个值。
+    */
+    @Test
+    public void test5() {// 求综合
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        Integer sum = list.stream()
+                .reduce(0, (x, y) -> x + y);
+        System.out.println(sum);
+        System.out.println("----------------------------------------");
+        Optional<Double> op = emps.stream()
+                .map(Employee::getSalary)
+                .reduce(Double::sum);
+        System.out.println(op.get());
+    }
+
+    //需求：搜索名字中 “六” 出现的次数
+    @Test
+    public void test6() {
+        Optional<Integer> sum = emps.stream()
+                .map(Employee::getName)
+                .flatMap(TestStreamAPI::filterCharacter)
+                .map((ch) -> {
+                    if (ch.equals('六'))
+                        return 1;
+                    else
+                        return 0;
+                }).reduce(Integer::sum);
+
+        System.out.println(sum.get());
+    }
+
+    //收集：collect——将流转换为其他形式。接收一个 Collector接口的实现，用于给Stream中元素做汇总的方法
+    @Test
+    public void test7() {
+        List<String> list = emps.stream()
+                .map(Employee::getName)
+                .collect(Collectors.toList());// 收集名字
+        list.forEach(System.out::println);
+        System.out.println("----------------------------------");
+        Set<String> set = emps.stream()
+                .map(Employee::getName)
+                .collect(Collectors.toSet());//去重收集
+        set.forEach(System.out::println);
+        System.out.println("----------------------------------");
+        HashSet<String> hs = emps.stream()
+                .map(Employee::getName)
+                .collect(Collectors.toCollection(HashSet::new));
+        hs.forEach(System.out::println);
+    }
+
+    @Test
+    public void test8() {
+        Optional<Double> max = emps.stream().map(Employee::getSalary)
+                .collect(Collectors.maxBy(Double::compare));
+        System.out.println(max.get());
+        Optional<Employee> op = emps.stream()
+                .collect(Collectors.minBy((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary())));
+        System.out.println("最小值:" + op.get());
+        Double sum = emps.stream()  //总数
+                .collect(Collectors.summingDouble(Employee::getSalary));
+        System.out.println("总和是：" + sum);
+        Double avg = emps.stream()  //平均值
+                .collect(Collectors.averagingDouble(Employee::getSalary));
+        System.out.println("平均值是：" + avg);
+        Long count = emps.stream()
+                .collect(Collectors.counting());
+        System.out.println("元素个数是：" + count);
+        System.out.println("--------------------------------------------");
+        DoubleSummaryStatistics dss = emps.stream()//计算元素的各种结果，这里是计算最大值
+                .collect(Collectors.summarizingDouble(Employee::getSalary));
+        System.out.println("最大值：" + dss.getMax());
+    }
+
+    //分组
+    @Test
+    public void test9() {
+        Map<Status, List<Employee>> map = emps.stream()
+                .collect(Collectors.groupingBy(Employee::getStatus));//根据状态分组
+        System.out.println(map);
+    }
+
+    //多级分组,先按状态分，再按年龄分
+    @Test
+    public void test10() {
+        Map<Status, Map<String, List<Employee>>> map = emps.stream()
+                .collect(Collectors.groupingBy(Employee::getStatus, Collectors.groupingBy((e) -> {
+                    if (e.getAge() >= 60)
+                        return "老年";
+                    else if (e.getAge() >= 35)
+                        return "中年";
+                    else
+                        return "成年";
+                })));
+        System.out.println(map);
+    }
+
+    //分区，满足条件的为一个区
+    @Test
+    public void test11() {
+        Map<Boolean, List<Employee>> map = emps.stream()
+                .collect(Collectors.partitioningBy((e) -> e.getSalary() >= 5000));
+        System.out.println(map);
+    }
+
+    //连接
+    @Test
+    public void test12() {
+        String str = emps.stream()
+                .map(Employee::getName)
+                .collect(Collectors.joining(",", "----", "----"));
+        System.out.println(str);
+    }
+
+    @Test
+    public void test13() {
+        Optional<Double> sum = emps.stream()
+                .map(Employee::getSalary)
+                .collect(Collectors.reducing(Double::sum));
+        System.out.println(sum.get());
+    }
+}
+```
+
+练习：
+
+```java
+public class TestStreamAPI {
+    /*
+1.给定一个数字列表，返回一个由每个数的平方构成的列表:给定【1，2，3，4，5】， 应该返回【1，4，9，16，25】。
+     */
+    @Test
+    public void test1() {
+        Integer[] nums = new Integer[]{1, 2, 3, 4, 5};
+        Arrays.stream(nums)
+                .map((x) -> x * x)
+                .forEach(System.out::println);
+    }
+    /*
+     2.    用 map 和 reduce 方法统计流中有多少个Employee
+     */
+    List<Employee> emps = Arrays.asList(
+            new Employee(102, "李四", 59, 6666.66, Status.BUSY),
+            new Employee(101, "张三", 18, 9999.99, Status.FREE),
+            new Employee(103, "王五", 28, 3333.33, Status.VOCATION),
+            new Employee(104, "赵六", 8, 7777.77, Status.BUSY),
+            new Employee(104, "赵六", 8, 7777.77, Status.FREE),
+            new Employee(104, "赵六", 8, 7777.77, Status.FREE),
+            new Employee(105, "田七", 38, 5555.55, Status.BUSY)
+    );
+
+    @Test
+    public void test2() {
+        Optional<Integer> count = emps.stream()
+                .map((e) -> 1) // map接收一个函数，然后作用在每个参数上
+                .reduce(Integer::sum);
+        System.out.println(count.get());
+    }
+}
+```
+
+```java 
+public class TestTransaction {
+   List<Transaction> transactions = null;
+   @Before
+   public void before(){
+      Trader raoul = new Trader("Raoul", "Cambridge");
+      Trader mario = new Trader("Mario", "Milan");
+      Trader alan = new Trader("Alan", "Cambridge");
+      Trader brian = new Trader("Brian", "Cambridge");
+      transactions = Arrays.asList(
+            new Transaction(brian, 2011, 300),
+            new Transaction(raoul, 2012, 1000),
+            new Transaction(raoul, 2011, 400),
+            new Transaction(mario, 2012, 710),
+            new Transaction(mario, 2012, 700),
+            new Transaction(alan, 2012, 950)
+      );
+   }
+   
+   //1. 找出2011年发生的所有交易， 并按交易额排序（从低到高）
+   @Test
+   public void test1(){
+      transactions.stream()
+               .filter((t) -> t.getYear() == 2011)
+               .sorted((t1, t2) -> Integer.compare(t1.getValue(), t2.getValue()))
+               .forEach(System.out::println);
+   }
+   
+   //2. 交易员都在哪些不同的城市工作
+   @Test
+   public void test2(){
+      transactions.stream()
+               .map((t) -> t.getTrader().getCity())
+               .distinct()
+               .forEach(System.out::println);
+   }
+   
+   //3. 查找所有来自剑桥的交易员，并按姓名排序
+   @Test
+   public void test3(){
+      transactions.stream()
+               .filter((t) -> t.getTrader().getCity().equals("Cambridge"))
+               .map(Transaction::getTrader)// 获取交易员
+               .sorted((t1, t2) -> t1.getName().compareTo(t2.getName()))
+               .distinct()
+               .forEach(System.out::println);
+   }
+   
+   //4. 返回所有交易员的姓名字符串，按字母顺序排序
+   @Test
+   public void test4(){
+      transactions.stream()
+               .map((t) -> t.getTrader().getName())
+               .sorted()//默认排序
+               .forEach(System.out::println);
+      System.out.println("-----------------------------------");
+      String str = transactions.stream()
+               .map((t) -> t.getTrader().getName())
+               .sorted()
+               .reduce("", String::concat);//拼成一整个字符串
+      System.out.println(str);
+      System.out.println("------------------------------------");
+      transactions.stream()
+               .map((t) -> t.getTrader().getName())
+               .flatMap(TestTransaction::filterCharacter)
+               .sorted((s1, s2) -> s1.compareToIgnoreCase(s2))
+               .forEach(System.out::print);
+   }
+   
+   public static Stream<String> filterCharacter(String str){//字符串流
+      List<String> list = new ArrayList<>();
+      for (Character ch : str.toCharArray()) {
+         list.add(ch.toString());
+      }
+      return list.stream();
+   }
+   
+   //5. 有没有交易员是在米兰工作的？
+   @Test
+   public void test5(){
+      boolean bl = transactions.stream()
+               .anyMatch((t) -> t.getTrader().getCity().equals("Milan"));
+      System.out.println(bl);
+   }
+   
+   //6. 打印生活在剑桥的交易员的所有交易额
+   @Test
+   public void test6(){
+      Optional<Integer> sum = transactions.stream()
+               .filter((e) -> e.getTrader().getCity().equals("Cambridge"))
+               .map(Transaction::getValue)
+               .reduce(Integer::sum);
+      System.out.println(sum.get());
+   }
+   
+   //7. 所有交易中，最高的交易额是多少
+   @Test
+   public void test7(){
+      Optional<Integer> max = transactions.stream()
+               .map((t) -> t.getValue())
+               .max(Integer::compare);
+      System.out.println(max.get());
+   }
+   
+   //8. 找到交易额最小的交易
+   @Test
+   public void test8(){
+      Optional<Transaction> op = transactions.stream()
+               .min((t1, t2) -> Integer.compare(t1.getValue(), t2.getValue()));
+      System.out.println(op.get());
+   }
+}
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
