@@ -1,4 +1,4 @@
-pom.xml
+# pom.xml
 
 - 自动引⼊入 spring-boot-dependencies
 - 自动配置 spring-boot-maven-plugin
@@ -18,8 +18,6 @@ pom.xml
 	<version>6.0.1.GA</version>
 </dependency>
 ```
-
-
 
 # 慢 SQL日志：
 
@@ -306,6 +304,12 @@ public class PerformanceInteceptor implements HandlerInterceptor {
 }
 ```
 
+## 扩展点
+
+**BeanPostProcessor**：针对 Bean 实例，在 Bean 创建后提供定制逻辑回调
+
+**BeanFactoryPostProcessor**：针对 Bean 定义，在容器器创建 Bean 前获取配置元数据，==Java Config 中需要定义为 static ⽅法==
+
 # Spring Boot
 
 ## RestTemplate	
@@ -452,65 +456,342 @@ public WebClient webClient(WebClient.Builder builder) {
 
 支持的存储：Redis、MongoDB、JDBC、Hazelcast
 
-### 实现原理
+#### 实现原理
 
 定制 **HttpSession**
 
-​	通过定制的 HttpServletRequest 返回定制的 HttpSession：
+​	通过定制的 HttpServletRequest 返回定制的 HttpSession(可以屏蔽不同存储之间的差异)：
 
 ​		SessionRepositoryRequestWrapper、SessionRepositoryFilter、DelegatingFilterProxy
 
+### 基于 Redis 的 HttpSession
 
+引入依赖：spring-session-data-redis
 
+基本配置：
 
+@EnableRedisHttpSession、提供 RedisConnectionFactory、实现 AbstractHttpSessionApplicationInitializer (DelegatingFilterProxy)
 
+Spring Boot 对 Spring Session 的⽀持:
 
+![image-20190901000225979](/Users/jack/Desktop/md/images/image-20190901000225979.png)
 
+## WebFlux
 
+- ⽤于构建基于 Reactive 技术栈之上的 Web 应用程序
+- 基于 Reactive Streams API ，运行在非阻塞服务器上（netty、jetty）
+- 对于⾮阻塞 Web 应用及函数式编程的需要
 
+性能：
 
+- 请求的耗时并不会有很大的改善
+- 仅需少量固定数量的线程和较少的内存即可实现扩展
 
+![image-20190901000748194](/Users/jack/Desktop/md/images/image-20190901000748194.png)
 
+两种编程模型：基于注解的控制器、函数式 Endpoints
 
+![image-20190901001014615](/Users/jack/Desktop/md/images/image-20190901001014615.png)
 
+## 自动装配
 
+- 基于添加的 JAR 依赖自动对 Spring Boot 应⽤程序进行配置
+- 主要是spring-boot-autoconfiguration这个jar包
 
+开启自动配置：@EnableAutoConfiguration(exclude = Class<?>[])  //括号里可以排除掉某些不加载的类 、
 
+​							@SpringBootApplication  启动类可以配置的注解，包含了上面的注解
 
+### 实现原理
 
+**@EnableAutoConfiguration**：
 
+- AutoConfigurationImportSelector
+- META-INF/spring.factories：org.springframework.boot.autoconfigure.EnableAutoConfiguration
 
+#### 条件注解
 
+@Conditional、@ConditionalOnClass(存在特定的类时生效)、@ConditionalOnBean(存在特定的Bean时生效)、@ConditionalOnMissingBean(不存在特定的Bean时生效)、@ConditionalOnProperty
 
+#### 日志
 
+命令行(IDEA的参数里面)加上 --debug，结果是由**ConditionEvaluationReportLoggingListener**：Positive matches、Negative matches、Exclusions、Unconditional classes
 
+#### 自定义配置
 
+编写 **Java Config**：   @Configuration
 
+添加条件：@Conditional
 
+定位自动配置：META-INF/spring.factories
 
+#### 自动装配执行顺序：
 
+@AutoConfigureBefore、@AutoConfigureAfter、@AutoConfigureOrder
 
+### 自定义starter
 
+autoconfigure 模块，包含自动配置代码
 
+starter 模块，包含指向自动配置模块的依赖及其他相关依赖
 
+### 外化配置加载顺序
 
+![image-20190901110553151](/Users/jack/Desktop/md/images/image-20190901110553151.png)
 
+![image-20190901110627071](/Users/jack/Desktop/md/images/image-20190901110627071.png)
 
+![image-20190901110722969](/Users/jack/Desktop/md/images/image-20190901110722969.png)
 
+@Configuration 类上的 @PropertySource
 
+SpringApplication.setDefaultProperties() 设置的默认属性
 
+## PropertySource
 
+添加 **PropertySource**：
 
+- \<context:property-placeholder>
+- PropertySourcesPlaceholderConfigure：PropertyPlaceholderConfigurer
+- @PropertySource
+- @PropertySources
 
+@ConfigurationProperties：
 
+- 可以将属性绑定到结构化对象上
+- ⽀持 Relaxed Binding
+- ⽀持安全的类型转换
+- @EnableConfigurationProperties
 
+### 定制 PropertySource
 
+![image-20190901114019518](/Users/jack/Desktop/md/images/image-20190901114019518.png)
 
+```java
+//加载到environment
+@Slf4j
+public class YapfEnvironmentPostProcessor implements EnvironmentPostProcessor {
+    private PropertiesPropertySourceLoader loader = new PropertiesPropertySourceLoader();
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        MutablePropertySources propertySources = environment.getPropertySources();
+        Resource resource = new ClassPathResource("yapf.properties");
+        try {
+            PropertySource ps = loader.load("YetAnotherPropertiesFile", resource)
+                    .get(0);
+            propertySources.addFirst(ps);
+        } catch (Exception e) {
+            log.error("Exception!", e);
+        }
+    }
+}
+```
 
+## Actuator
 
+​	可以监控并管理应用程序，主要是通过HTTP/JMX访问，依赖是spring-boot-starter-actuator。
 
+常用Endpoint：
 
+> Endpoint主要是用来监控应用服务的运行状况，并集成在Mvc中提供查看接口。
 
+![image-20190901185343292](/Users/jack/Desktop/md/images/image-20190901185343292.png)
+
+![image-20190901185500141](/Users/jack/Desktop/md/images/image-20190901185500141.png)
+
+### 访问及配置
+
+通过HTTP：/actuator/\<id>
+
+端口与路径：
+
+- management.server.address=
+- management.server.port=
+- management.endpoints.web.base-path=/actuator
+- management.endpoints.web.path-mapping.\<id>=路径
+
+开启 **Endpoint**:
+
+- management.endpoint.\<id>.enabled=true
+- management.endpoints.enabled-by-default=false
+
+暴露 **Endpoint**：
+
+- management.endpoints.jmx.exposure.exclude=
+- management.endpoints.jmx.exposure.include=*
+- management.endpoints.web.exposure.exclude=
+- management.endpoints.web.exposure.include=info, health
+
+## Health Indicator
+
+目的：检查应⽤程序的运行状态
+
+状态：
+
+- DOWN - 503
+- OUT_OF_SERVICE - 503
+- UP - 200
+- UNKNOWN - 200
+
+### Spring Boot ⾃带的 Health Indicator
+
+机制：
+
+- 通过 HealthIndicatorRegistry 收集信息
+- HealthIndicator 实现具体检查逻辑
+
+配置项：
+
+- management.health.defaults.enabled=true|false
+- management.health.\<id>.enabled=true
+- management.endpoint.health.show-details=never|when-authorized|always
+
+![image-20190901201313867](/Users/jack/Desktop/md/images/image-20190901201313867.png)
+
+### 自定义 Health Indicator
+
+方法：
+
+- 实现 HealthIndicator 接⼝
+- 根据自定义检查逻辑返回对应 Health 状态：Health 中包含状态和详描述信息
+
+```java
+// 可以监测/查看咖啡是否还有
+@Component
+public class CoffeeIndicator implements HealthIndicator {
+    @Autowired
+    private CoffeeService coffeeService;
+
+    @Override
+    public Health health() {
+        long count = coffeeService.getCoffeeCount();
+        Health health;
+        if (count > 0) {
+            health = Health.up()
+                    .withDetail("count", count)
+                    .withDetail("message", "We have enough coffee.")
+                    .build();
+        } else {
+            health = Health.down()
+                    .withDetail("count", 0)
+                    .withDetail("message", "We are out of coffee.")
+                    .build();
+        }
+        return health;
+    }
+}
+```
+
+## Micrometer
+
+​		这是个监控指标的度量类库。
+
+特性：
+
+- **多维度度量**：支持Tag(可以打上标签)
+- ==预置大量探针：缓存、类加载器器、GC、CPU 利用率、线程池......==
+- 与Spring深度整合
+
+支持多种监控系统：
+
+- Dimensional：AppOptics, Atlas, Azure Monitor, Cloudwatch, Datadog, Datadog StatsD, Dynatrace, Elastic, Humio, Influx, KairosDB, New Relic, Prometheus, SignalFx, Sysdig StatsD, Telegraf StatsD, Wavefront
+- Hierarchical：Graphite, Ganglia, JMX, Etsy StatsD
+
+**核心接口：Meter**
+
+内置实现：
+
+- Gauge, TimeGauge
+- Timer, LongTaskTimer, FunctionTimer
+- Counter, FunctionCounter
+- DistributionSummary
+
+```java
+@Service
+@Transactional
+@Slf4j
+public class CoffeeOrderService implements MeterBinder {
+    @Autowired
+    private CoffeeOrderRepository orderRepository;
+
+    private Counter orderCounter = null;
+
+    public CoffeeOrder get(Long id) {
+        return orderRepository.getOne(id);
+    }
+
+    public CoffeeOrder createOrder(String customer, Coffee...coffee) {
+        CoffeeOrder order = CoffeeOrder.builder()
+                .customer(customer)
+                .items(new ArrayList<>(Arrays.asList(coffee)))
+                .state(OrderState.INIT)
+                .build();
+        CoffeeOrder saved = orderRepository.save(order);
+        log.info("New Order: {}", saved);
+        orderCounter.increment();//统计订单总量，后面可以做监测
+        return saved;
+    }
+
+    public boolean updateState(CoffeeOrder order, OrderState state) {
+        if (state.compareTo(order.getState()) <= 0) {
+            log.warn("Wrong State order: {}, {}", state, order.getState());
+            return false;
+        }
+        order.setState(state);
+        orderRepository.save(order);
+        log.info("Updated Order: {}", order);
+        return true;
+    }
+
+    @Override
+    public void bindTo(MeterRegistry meterRegistry) {
+        this.orderCounter = meterRegistry.counter("order.count");
+    }
+}
+```
+
+### Micrometer in Spring Boot 2.x
+
+一些 **URL**：
+
+- /actuator/metrics
+- /actuator/prometheus
+
+⼀些配置项：
+
+- management.metrics.export.*
+- management.metrics.tags.*
+- management.metrics.enable.*
+- management.metrics.distribution.*
+- management.metrics.web.server.auto-time-requests(耗时监控)
+
+核心度量项：JVM、CPU、⽂件句柄数、⽇志、启动时间
+
+其他度量项：
+
+- Spring MVC、Spring WebFlux
+- Tomcat、Jersey JAX-RS
+- RestTemplate、WebClient
+- 缓存、数据源、Hibernate
+- Kafka、RabbitMQ
+
+⾃定义度量指标：
+
+- 通过 MeterRegistry 注册 Meter
+- 提供 MeterBinder Bean 让 Spring Boot ⾃动绑定
+- 通过 MeterFilter 进行定制
+
+# maven
+
+查看依赖：
+
+- mvn dependency:tree
+- IDEA Maven Helper 插件
+
+统一管理依赖：
+
+- dependencyManagement
+- Bill of Materials - bom
 
 
 
