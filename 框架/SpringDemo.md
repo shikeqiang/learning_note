@@ -781,6 +781,137 @@ public class CoffeeOrderService implements MeterBinder {
 - 提供 MeterBinder Bean 让 Spring Boot ⾃动绑定
 - 通过 MeterFilter 进行定制
 
+## Spring Boot Admin
+
+​	为 Spring Boot 应⽤程序提供⼀套管理界面，集中展示应用程序 Actuator 相关的内容，变更了通知。![image-20190902210526969](/Users/jack/Desktop/md/images/image-20190902210526969.png)
+
+### 安全控制
+
+安全相关依赖：spring-boot-starter-security
+
+服务端配置：
+
+- spring.security.user.name
+- spring.security.user.password
+
+客户端配置：
+
+- spring.boot.admin.client.username
+- spring.boot.admin.client.password
+- spring.boot.admin.client.instance.metadata.user.name
+- spring.boot.admin.client.instance.metadata.user.password
+
+```java
+//客户端
+@SpringBootApplication
+public class SbaClientApplication {
+
+   public static void main(String[] args) {
+      SpringApplication.run(SbaClientApplication.class, args);
+   }
+}
+//服务端
+@SpringBootApplication
+@EnableAdminServer
+public class SbaServerApplication extends WebSecurityConfigurerAdapter {
+	@Autowired
+	private AdminServerProperties adminServerProperties;
+
+	public static void main(String[] args) {
+		SpringApplication.run(SbaServerApplication.class, args);
+	}
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		String adminContextPath = adminServerProperties.getContextPath();
+
+		SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+		successHandler.setTargetUrlParameter("redirectTo");
+		successHandler.setDefaultTargetUrl(adminContextPath + "/");
+
+		http.authorizeRequests()
+				.antMatchers(adminContextPath + "/assets/**").permitAll()
+				.antMatchers(adminContextPath + "/login").permitAll()
+				.anyRequest().authenticated()
+				.and()
+				.formLogin().loginPage(adminContextPath + "/login").successHandler(successHandler).and()
+				.logout().logoutUrl(adminContextPath + "/logout").and()
+				.httpBasic().and()
+				.csrf()
+				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+				.ignoringAntMatchers(
+						adminContextPath + "/instances",
+						adminContextPath + "/actuator/**"
+				);
+	}
+}
+```
+
+# 配置HTTPS支持
+
+### 配置HTTPS支持
+
+通过参数配置
+
+- server.port=8443
+- server.ssl.*
+  - server.ssl.key-store
+  - server.ssl.key-store-type，JKS或者PKCS12
+  - server.ssl.key-store-password=secret
+
+生成证书文件
+
+命令
+
+​	keytool -genkey -alias 别名  -storetype 仓库类型 -keyalg 算法 -keysize 长度  -keystore ⽂件名 -validity 有效期
+
+说明
+
+- 仓库类型，JKS、JCEKS、PKCS12 等
+- 算法，RSA、DSA 等
+- 长度，例如 2048
+
+### 客户端HTTPS支持
+
+配置 **HttpClient** ( **>= 4.4** )
+
+- SSLContextBuilder 构造 SSLContext
+- setSSLHostnameVerifier(new NoopHostnameVerifier())
+
+配置 **RequestFactory**：HttpComponentsClientHttpRequestFactory的setHttpClient()方法
+
+## 命令行运行程序
+
+关闭Web容器：
+
+控制依赖：不添加 Web 相关依赖
+
+配置方式：spring.main.web-application-type=none
+
+编程方式：SpringApplication的setWebApplicationType() 或 SpringApplicationBuilder的web()
+
+​	在调用 SpringApplication 的 run() 方法前 设置 WebApplicationType
+
+常用工具类：
+
+ApplicationRunner：参数是 ApplicationArguments
+
+CommandLineRunner：参数是 String[]
+
+返回码：ExitCodeGenerator
+
+```java
+@Component
+@Order(1)//执行顺序
+@Slf4j
+public class FooCommandLineRunner implements CommandLineRunner {
+    @Override
+    public void run(String... args) throws Exception {
+        log.info("Foo");
+    }
+}
+```
+
 # maven
 
 查看依赖：
@@ -793,9 +924,77 @@ public class CoffeeOrderService implements MeterBinder {
 - dependencyManagement
 - Bill of Materials - bom
 
+# Docker
 
+## DockerFile
 
+![image-20190902220344124](/Users/jack/Desktop/md/images/image-20190902220344124.png)
 
+```dockerfile
+FROM java:8
+EXPOSE 8080
+ARG JAR_FILE
+ADD target/${JAR_FILE} /waiter-service.jar
+ENTRYPOINT ["java", "-jar","/waiter-service.jar"]
+```
+
+```xml
+<plugin>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-maven-plugin</artifactId>
+</plugin>
+<plugin>
+   <groupId>com.spotify</groupId>
+   <artifactId>dockerfile-maven-plugin</artifactId>
+   <version>1.4.10</version>
+   <executions>
+      <execution>
+         <id>default</id>
+         <goals>
+            <goal>build</goal>
+            <goal>push</goal>
+         </goals>
+      </execution>
+   </executions>
+   <configuration>
+      <repository>${docker.image.prefix}/${project.artifactId}</repository>
+      <tag>${project.version}</tag>
+      <buildArgs>
+         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+      </buildArgs>
+   </configuration>
+</plugin>
+```
+
+![image-20190902220404149](/Users/jack/Desktop/md/images/image-20190902220404149.png)
+
+```
+<plugin>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-maven-plugin</artifactId>
+</plugin>
+<plugin>
+   <groupId>com.spotify</groupId>
+   <artifactId>dockerfile-maven-plugin</artifactId>
+   <version>1.4.10</version>
+   <executions>
+      <execution>
+         <id>default</id>
+         <goals>
+            <goal>build</goal>
+            <goal>push</goal>
+         </goals>
+      </execution>
+   </executions>
+   <configuration>
+      <repository>${docker.image.prefix}/${project.artifactId}</repository>
+      <tag>${project.version}</tag>
+      <buildArgs>
+         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+      </buildArgs>
+   </configuration>
+</plugin>
+```
 
 
 
