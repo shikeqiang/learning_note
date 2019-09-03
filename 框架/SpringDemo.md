@@ -912,6 +912,8 @@ public class FooCommandLineRunner implements CommandLineRunner {
 }
 ```
 
+参见：[https://github.com/JDawnF/demo/tree/master/geektime-spring-family-master/Chapter%2010/command-line-demo](https://github.com/JDawnF/demo/tree/master/geektime-spring-family-master/Chapter 10/command-line-demo)
+
 # maven
 
 查看依赖：
