@@ -25,6 +25,51 @@ CAS 包含了 3 个操作数:
 
 当且仅当 V 的值等于 A 时，CAS 通过原子方式用新值 B 来更新 V 的 值，否则不会执行任何操作。
 
+```java
+// 模拟CAS算法
+public class TestCompareAndSwap {
+   public static void main(String[] args) {
+      final CompareAndSwap cas = new CompareAndSwap();
+      for (int i = 0; i < 10; i++) {
+         new Thread(new Runnable() {
+            
+            @Override
+            public void run() {
+               int expectedValue = cas.get();
+               boolean b = cas.compareAndSet(expectedValue, (int)(Math.random() * 101));
+               System.out.println(b);
+            }
+         }).start();
+      }
+   }
+}
+
+class CompareAndSwap{
+   private int value;
+   
+   //获取内存值
+   public synchronized int get(){
+      return value;
+   }
+   
+   //比较
+   public synchronized int compareAndSwap(int expectedValue, int newValue){
+      int oldValue = value;
+      
+      if(oldValue == expectedValue){
+         this.value = newValue;
+      }
+      
+      return oldValue;
+   }
+   
+   //设置
+   public synchronized boolean compareAndSet(int expectedValue, int newValue){
+      return expectedValue == compareAndSwap(expectedValue, newValue);
+   }
+}
+```
+
 ## 原子变量
 
 -  类的小工具包，支持在单个变量上解除锁的线程安全编程。事实上，此包中的类可 将 volatile 值、字段和数组元素的概念扩展到那些也提供原子条件更新操作的类。
@@ -42,23 +87,40 @@ CAS 包含了 3 个操作数:
 
 ## CountDownLatch
 
+​	一个同步辅助类，**在完成一组正在其他线程中执行的操作 之前。闭锁可以延迟线程的进度直到其到达终止状态，闭锁可以用来确保某些活动直到其他活动都完成才继续执行:**
 
+- 确保某个计算在其需要的所有资源都被初始化之后才继续执行;
+- 确保某个服务在其依赖的所有其他服务都已经启动之后才启动;
+- 等待直到某个操作所有参与者都准备就绪再继续执行。
 
+## Callable接口
 
+​	Callable 接口类似于 Runnable，两者都是为那些其实例可 能被另一个线程执行的类设计的。但是 Runnable 不会返回结果，**并且无法抛出经过检查的异常。**Callable 需要依赖FutureTask ，FutureTask 也可以用作闭 锁。
 
+## Lock同步锁
 
+​	ReentrantLock 实现了 Lock 接口，并提供了与synchronized 相同的互斥性和内存可见性。但相较于synchronized 提供了更高的处理锁的灵活性。
 
+## Condition
 
+​	Condition 接口描述了可能会与锁有关联的条件变量。这些变量在用法上与使用 Object.wait 访问的隐式监视器类似，但提供了更强大的 功能。需要特别指出的是，**单个 Lock 可能与多个 Condition 对象关 联。**为了避免兼容性问题，Condition 方法的名称与对应的 Object 版 本中的不同。
 
+- 在 Condition 对象中，与 wait、notify 和 notifyAll 方法对应的分别是await、signal 和 signalAll。
+- Condition 实例实质上被绑定到一个锁上。要为特定 Lock 实例获得Condition 实例，请使用其 newCondition() 方法。
 
+# 四、锁相关描述
 
+- 一个对象里面如果有多个synchronized方法，某一个时刻内，只要一个线程去调用 其中的一个synchronized方法了，其它的线程都只能等待，换句话说，某一个时刻 内，只能有唯一一个线程去访问这些synchronized方法
+- 锁的是当前对象this，被锁定后，其它的线程都不能进入到当前对象的其它的synchronized方法
+- 加个普通方法后发现和同步锁无关
+- 换成两个对象后，不是同一把锁了，情况立刻变化。
+- 都换成静态同步方法后，情况又变化
+- 所有的非静态同步方法用的都是同一把锁——实例对象本身，也就是说如果一个实例对象的非静态同步方法获取锁后，该实例对象的其他非静态同步方法必须等待获 取锁的方法释放锁后才能获取锁，可是别的实例对象的非静态同步方法因为跟该实 例对象的非静态同步方法用的是不同的锁，所以毋须等待该实例对象已获取锁的非 静态同步方法释放锁就可以获取他们自己的锁。
+- 所有的静态同步方法用的也是同一把锁——类对象本身，这两把锁是两个不同的对 象，所以静态同步方法与非静态同步方法之间是不会有竞态条件的。但是一旦一个 静态同步方法获取锁后，其他的静态同步方法都必须等待该方法释放锁后才能获取 锁，而不管是同一个实例对象的静态同步方法之间，还是不同的实例对象的静态同 步方法之间，只要它们同一个类的实例对象!
 
+线程池与Fork/Join框架差别
 
-
-
-
-
-
+​	相对于一般的线程池实现，fork/join框架的优势体现在对其中包含的任务 的处理方式上.在一般的线程池中，如果一个线程正在执行的任务由于某些 原因无法继续运行，那么该线程会处于等待状态。而在fork/join框架实现中， 如果某个子问题由于等待另外一个子问题的完成而无法继续运行。那么处理 该子问题的线程会主动寻找其他尚未运行的子问题来执行.这种方式减少了 线程的等待时间，提高了性能。
 
 
 
