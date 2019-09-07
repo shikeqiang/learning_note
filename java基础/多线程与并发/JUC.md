@@ -95,11 +95,90 @@ class CompareAndSwap{
 
 ## Callable接口
 
-​	Callable 接口类似于 Runnable，两者都是为那些其实例可 能被另一个线程执行的类设计的。但是 Runnable 不会返回结果，**并且无法抛出经过检查的异常。**Callable 需要依赖FutureTask ，FutureTask 也可以用作闭 锁。
+​	Callable 接口类似于 Runnable，两者都是为那些其实例可能被另一个线程执行的类设计的。但是 Runnable 不会返回结果，**并且无法抛出经过检查的异常。**==Callable 需要依赖FutureTask ，FutureTask 也可以用作闭锁。==
+
+```java
+/*
+ * 一、创建执行线程的方式三：
+ * 实现 Callable 接口。 相较于实现 Runnable 接口的方式，方法可以有返回值，并且可以抛出异常。
+ * 二、执行 Callable 方式，需要 FutureTask 实现类的支持，用于接收运算结果。
+ * FutureTask 是  Future 接口的实现类
+ */
+public class TestCallable {
+   public static void main(String[] args) {
+      ThreadDemo td = new ThreadDemo();
+//1.执行 Callable 方式，需要 FutureTask 实现类的支持，用于接收运算结果。参数需要实现了Callable接口
+      FutureTask<Integer> result = new FutureTask<>(td);
+/*
+new的线程方法
+public Thread(Runnable target) {
+        init(null, target, "Thread-" + nextThreadNum(), 0);
+    }  
+*/    
+      new Thread(result).start();
+      
+      //2.接收线程运算后的结果
+      try {
+         Integer sum = result.get();  //FutureTask 可用于 闭锁
+         System.out.println(sum);
+         System.out.println("------------------------------------");
+      } catch (InterruptedException | ExecutionException e) {
+         e.printStackTrace();
+      }
+   }
+}
+
+class ThreadDemo implements Callable<Integer>{
+
+   @Override
+   public Integer call() {
+      int sum = 0;
+      for (int i = 0; i <= 100000; i++) {
+         sum += i;
+      }
+      return sum;
+   }
+}
+```
 
 ## Lock同步锁
 
 ​	ReentrantLock 实现了 Lock 接口，并提供了与synchronized 相同的互斥性和内存可见性。但相较于synchronized 提供了更高的处理锁的灵活性。
+
+```java
+public class TestLock {
+    public static void main(String[] args) {
+        Ticket ticket = new Ticket();
+      //创建3个线程，参数为实现了Runnable接口的类
+        new Thread(ticket, "1号窗口").start();
+        new Thread(ticket, "2号窗口").start();
+        new Thread(ticket, "3号窗口").start();
+    }
+}
+
+class Ticket implements Runnable {
+    private int tick = 100;
+    private Lock lock = new ReentrantLock();
+
+    @Override
+    public void run() {
+        while (true) {
+            lock.lock(); //上锁
+            try {
+                if (tick > 0) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                    }
+                    System.out.println(Thread.currentThread().getName() + " 完成售票，余票为：" + --tick);
+                }
+            } finally {
+                lock.unlock(); //释放锁
+            }
+        }
+    }
+}
+```
 
 ## Condition
 
@@ -111,16 +190,16 @@ class CompareAndSwap{
 # 四、锁相关描述
 
 - 一个对象里面如果有多个synchronized方法，某一个时刻内，只要一个线程去调用 其中的一个synchronized方法了，其它的线程都只能等待，换句话说，某一个时刻 内，只能有唯一一个线程去访问这些synchronized方法
-- 锁的是当前对象this，被锁定后，其它的线程都不能进入到当前对象的其它的synchronized方法
+- **锁的是当前对象this，被锁定后，其它的线程都不能进入到当前对象的其它的synchronized方法**
 - 加个普通方法后发现和同步锁无关
 - 换成两个对象后，不是同一把锁了，情况立刻变化。
 - 都换成静态同步方法后，情况又变化
 - 所有的非静态同步方法用的都是同一把锁——实例对象本身，也就是说如果一个实例对象的非静态同步方法获取锁后，该实例对象的其他非静态同步方法必须等待获 取锁的方法释放锁后才能获取锁，可是别的实例对象的非静态同步方法因为跟该实 例对象的非静态同步方法用的是不同的锁，所以毋须等待该实例对象已获取锁的非 静态同步方法释放锁就可以获取他们自己的锁。
 - 所有的静态同步方法用的也是同一把锁——类对象本身，这两把锁是两个不同的对 象，所以静态同步方法与非静态同步方法之间是不会有竞态条件的。但是一旦一个 静态同步方法获取锁后，其他的静态同步方法都必须等待该方法释放锁后才能获取 锁，而不管是同一个实例对象的静态同步方法之间，还是不同的实例对象的静态同 步方法之间，只要它们同一个类的实例对象!
 
-线程池与Fork/Join框架差别
+### 线程池与Fork/Join框架差别
 
-​	相对于一般的线程池实现，fork/join框架的优势体现在对其中包含的任务 的处理方式上.在一般的线程池中，如果一个线程正在执行的任务由于某些 原因无法继续运行，那么该线程会处于等待状态。而在fork/join框架实现中， 如果某个子问题由于等待另外一个子问题的完成而无法继续运行。那么处理 该子问题的线程会主动寻找其他尚未运行的子问题来执行.这种方式减少了 线程的等待时间，提高了性能。
+​	相对于一般的线程池实现，fork/join框架的优势体现在对其中包含的任务 的处理方式上。在一般的线程池中，如果一个线程正在执行的任务由于某些 原因无法继续运行，那么该线程会处于等待状态。而在fork/join框架实现中， 如果某个子问题由于等待另外一个子问题的完成而无法继续运行。那么处理 该子问题的线程会主动寻找其他尚未运行的子问题来执行.这种方式减少了 线程的等待时间，提高了性能。
 
 
 
