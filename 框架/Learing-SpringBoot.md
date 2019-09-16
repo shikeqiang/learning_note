@@ -490,29 +490,85 @@ SpringApplicationRunListener 监听多个运行状态方法:
 - Web Servlet: StandardServletEnvironment
 - 非 Web: StandardEnvironment
 
+# 四、Web MVC核心
 
+## Spring Web MVC 架构
 
+### 基础架构:Servlet
 
+![image-20190916221050152](/Users/jack/Desktop/md/images/image-20190916221050152.png)
 
+- 特点
+  - 请求/响应式(Request/Response)
+  - 屏蔽网络通讯的细节
 
+- API 特性
+  - 面向 HTTP 协议
+  - 完整生命周期
 
+- 职责
+- 处理请求
+- 资源管理(数据库连接、消息连接、其他)
+- 视图渲染
 
+### Spring Web MVC 架构
 
+![image-20190916221305325](/Users/jack/Desktop/md/images/image-20190916221305325.png)
 
+### Web Mvc的实现过程
 
+- 实现 Controller
+- 配置 Web MVC 组件
+- 部署 DispatcherServlet
 
+![image-20190916205347241](/Users/jack/Desktop/md/images/image-20190916205347241.png)
 
+![image-20190916205326201](/Users/jack/Desktop/md/images/image-20190916205326201.png)
 
+![image-20190916205612421](/Users/jack/Desktop/md/images/image-20190916205612421.png)
 
+### Web MVC 核心组件
 
+![image-20190916221652655](/Users/jack/Desktop/md/images/image-20190916221652655.png)
 
+#### 交互流程
 
+![image-20190916221716160](/Users/jack/Desktop/md/images/image-20190916221716160.png)
 
+> 首先请求先来到DispatcherServlet类中的doDispatch方法(入口方法)，然后到getHandler方法中，遍历handlerMappings;然后就来到getHandlerAdapter方法中，遍历handlerAdapters;然后来到resolveViewName方法中，遍历viewResolvers(viewName其实是controller中返回的字符串，可以配置前后缀)，最后返回具体的页面。
 
+### Web MVC 注解驱动
 
+注解配置: @Configuration ( Spring 范式注解 ) 
 
+组件激活: @EnableWebMvc (Spring 模块装配) 
 
+> 这是个激活注解,里面有import注解引入了DelegatingWebMvcConfiguration,在DelegatingWebMvcConfiguration中继承了WebMvcConfigurationSupport，这个类有通过@Bean注入一些web组件，比如handler、adapter等等(871行)
 
+自定义组件 : WebMvcConfigurer (Spring Bean)
+
+参考：
+
+## 常用注解
+
+注册模型属性: @ModelAttribute
+
+读取请求头: @RequestHeader
+
+读取 Cookie: @CookieValue
+
+校验参数: @Valid 、 @Validated
+
+注解处理: @ExceptionHandler
+
+> ```java 
+> @ExceptionHandler(Throwable.class) // 拦截异常
+> public ResponseEntity<String> onException(Throwable throwable) {
+>     return ResponseEntity.ok(throwable.getMessage());
+> }
+> ```
+
+切面通知: @ControllerAdvice
 
 
 
