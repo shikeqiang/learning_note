@@ -98,6 +98,8 @@ WebMvcConfigurationSupport {
 }
 ```
 
+> 最终是通过WebMvcConfigurationSupport实现的
+
 #### 接口编程方式
 
 ```JAVA 
@@ -549,7 +551,7 @@ SpringApplicationRunListener 监听多个运行状态方法:
 
 参考：
 
-## 常用注解
+#### 常用注解
 
 注册模型属性: @ModelAttribute
 
@@ -570,33 +572,72 @@ SpringApplicationRunListener 监听多个运行状态方法:
 
 切面通知: @ControllerAdvice
 
+## 自动装配
 
+- 版本依赖 
+  - Spring Framework 3.1 + 
+  - Servlet 3.0 + 
 
+- Servlet SPI
+  - Servlet SPI ServletContainerInitializer ，参考 Servlet 3.0 规范 
 
+- 配合 @HandlesTypes 
 
+- Spring 适配 ：SpringServletContainerInitializer
 
+### Spring SPI(自动回调) 
 
+- 基础接口: WebApplicationInitializer
+- 编程驱动: AbstractDispatcherServletInitializer
+- 注解驱动: AbstractAnnotationConfigDispatcherServletInitializer
 
+## 简化 Spring Web MVC
 
+### 完全自动装配(三大组件)
 
+- 自动装配 DispatcherServlet : DispatcherServletAutoConfiguration
 
+  > 在DispatcherServletAutoConfiguration中有一个Bean会返回ServletRegistrationBean类型的方法，ServletRegistrationBean最顶层接口是ServletContextInitializer
 
+- 替换 @EnableWebMvc : WebMvcAutoConfiguration
 
+  > @EnableWebMvc注解中引入了DelegatingWebMvcConfiguration，这个类继承了WebMvcConfigurationSupport；当WebMvcConfigurationSupport不存在时，才会装配WebMvcAutoConfiguration(@ConditionalOnMissingBean(WebMvcConfigurationSupport.class))
 
+- Servlet 容器 : ServletWebServerFactoryAutoConfiguration(构造配置)
 
+### 自动配置顺序性
 
+- 绝对顺序: @AutoConfigureOrder
+- 相对顺序: @AutoConfigureAfter
 
+### 装配条件
 
+- Web 类型判断( ConditionalOnWebApplication )
 
+WebApplicationType：Servlet 类型: WebApplicationType.SERVLET
 
+- API 判断( @ConditionalOnClass )
 
+  Servlet
 
+  Spring Web MVC
 
+  ​    DispatcherServlet
+  ​    WebMvcConfigurer
 
+- Bean 判断( @ConditionalOnMissingBean 、 @ConditionalOnBean )
 
+  - 比如：WebMvcConfigurationSupport
 
+### 外部化配置
 
+#### Web MVC 配置：WebMvcProperties：
 
+​	这个类有个外部化配置：@ConfigurationProperties(prefix = "spring.mvc")，在additional-spring-configuration-metadata.json中配置
+
+​	WebMvcProperties：这个类有个外部化配置：@ConfigurationProperties(prefix = "spring.mvc")，在additional-spring-configuration-metadata.json中配置
+
+#### 资源配置：ResourceProperties
 
 
 
