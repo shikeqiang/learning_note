@@ -639,6 +639,289 @@ WebApplicationType：Servlet 类型: WebApplicationType.SERVLET
 
 #### 资源配置：ResourceProperties
 
+# 五、Web MVC视图应用
+
+## 核心要素
+
+### 资源定位(模板来源 )
+
+- 通用资源抽象
+  - 文件资源: File
+  - ClassPath资源: ClassLoader
+  - 统一资源: URL
+  - Web资源: ServletContext
+
+- Spring 资源抽象:
+  - Spring 资源: Resource
+
+### 渲染上下文(变量来源 )
+
+- 不同的实现
+  - Context :Thyemeaf 渲染上下文
+  - Model :Spring Web MVC 模型
+  - Attribute :Servlet 上下文
+
+### 模板引擎(模板渲染)
+
+- ITemplateEngine 实现
+  - TemplateEngine :Thymeleaf 原生实现
+  - SpringTemplateEngine :Spring 实现
+  - SpringWebFluxTemplateEngine :Spring WebFlux 实现
+
+## 视图处理
+
+### Spring Web MVC 视图组件
+
+- ViewResolver :视图解析器
+- View : 视图组件
+- DispatcherServlet :总控
+
+### Thymeleaf 整合 Spring Web MVC
+
+- ViewResolver : Thymeleaf
+- ViewResolver View : ThymeleafView
+- ITemplateEngine : SpringTemplateEngine
+
+### 交互流程
+
+![image-20190919233057800](/Users/jack/Desktop/md/images/image-20190919233057800.png)
+
+## 视图内容协商
+
+![image-20190921163247889](/Users/jack/Desktop/md/images/image-20190921163247889.png)
+
+### 核心组件
+
+- 视图解析
+  - ContentNegotiatingViewResolver(关联ViewResolver Bean列表 -> 关联ContentNegotiationManager Bean -> 解析最佳匹配View)
+    - InternalResourceViewResolver
+    - BeanNameViewResolver
+    - ThymeleafViewResolver
+
+- 配置策略
+  - 配置 Bean: WebMvcConfigurer
+  - 配置对象: ContentNegotiationConfigurer
+
+- 策略管理
+  - Bean: ContentNegotiationManager
+  - FactoryBean : ContentNegotiationManagerFactoryBean
+
+- 策略实现
+  - ContentNegotiationStrategy
+    - 固定 MediaType : FixedContentNegotiationStrategy
+    - "Accept" 请求头: HeaderContentNegotiationStrategy
+    - 请求参数: ParameterContentNegotiationStrategy
+    - 路径扩展名: PathExtensionContentNegotiationStrategy
+
+![image-20190920000030855](/Users/jack/Desktop/md/images/image-20190920000030855.png)
+
+#### 交互图
+
+![image-20190921163553578](/Users/jack/Desktop/md/images/image-20190921163553578.png)
+
+### 示例:多视图处理器内容协商
+
+- 视图处理器协商
+
+  - ContentNegotiatingViewResolver
+
+    - BeanNameViewResolver
+    - InternalResourceViewResolver Content-Type : text/xml;charset=UTF-8
+    - ThymeleafViewResolver Content-Type : text/html;charset=UTF-8
+
+    > 在ContentNegotiatingViewResolver中会读取不同的ContentType做不同处理
+
+- 目的
+  - 理解 BeanNameViewResolver
+  - 理解 HTTP Accept 请求头 与 View Content-Type 匹配 
+  - 理解最佳 View 匹配规则
+    - ViewResolver 优先规则
+      - 自定义 InternalResourceViewResolver 
+      - ThymeleafViewResolver
+      - 默认 InternalResourceViewResolver 
+    - MediaType 匹配规则
+      - Accept 头策略 
+      - 请求参数策略
+
+> 四种请求头：
+>
+> ![image-20190921165358743](/Users/jack/Desktop/md/images/image-20190921165358743.png)
+
+## 视图组件自动装配
+
+### 自动装配 Bean 
+
+#### 视图处理器 
+
+- InternalResourceViewResolver 
+- BeanNameViewResolver 
+- ContentNegotiatingViewResolver 
+- ViewResolverComposite 
+- ThymeleafViewResolver ( Thymeleaf 可用) 
+
+#### 内容协商 ：ContentNegotiationManager
+
+#### 外部化配置 
+
+- WebMvcProperties
+- WebMvcProperties.Contentnegotiation
+- WebMvcProperties.View
+
+# 六、Web MVC REST 应用
+
+## Web MVC REST 支持
+
+### 定义
+
+| 注解            | 说明                                         | Spring Framework 版本 |
+| --------------- | -------------------------------------------- | --------------------- |
+| @Controller     | 应用控制器注解声明，Spring 模式注解          | 2.5 +                 |
+| @RestController | 等效于 @Controller + @ResponseBody，组合注解 | 4.0 +                 |
+
+### 映射
+
+| 注解            | 说明                                                         | Spring Framework  版本 |
+| --------------- | ------------------------------------------------------------ | ---------------------- |
+| @RequestMapping | 应用控制器映射注解声明                                       | 2.5 +                  |
+| @GetMapping     | GET 方法映射，等效于 @RequestMapping(method = RequestMethod.GET) | 4.3 +                  |
+| @PostMapping    | POST 方法映射，等效于 @RequestMapping(method = RequestMethod.POST) | 4.3 +                  |
+| @PutMapping     | PUT 方法映射，等效于 @RequestMapping(method = RequestMethod.PUT) | 4.3 +                  |
+| @DeleteMapping  | DELETE 方法映射，等效于 @RequestMapping(method = RequestMethod.DELETE) | 4.3 +                  |
+| @GetMapping     | GET 方法映射，等效于 @RequestMapping(method = RequestMethod.GET) | 4.3 +                  |
+| @PatchMapping   | PATCH 方法映射，等效于 @RequestMapping(method = RequestMethod.PATCH) | 4.3 +                  |
+
+### 请求
+
+![image-20190921204540060](/Users/jack/Desktop/md/images/image-20190921204540060.png)
+
+### 响应
+
+| 注解                                                         | 说明                           | Spring Framework 版本 |
+| ------------------------------------------------------------ | ------------------------------ | --------------------- |
+| @ResponseBody                                                | 响应主题注解声明               | 2.5 +                 |
+| @ResponseEntity                                              | 响应内容(包括响应主体和响应头) | 3.0.2 +               |
+| ![page3image56360256.png](/Users/jack/Library/Application Support/typora-user-images/page3image56360256.png) ResponseCookie | 响应 Cookie 内容               | 5.0 +                 |
+
+### 拦截
+
+| 注解                                                         | 说明                         | Spring Framework 版本 |
+| ------------------------------------------------------------ | ---------------------------- | --------------------- |
+| @RestControllerAdvice                                        | @RestController 注解切面通知 | 4.3 +                 |
+| ![page3image56347376.png](/Users/jack/Library/Application Support/typora-user-images/page3image56347376.png) HandlerInterceptor | 处理方法拦截器               | 1.0                   |
+
+### 跨域
+
+| 注解                              | 说明             | Spring Framework 版本 |
+| --------------------------------- | ---------------- | --------------------- |
+| @CrossOrigin                      | 资源跨域声明注解 | 4.2 +                 |
+| @CorsFilter                       | 资源跨域拦截器   | 4.2 +                 |
+| @WebMvcConfigurer#addCorsMappings | 注册资源跨域信息 | 4.2 +                 |
+
+## REST 内容协商
+
+### 核心组件
+
+![image-20190921205211007](/Users/jack/Desktop/md/images/image-20190921205211007.png)
+
+### Spring Web MVC REST 处理流程
+
+![image-20190921210623953](/Users/jack/Desktop/md/images/image-20190921210623953.png)
+
+### 内容协商处理流程
+
+![image-20190921221824895](/Users/jack/Desktop/md/images/image-20190921221824895.png)
+
+> 在AbstractMessageConverterMethodProcessor#writeWithMessageConverters方法中，有两个个地方判断媒体类型是否为通配类型：
+>
+> ```java
+> if (contentType != null && contentType.isConcrete()) {
+>    mediaTypesToUse = Collections.singletonList(contentType);
+> }
+> 	...
+> for (MediaType mediaType : mediaTypesToUse) {
+> 			if (mediaType.isConcrete()) {
+> 				selectedMediaType = mediaType;
+> 				break;
+> 			}
+> 			else if (mediaType.equals(MediaType.ALL) || mediaType.equals(MEDIA_TYPE_APPLICATION)) {
+> 				selectedMediaType = MediaType.APPLICATION_OCTET_STREAM;
+> 				break;
+> 			}
+> 		}
+> ```
+>
+> 具体即没有通配符，有通配符或者子通配符则为不具体。
+
+#### 请求的媒体类型
+
+经过 ContentNegotiationManager 的 `ContentNegotiationStrategy` 解析请求中的媒体类型，比如: Accept 请求头
+
+- 如果成功解析，返回合法 MediaType 列表 
+- 否则，返回单元素 */* 媒体类型列表 - MediaType.ALL
+
+> ```java
+> @Override
+> public List<MediaType> resolveMediaTypes(NativeWebRequest request) throws HttpMediaTypeNotAcceptableException {
+>    for (ContentNegotiationStrategy strategy : this.strategies) {//遍历多个策略	
+>       List<MediaType> mediaTypes = strategy.resolveMediaTypes(request);
+>       if (mediaTypes.equals(MEDIA_TYPE_ALL_LIST)) {//如果都符合，最终会跳出循环，输出MEDIA_TYPE_ALL_LIST
+>          continue;
+>       }
+>       return mediaTypes;
+>    }
+>    return MEDIA_TYPE_ALL_LIST;
+> }
+> ```
+
+#### 可生成的媒体类型
+
+返回 @Controller HandlerMethod @RequestMapping.produces() 属性所指定的 MediaType 列表:
+
+- 如果 @RequestMapping.produces() 存在，返回指定 MediaType 列表(在controller类中的mapping注解上设置具体的produces属性的值，最终会生成对应响应头的媒体类型，参照上面的**核心组件**) 
+- 否则，返回已注册的 HttpMessageConverter 列表中支持的 MediaType 列表
+
+#### @RequestMapping#consumes
+
+用于 @Controller HandlerMethod 匹配，请求头媒体类型映射:
+
+- 如果请求头 Content-Type 媒体类型兼容 @RequestMapping.consumes() 属性，执行该 HandlerMethod
+- 否则 HandlerMethod 不会被调用
+
+#### @RequestMapping#produces
+
+用于获取可生成的 MediaType 列表：
+
+- 如果该列表与请求的媒体类型兼容，执行第一个兼容 HttpMessageConverter 的实现，默认@RequestMapping#produces 内容到响应头 Content-Type
+- 否则，抛出 HttpMediaTypeNotAcceptableException , HTTP Status Code : 415
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
