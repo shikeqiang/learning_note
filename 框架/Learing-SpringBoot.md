@@ -894,6 +894,262 @@ WebApplicationType：Servlet 类型: WebApplicationType.SERVLET
 - 如果该列表与请求的媒体类型兼容，执行第一个兼容 HttpMessageConverter 的实现，默认@RequestMapping#produces 内容到响应头 Content-Type
 - 否则，抛出 HttpMediaTypeNotAcceptableException , HTTP Status Code : 415
 
+### 扩展 REST 内容协商
+
+#### 自定义 HttpMessageConverter
+
+​	实现 Content-Type 为 text/properties 媒体类型的 HttpMessageConverter
+
+**实现步骤**
+
+- 实现 HttpMessageConverter - PropertiesHttpMessageConverter
+- 配置 PropertiesHttpMessageConverter 到 WebMvcConfigurer#extendMessageConverters
+
+> ```java
+> @Configuration
+> public class RestWebMvcConfigurer implements WebMvcConfigurer {
+> // 自定义converter
+>     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+> // 如果是直接添加(add)的话，则会添加到 converters 的末尾，不建议这样子，因为这样子可能会先加载了前面的converter，然后被略过
+> //        converters.add(new PropertiesHttpMessageConverter());
+> //        converters.set(0, new PropertiesHttpMessageConverter()); // 添加到集合首位
+>     }
+> }
+> ```
+>
+> ```java 
+> public class PropertiesHttpMessageConverter extends AbstractGenericHttpMessageConverter<Properties> {
+> 
+>     public PropertiesHttpMessageConverter() {
+>         // 设置支持的 MediaType
+>         super(new MediaType("text", "properties"));
+>     }
+> 
+>     @Override
+>     protected void writeInternal(Properties properties, Type type, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+>         // Properties -> String
+>         // OutputStream -> Writer
+>         HttpHeaders httpHeaders = outputMessage.getHeaders();
+>         MediaType mediaType = httpHeaders.getContentType();
+>         // 获取字符编码
+>         Charset charset = mediaType.getCharset();
+>         // 当 charset 不存在时，使用 UTF-8
+>         charset = charset == null ? Charset.forName("UTF-8") : charset;
+>         // 字节输出流
+>         OutputStream outputStream = outputMessage.getBody();
+>         // 字符输出流
+>         Writer writer = new OutputStreamWriter(outputStream, charset);
+>         // Properties 写入到字符输出流
+>         properties.store(writer,"From PropertiesHttpMessageConverter");
+>     }
+> 
+>     @Override
+>     protected Properties readInternal(Class<? extends Properties> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+> 
+>         // 字符流 -> 字符编码
+>         // 从 请求头 Content-Type 解析编码
+>         HttpHeaders httpHeaders = inputMessage.getHeaders();
+>         MediaType mediaType = httpHeaders.getContentType();
+>         // 获取字符编码
+>         Charset charset = mediaType.getCharset();
+>         // 当 charset 不存在时，使用 UTF-8
+>         charset = charset == null ? Charset.forName("UTF-8") : charset;
+> 
+>         // 字节流
+>         InputStream inputStream = inputMessage.getBody();
+>         InputStreamReader reader = new InputStreamReader(inputStream, charset);
+>         Properties properties = new Properties();
+>         // 加载字符流成为 Properties 对象
+>         properties.load(reader);
+>         return properties;
+>     }
+> 
+>     @Override
+>     public Properties read(Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+>         return readInternal(null, inputMessage);
+>     }
+> }
+> ```
+
+#### 自定义 HandlerMethodArgumentResolver
+
+**需求**
+
+- 不依赖 @RequestBody ， 实现 Properties 格式请求内容，解析为 Properties 对象的方法参数 
+- 复用 PropertiesHttpMessageConverter
+
+**实现步骤**
+
+- 实现 HandlerMethodArgumentResolver - PropertiesHandlerMethodArgumentResolver
+
+- ~~配置 PropertiesHandlerMethodArgumentResolver 到 WebMvcConfigurer#addArgumentResolvers~~
+
+  > 添加自定义 HandlerMethodArgumentResolver，优先级低于内建 HandlerMethodArgumentResolver
+
+- RequestMappingHandlerAdapter#setArgumentResolvers
+
+#### 自定义 HandlerMethodReturnValueHandler
+
+**需求**
+
+- 不依赖 @ResponseBody ，实现 Properties 类型方法返回值，转化为 Properties 格式内容响应内容 
+- 复用 PropertiesHttpMessageConverter
+
+**实现步骤**
+
+- 实现 HandlerMethodReturnValueHandler - PropertiesHandlerMethodReturnValueHandler
+
+- ~~配置 PropertiesHandlerMethodReturnValueHandler 到 WebMvcConfigurer#addReturnValueHandlers~~
+
+  > 同上面的自定义 HandlerMethodArgumentResolver
+
+- RequestMappingHandlerAdapter#setReturnValueHandlers
+
+  > ```java 
+  > @Override
+  > public void handleReturnValue(Object returnValue, MethodParameter returnType,
+  >                               ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+  >     // 强制装换
+  >     Properties properties = (Properties) returnValue;
+  >     // 复用 PropertiesHttpMessageConverter
+  >     PropertiesHttpMessageConverter converter = new PropertiesHttpMessageConverter();
+  > 
+  >     ServletWebRequest servletWebRequest = (ServletWebRequest) webRequest;
+  >     // Servlet Request API
+  >     HttpServletRequest request = servletWebRequest.getRequest();
+  >     String contentType = request.getHeader("Content-Type");
+  >     // 获取请求头 Content-Type 中的媒体类型
+  >     MediaType mediaType = MediaType.parseMediaType(contentType);
+  > 
+  >     // 获取 Servlet Response 对象
+  >     HttpServletResponse response = servletWebRequest.getResponse();
+  >     HttpOutputMessage message = new ServletServerHttpResponse(response);
+  >     // 通过 PropertiesHttpMessageConverter 输出
+  >     converter.write(properties, mediaType, message);
+  >     // 告知 Spring Web MVC 当前请求已经处理完毕，否则会报错
+  >     mavContainer.setRequestHandled(true);
+  > }
+  > ```
+
+> 自定义HandlerMethodArgumentResolver和HandlerMethodReturnValueHandler顺序提前的实现
+>
+> ```java
+> @Autowired
+> private RequestMappingHandlerAdapter requestMappingHandlerAdapter;  // 改变自定义的HandlerMethodArgumentResolver的顺序
+> 
+> @PostConstruct
+> public void init() {
+>  // 获取当前 RequestMappingHandlerAdapter 所有的 Resolver 对象
+>  List<HandlerMethodArgumentResolver> resolvers = requestMappingHandlerAdapter.getArgumentResolvers();
+>  List<HandlerMethodArgumentResolver> newResolvers = new ArrayList<>(resolvers.size() + 1);
+>  // 添加 PropertiesHandlerMethodArgumentResolver 到集合首位
+>  newResolvers.add(new PropertiesHandlerMethodArgumentResolver());
+>  // 添加 已注册的 Resolver 对象集合
+>  newResolvers.addAll(resolvers);
+>  // 重新设置 Resolver 对象集合
+>  requestMappingHandlerAdapter.setArgumentResolvers(newResolvers);
+> 
+>  // 获取当前 HandlerMethodReturnValueHandler 所有的 Handler 对象
+>  List<HandlerMethodReturnValueHandler> handlers = requestMappingHandlerAdapter.getReturnValueHandlers();
+>  List<HandlerMethodReturnValueHandler> newHandlers = new ArrayList<>(handlers.size() + 1);
+>  // 添加 PropertiesHandlerMethodReturnValueHandler 到集合首位
+>  newHandlers.add(new PropertiesHandlerMethodReturnValueHandler());
+>  // 添加 已注册的 Handler 对象集合
+>  newHandlers.addAll(handlers);
+>  // 重新设置 Handler 对象集合
+>  requestMappingHandlerAdapter.setReturnValueHandlers(newHandlers);
+> }
+> ```
+>
+> 当controller的方法中，返回的不是pojo或者json无法解析的类型的时候，就需要外部的第三方扩展或者是Spring内部的扩展(如：HandlerMethodReturnValueHandler)。
+
+## 跨域访问
+
+- 注解驱动 @CrossOrigin
+
+- 代码驱动 WebMvcConfigurer#addCorsMappings 
+
+  > ```java
+  > public void addCorsMappings(CorsRegistry registry) {
+  >     registry.addMapping("/**").allowedOrigins("*");
+  > }
+  > ```
+
+# 七、Servlet
+
+## Servlet 核心 API
+
+![image-20190922180016729](/Users/jack/Desktop/md/images/image-20190922180016729.png)
+
+## Servlet 组件注册
+
+![image-20190922175322726](/Users/jack/Desktop/md/images/image-20190922175322726.png)
+
+```xml
+ <?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-
+app_2_5.xsd"
+         metadata-complete="true" version="2.5">
+    <context-param>
+        <description>
+Spring 配置文件路径参数，
+该参数值将被 org.springframework.web.context.ContextLoaderListener 使用 </description>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            classpath*:/META-INF/spring/spring-context.xml
+        </param-value>
+    </context-param>
+    <listener>
+        <description>
+org.springframework.web.context.ContextLoaderListener 为可选申明Listener </description>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+</web-app>
+```
+
+## Spring Servlet Web
+
+### Servlet 生命周期
+
+- 初始化: init(ServletConfig)
+- 服务: service(ServletRequest,ServletResponse)
+- 销毁: destroy()
+
+#### DispatcherServlet 初始化过程
+
+![image-20190922180212448](/Users/jack/Desktop/md/images/image-20190922180212448.png)
+
+> 上面基本都是抽象类，只有最后的DispatcherServlet才是实体类
+
+### Filter 生命周期
+
+- 初始化: init(FilterConfig)
+- 服务: doFilter(ServletRequest,ServletResponse,FilterChain)
+- 销毁: destroy()
+
+### ServletContext 生命周期
+
+- 初始化: contextInitialized(ServletContextEvent)
+- 销毁: contextDestroyed(ServletContextEvent)
+
+### Servlet 异步支持
+
+- DeferredResult 支持(接口)
+- Callable 支持
+- CompletionStage 支持 
+
+Spring Web MVC 异步 Servlet 实现原理
+
+## Spring Boot Servlet Web
+
+### Spring Boot 嵌入式 Servlet 容器限制
+
+![image-20190922180544896](/Users/jack/Desktop/md/images/image-20190922180544896.png)
+
+### Spring Boot Servlet 注册
+
+#### 通过 RegistrationBean 注册
 
 
 
@@ -936,3 +1192,59 @@ WebApplicationType：Servlet 类型: WebApplicationType.SERVLET
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+参照：[Spring Boot2.0深度实践](https://coding.imooc.com/class/252.html)
