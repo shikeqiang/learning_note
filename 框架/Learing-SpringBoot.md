@@ -1151,15 +1151,32 @@ Spring Web MVC 异步 Servlet 实现原理
 
 #### 通过 RegistrationBean 注册
 
+- ServletContextInitializer
+  - RegistrationBean
+    - ServletListenerRegistrationBean
+      - @WebListener
+    - FilterRegistrationBean
+      - @WebFilter
+    - ServletRegistrationBean
+      - @WebServlet
 
+@ServletComponentScan 扫描 package -> @Web* -> RegistrationBean Bean 定义 -> RegistrationBean Bean
 
+#### 通过 @Bean 注册
 
+#### 通过 @ServletComponentScan 注册
 
+# 八、从 Reactive 到 WebFlux
 
+## 1.理解 Reactive
 
+- Reactive 是异步非阻塞编程
 
+- Reactive 能够提升程序性能
 
+- Reactive 解决传统编程模型遇到的困境
 
+  Reactive 框架:	Java 9 Flow API, RxJava, Reactor
 
 
 
