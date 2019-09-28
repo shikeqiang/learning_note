@@ -1171,12 +1171,10 @@ Spring Web MVC 异步 Servlet 实现原理
 ## 1.理解 Reactive
 
 - Reactive 是异步非阻塞编程
-
 - Reactive 能够提升程序性能
-
 - Reactive 解决传统编程模型遇到的困境
 
-  Reactive 框架:	Java 9 Flow API, RxJava, Reactor
+Reactive 框架:Java 9 Flow API 、RxJava(Reactive Extensions)、Reactor(Spring WebFlux Reactive)
 
 
 
