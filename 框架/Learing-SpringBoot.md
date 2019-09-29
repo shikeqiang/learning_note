@@ -1176,29 +1176,141 @@ Spring Web MVC 异步 Servlet 实现原理
 
 Reactive 框架:Java 9 Flow API 、RxJava(Reactive Extensions)、Reactor(Spring WebFlux Reactive)
 
+## 2.Future链式问题
 
+![image-20190929223226300](/Users/jack/Desktop/md/images/image-20190929223226300.png)
 
+```java
+/**
+ * @Date: 2019-09-29 22:28
+ * @Author: baichen
+ * @Description 理解 Future 链式问题
+ * 由于 Future 无法实现异步执行结果链式处理，尽管 FutureBlockingDataLoader 能够解决方法数据依赖
+ * 以及顺序执行的问题，不过它将并行执行带回了阻塞(串行)执行,CompletableFuture 可以帮助提升 Future 的限制
+ */
+public class ChainDataLoader extends DataLoader {
+    protected void doLoad() {
+        // main -> submit -> ...
+            // sub-thread : F1 -> F2 -> F3
+        CompletableFuture
+                .runAsync(super::loadConfigurations)
+                .thenRun(super::loadUsers)
+                .thenRun(super::loadOrders)
+                .whenComplete((result, throwable) -> { // 完成时回调,都是同个线程
+                    System.out.println("[线程 : "+Thread.currentThread().getName()+" ] 加载完成");
+                })
+                .join(); // 等待完成
+    }
+    public static void main(String[] args) {
+        new ChainDataLoader().load();
+    }
+}
+```
 
+## 3.Reactive Programming 定义
 
+​	不同机构或组织的不同定义：
 
+### 1.The Reactive Manifesto
 
+关键字:
 
+- 响应的(Responsive) 
+- 适应性强的(Resilient) 
+- 弹性的(Elastic) 
+- 消息驱动的(Message Driven)
 
+侧重点:
 
+面向 Reactive 系统、Reactive 系统原则
 
+### 2.维基百科
 
+关键字:
 
+​	数据流(data streams )、传播变化( propagation of change) 
 
+侧重点:
 
+- 数据结构
+  - 数组(arrays)
+  - 事件发射器(event emitters) 
 
+- 数据变化
 
+技术连接:
 
+- 数据流:Java 8 Stream
+- 传播变化:Java Observable / Observer(也是通过回调实现)
+- 事件:Java EventObject / EventListener
 
+### 3.Spring Framwork
 
+关键字:
 
+​	变化响应(reacting to change )、非阻塞(non-blocking) 
 
+侧重点:
 
+- 响应通知
 
+  操作完成(operations complete)、数据可用(data becomes available) 
+
+技术连接:
+
+- 非阻塞:Servlet 3.1 ReadListener / WriteListener
+- 响应通知:Servlet 3.0 AsyncListener
+
+### 4.ReactiveX
+
+关键字：
+
+​	观察者模式(Observer pattern ) 、数据/事件序列(Sequences of data and/or events )、序列操作符(Opeators) 屏蔽并发细节(abstracting away...)
+
+侧重点:
+
+  设计模式、数据结构、 数据操作、并发模型
+
+技术连接:
+
+- 观察者模式:Java Observable / Observer
+- 数据/事件序列:Java 8 Stream
+- 数据操作:Java 8 Stream
+- 屏蔽并发细节(abstracting away...): Exectuor 、 Future 、 Runnable
+
+### 5.Reactor
+
+关键字:
+
+​	观察者模式(Observer pattern )、 响应流模式(Reactive streams pattern ) 、迭代器模式(Iterator pattern) 、拉模式(pull-based) 和推模式(push-based)
+
+侧重点:
+
+​	设计模式 	、数据获取方式
+
+技术连接:
+
+- 观察者模式:Java Observable / Observer
+- 响应流模式:Java 8 Stream
+- 迭代器模式:Java Iterator
+
+### 6.@andrestaltz
+
+关键字:
+
+​	异步(asynchronous ) 、数据流(data streams) 、并非新鲜事物(not anything new) 、过于理想化(idea on steroids)
+
+侧重点:
+
+  	并发模型、数据结构、技术本质
+
+技术连接:
+
+​	异步:Java Future
+
+​	数据流:Java 8 Stream
+
+## 4.Reactive Programming 特性
 
 
 
