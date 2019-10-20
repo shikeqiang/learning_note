@@ -38,7 +38,7 @@
 
 ## RabbitMQ整体架构
 
-![img_0918](/Users/jack/Desktop/md/images/img_0918.png)
+![img_0918](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/img_0918.png)
 
 ​	先从客户端生产者发送消息到exchange上，然后再路由到对应的queue中，消费者只要监听对应的queue即可接收到消息。
 
@@ -95,17 +95,17 @@
 
 ## 消息流转图
 
-![image](/Users/jack/Desktop/md/images/RabbitMQ1.jpg)
+![image](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/RabbitMQ1.jpg)
 
 ## 消息队列的运转过程
 
-![image-20190924235159050](/Users/jack/Desktop/md/images/image-20190924235159050.png)
+![image-20190924235159050](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190924235159050.png)
 
 ​	**==首先生产者将业务方数据进行可能的包装 ， 之后封装成消息 ， 发送 (AMQP 协议里这个动作对应的命令为 Basic . Publish) 到 Broker 中 。 消费者订阅并接收消息 CAMQP 协议里这个动作对应的命令为 Basic.Consume或者 Basic.Get)，经过可能的解包处理得到原始的数据， 之后再进行业务处理逻辑。这个业务处理逻辑并不一定需要和接收消息的逻辑使用同一个线程。消费者进程可以使用一个线程去接收消息，存入到内存中，比如使用 Java 中的 Blocki呵 Queue。业务处理逻辑使用另 一个线程从内存中读取数据，这样可以将应用进一步解稿，提高整个应用的处理效率。==**
 
 # 三、RabbitMQ整合SpringBoot2.x,消息可靠性传递方案100%的实现
 
-![image-20190924223158753](/Users/jack/Desktop/md/images/image-20190924223158753.png)
+![image-20190924223158753](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190924223158753.png)
 
 共分为七步：
 
