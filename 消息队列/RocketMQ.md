@@ -20,14 +20,14 @@
 
 ## 2.相关角色
 
-![RocketMQ 角色](/Users/jack/Desktop/md/images/01-0976636.png)
+![RocketMQ 角色](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01-0976636.png)
 
 - 生产者（Producer）：负责产生消息，生产者向消息服务器发送由业务应用程序系统生成的消息，生产者本身既可以产生消息，如读取文本信息等。也可以对外提供接口，由外部应用来调用接口，再由生产者将收到的消息发送到MQ。
 
   > - 1、**获得 Topic-Broker 的映射关系**。
   >
   >   - Producer 启动时，也需要指定 Namesrv 的地址，从 Namesrv 集群中选一台建立长连接。如果该 Namesrv 宕机，会自动连其他 Namesrv ，直到有可用的 Namesrv 为止。
-  >   - ==生产者每 30 秒从 Namesrv 获取 Topic 跟 Broker 的映射关系，更新到本地内存中。然后再跟 Topic 涉及的所有 Broker 建立长连接，每隔 30 秒发一次心跳。==
+  >   - ==生产者每 30 秒从 Namesrv 获取 Topic 跟 Broker 的映射关系(或者说是路由规则)，更新到本地内存中。然后再跟 Topic 涉及的所有 Broker 建立长连接，每隔 30 秒发一次心跳。==
   >   - **在 Broker 端也会每 10 秒扫描一次当前注册的 Producer ，如果发现某个 Producer 超过 2 分钟都没有发心跳，则断开连接。**
   >
   > - 2、**生产者端的负载均衡**。
@@ -124,7 +124,7 @@
   >
   >  Broker 是 RocketMQ 中最复杂的角色，主要包括如下五个模块：
   >
-  > ![img](/Users/jack/Desktop/md/images/006tKfTcgy1fo4vbpoxtej30r30dsdgs.jpg)
+  > ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/006tKfTcgy1fo4vbpoxtej30r30dsdgs.jpg)
   >
   > - 远程处理模块：是 Broker 的入口，处理来自客户的请求。
   > - Client Manager ：管理客户端（生产者/消费者），并维护消费者的主题订阅。
@@ -159,7 +159,7 @@
 
 ## 3.RocketMQ 的整体流程
 
-![整体流程](/Users/jack/Desktop/md/images/02-0976659.png)
+![整体流程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/02-0976659.png)
 
 - 1、启动 **Namesrv**，Namesrv起 来后监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心。
 - 2、**Broker** 启动，跟所有的 Namesrv 保持长连接，定时发送心跳包。
