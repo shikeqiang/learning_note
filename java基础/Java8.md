@@ -178,11 +178,11 @@ public class TestLambda {
 
 ### 四大核心函数式接口(都在java.util.function包中)
 
-![image-20190825211635099](/Users/jack/Desktop/md/images/image-20190825211635099.png)
+![image-20190825211635099](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190825211635099.png)
 
 ### 其他接口
 
-![image-20190825211823962](/Users/jack/Desktop/md/images/image-20190825211823962.png)
+![image-20190825211823962](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190825211823962.png)
 
 ## 3.方法引用和构造器引用
 
@@ -332,7 +332,7 @@ Stream 是 Java8 中处理集合的关键抽象概念，**它可以指定你希�
 - 中间操作 ：一个中间操作链，对数据源的数据进行处理
 - 终止操作(终端操作) ：一个终止操作，执行中间操作链，并产生结果 
 
-![image-20190827223703602](/Users/jack/Desktop/md/images/image-20190827223703602.png)
+![image-20190827223703602](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190827223703602.png)
 
 ## 中间操作
 
@@ -340,15 +340,15 @@ Stream 是 Java8 中处理集合的关键抽象概念，**它可以指定你希�
 
 ### 筛选与切片
 
-![image-20190827230245507](/Users/jack/Desktop/md/images/image-20190827230245507.png)
+![image-20190827230245507](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190827230245507.png)
 
 ### 映射
 
-![image-20190827230301342](/Users/jack/Desktop/md/images/image-20190827230301342.png)
+![image-20190827230301342](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190827230301342.png)
 
 ### 排序
 
-![image-20190827230322396](/Users/jack/Desktop/md/images/image-20190827230322396.png)
+![image-20190827230322396](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190827230322396.png)
 
 例子：
 
@@ -512,25 +512,25 @@ public class TestStreamaAPI {
 
 ### 查找与匹配
 
-![image-20190828215433175](/Users/jack/Desktop/md/images/image-20190828215433175.png)
+![image-20190828215433175](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828215433175.png)
 
-![image-20190828215444160](/Users/jack/Desktop/md/images/image-20190828215444160.png)
+![image-20190828215444160](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828215444160.png)
 
 ### 归约
 
-![image-20190828215505325](/Users/jack/Desktop/md/images/image-20190828215505325.png)
+![image-20190828215505325](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828215505325.png)
 
 备注:map 和 reduce 的连接通常称为 map-reduce 模式，因 Google 用它来进行网络搜索而出名
 
 ### 收集
 
-![image-20190828215528865](/Users/jack/Desktop/md/images/image-20190828215528865.png)
+![image-20190828215528865](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828215528865.png)
 
 > Collector 接口中方法的实现决定了如何对流执行收集操作(如收集到 List、Set、Map)。但是 Collectors 实用类提供了很多静态方法，可以方便地创建常见收集器实例，具体方法与实例如下表:
 >
-> ![image-20190828223745114](/Users/jack/Desktop/md/images/image-20190828223745114.png)
+> ![image-20190828223745114](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828223745114.png)
 >
-> ![image-20190828223810308](/Users/jack/Desktop/md/images/image-20190828223810308.png)
+> ![image-20190828223810308](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190828223810308.png)
 
 例子：
 

@@ -52,7 +52,7 @@ public class UnReentrant{
 
 ReentrantLock 整体结构如下图：
 
-![201702010001](/Users/jack/Desktop/md/images/2018120813001.png)
+![201702010001](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120813001.png)
 
 - ReentrantLock 实现 Lock 接口，基于内部的 Sync 实现。
 - Sync 实现 AQS ，提供了 FairSync 和 NonFairSync 两种实现。
@@ -408,7 +408,7 @@ Condition newCondition();
 
 - > FROM 《Java并发编程的艺术》的 [「5.1 Lock 接口」](http://www.iocoder.cn/JUC/sike/ReentrantLock/?vip#) 章节。
   >
-  > ![方法解释](/Users/jack/Desktop/md/images/Lock-01.png)
+  > ![方法解释](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/Lock-01.png)
 
 ### 5. ReentrantLock
 
@@ -639,7 +639,7 @@ protected Collection<Thread> getWaitingThreads(Condition condition) {
 2. 重入性：支持重入。读写锁最多支持 65535 个递归写入锁和 65535 个递归读取锁。
 3. ==锁降级：遵循获取写锁，再获取读锁，最后释放写锁的次序，如此写锁能够降级成为读锁。==
 
-![image-20190319101414971](/Users/jack/Desktop/md/images/image-20190319101414971.png)
+![image-20190319101414971](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190319101414971.png)
 
 ## 2. ReadWriteLock
 
@@ -1640,7 +1640,7 @@ public class ConditionObject implements Condition, java.io.Serializable {
 
 ​	从上面代码可以看出，ConditionObject 拥有首节点（`firstWaiter`），尾节点（`lastWaiter`）。当前线程调用 `await()`方法时，将会以当前线程构造成一个节点（Node），并将节点加入到该队列的尾部。结构如下：
 
-![Condition ç­å¾éå](/Users/jack/Desktop/md/images/2018120815002.png)
+![Condition ç­å¾éå](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120815002.png)
 
 - Node 里面包含了当前线程的引用。**Node 定义与 AQS 的 CLH 同步队列的节点使用的都是同一个类（AbstractQueuedSynchronized 的 Node 静态内部类）。**
 - ConditionObject 的队列结构比 CLH 同步队列的结构简单些，==新增过程较为简单，只需要将原尾节点的 `Node.next`指向新增节点，然后更新 `ConditionObject.lastWaiter` 即可。==
@@ -1656,7 +1656,7 @@ AQS 等待队列与 Condition 队列是**两个相互独立的队列**
 
 **I.初始化状态**：AQS等待队列有 3 个Node，Condition 队列有 1 个Node(也有可能 1 个都没有)
 
-![img](/Users/jack/Desktop/md/images/20150423091636088.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20150423091636088.png)
 
 **II.节点1执行 Condition.await()**
 
@@ -1665,7 +1665,7 @@ AQS 等待队列与 Condition 队列是**两个相互独立的队列**
 3. 将节点 1 加入到 Condition 的等待队列中
 4. 更新 lastWaiter 为节点 1
 
-![img](/Users/jack/Desktop/md/images/20150423091555989.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20150423091555989.png)
 
 **III.节点 2 执行 Condition.signal() 操作**
 
@@ -1674,7 +1674,7 @@ AQS 等待队列与 Condition 队列是**两个相互独立的队列**
 3. 将节点 4 加入到 AQS 的等待队列中去
 4. 更新 AQS 的等待队列的 tail
 
-![img](/Users/jack/Desktop/md/images/20150423091621011.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20150423091621011.png)
 
 ## 3.4 等待
 

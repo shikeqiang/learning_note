@@ -2,7 +2,7 @@
 
 ​																														   						**一条查询语句的执行过程**
 
-![img](/Users/jack/Desktop/md/images/0d2070e8f84c4801adbfa03bda1f98d9.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/0d2070e8f84c4801adbfa03bda1f98d9.png)
 
 大体来说，MySQL可以分为Server层和存储引擎层两部分。
 
@@ -26,7 +26,7 @@
 
 连接完成后，如果你没有后续的动作，这个连接就处于空闲状态，你可以在**show processlist**命令中看到它。文本中这个图是show processlist的结果，其中的Command列显示为“Sleep”的这一行，就表示现在系统里面有一个空闲连接。
 
-![img](/Users/jack/Desktop/md/images/f2da4aa3a672d48ec05df97b9f992fed.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f2da4aa3a672d48ec05df97b9f992fed.png)
 
 客户端如果太长时间没动静，连接器就会自动将它断开。这个时间是由参数**wait_timeout控制的，默认值是8小时。**如果在连接被断开之后，客户端再次发送请求的话，就会收到一个错误提醒： Lost connection to MySQL server during query。这时候如果你要继续，就需要重连，然后再执行请求了。
 
@@ -139,7 +139,7 @@ ERROR 1142 (42000): SELECT command denied to user 'b'@'localhost' for table 'T'
 
 ​	InnoDB的redo log是固定大小的，比如可以配置为一组4个文件，每个文件的大小是1GB，那么这个redo log总共就可以记录4GB的操作。**从头开始写，写到末尾就又回到开头==循环==写**，如下面这个图所示。
 
-![image-20191019112146043](/Users/jack/Desktop/md/images/image-20191019112146043.png)
+![image-20191019112146043](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191019112146043.png)
 
 ​	write pos是当前记录的位置，一边写一边后移，写到第3号文件末尾后就回到0号文件开头。checkpoint是当前要擦除的位置，也是往后推移并且循环的，擦除记录前要把记录更新到数据文件。
 
@@ -169,7 +169,7 @@ ERROR 1142 (42000): SELECT command denied to user 'b'@'localhost' for table 'T'
 
 如下图所示，图中浅色框表示是在InnoDB内部执行的，深色框表示是在执行器中执行的。
 
-![img](/Users/jack/Desktop/md/images/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png)
+![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png)
 
 ==将redo log的写入拆成了两个步骤：prepare和commit，这就是"两阶段提交"。==
 
@@ -290,7 +290,7 @@ mysql> show variables like 'transaction_isolation';
 
 > 假设一个值从1被按顺序改成了2、3、4，在回滚日志里面就会有类似下面的记录。
 >
-> ![image-20191021222342011](/Users/jack/Desktop/md/images/image-20191021222342011.png)
+> ![image-20191021222342011](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191021222342011.png)
 >
 > ​	当前值是4，但是在查询这条记录的时候，**不同时刻启动的事务会有不同的read-view。**如图中看到的，在视图A、B、C里面，这一个记录的值分别是1、2、4，同一条记录在系统中可以存在多个版本，就是数据库的多版本并发控制（MVCC）。对于read-view A，要得到1，就必须将当前值依次执行图中所有的回滚操作得到，即使现在有另外一个事务正在将4改成5，这个事务跟read-view A、B、C对应的事务是不会冲突的。
 
@@ -344,7 +344,7 @@ mysql> show variables like 'transaction_isolation';
 
 - 二叉搜索树的特点是：每个节点的左儿子小于父节点，父节点又小于右儿子。这样如果你要查ID_card_n2的话，按照图中的搜索顺序就是按照UserA -> UserC -> UserF -> User2这个路径得到。这个时间复杂度是O(log(N))。
 
-  ![img](/Users/jack/Desktop/md/images/04fb9d24065635a6a637c25ba9ddde68.png)
+  ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/04fb9d24065635a6a637c25ba9ddde68.png)
 
   为了维持O(log(N))的查询复杂度，需要保持这棵树是平衡二叉树。为了做这个保证，更新的时间复杂度也是O(log(N))。
 
@@ -368,7 +368,7 @@ index (k))engine=InnoDB;
 
 表中R1~R5的(ID,k)值分别为(100,1)、(200,2)、(300,3)、(500,5)和(600,6)，两棵树的示例示意图如下。
 
-![image-20191021225633331](/Users/jack/Desktop/md/images/image-20191021225633331.png)
+![image-20191021225633331](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191021225633331.png)
 
 从图中不难看出，根据叶子节点的内容，索引类型分为主键索引和非主键索引。
 
@@ -500,7 +500,7 @@ insert into T values(100,1, 'aa'),(200,2,'bb'),(300,3,'cc'),(500,5,'ee'),(600,6,
 
 > 备注：这里的实验环境是MySQL 5.6。
 
-![image-20191027214829320](/Users/jack/Desktop/md/images/image-20191027214829320.png)
+![image-20191027214829320](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191027214829320.png)
 
 ​	**可以看到session A先启动，这时候会对表t加一个MDL读锁。由于session B需要的也是MDL读锁，因此可以正常执行。之后session C会被blocked，是因为session A的MDL读锁还没有释放，而session C需要MDL写锁，因此只能被阻塞。**如果只有session C自己被阻塞还没什么关系，但是之后所有要在表t上新申请MDL读锁的请求也会被session C阻塞。前面我们说了，所有对表的增删改查操作都需要先申请MDL读锁，就都被锁住，等于这个表现在完全不可读写了。
 
@@ -520,6 +520,51 @@ MariaDB已经合并了AliSQL的这个功能，所以这两个开源分支目前�
 ALTER TABLE tbl_name NOWAIT add column ...
 ALTER TABLE tbl_name WAIT N add column ... 
 ```
+
+## 行锁
+
+​	MySQL的行锁是在引擎层由各个引擎自己实现的。但并不是所有的引擎都支持行锁，比如MyISAM引擎就不支持行锁。不支持行锁意味着并发控制只能使用表锁，对于这种引擎的表，同一张表上任何时刻只能有一个更新在执行，这就会影响到业务并发度。InnoDB是支持行锁的，这也是MyISAM被InnoDB替代的重要原因之一。
+
+​	顾名思义，行锁就是针对数据表中行记录的锁。这很好理解，比如事务A更新了一行，而这时候事务B也要更新同一行，则必须等事务A的操作完成后才能进行更新。
+
+**在InnoDB事务中，行锁是在需要的时候才加上的，但并不是不需要了就立刻释放，而是要等到事务结束时才释放。这个就是两阶段锁协议。**如果你的事务中需要锁多个行，要把最可能造成锁冲突、最可能影响并发度的锁尽量往后放。
+
+### 死锁和死锁检测
+
+​	**当并发系统中不同线程出现循环资源依赖，涉及的线程都在等待别的线程释放资源时，就会导致这几个线程都进入无限等待的状态，称为死锁。**看下面数据库中的行锁这个例子。
+
+![image-20191029225101488](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191029225101488.png)
+
+​	这时候，事务A在等待事务B释放id=2的行锁，而事务B在等待事务A释放id=1的行锁。 事务A和事务B在互相等待对方的资源释放，就是进入了死锁状态。当出现死锁以后，有两种策略：
+
+- 一种策略是，直接进入等待，直到超时。这个超时时间可以通过参数`innodb_lock_wait_timeout`来设置。
+- 另一种策略是，发起死锁检测，发现死锁后，主动回滚死锁链条中的某一个事务，让其他事务得以继续执行。将参数innodb_deadlock_detect设置为on，表示开启这个逻辑。
+
+在InnoDB中，innodb_lock_wait_timeout的默认值是50s，意味着如果采用第一个策略，当出现死锁以后，第一个被锁住的线程要过50s才会超时退出，然后其他线程才有可能继续执行。对于在线服务来说，这个等待时间往往是无法接受的。
+
+但是，一般也不可能直接把这个时间设置成一个很小的值，比如1s。这样当出现死锁的时候，确实很快就可以解开，但如果不是死锁，而是简单的锁等待呢？所以，超时时间设置太短的话，会出现很多误伤。
+
+所以，正常情况下我们还是要采用第二种策略，即：主动死锁检测，而且innodb_deadlock_detect的默认值本身就是on。主动死锁检测在发生死锁的时候，是能够快速发现并进行处理的，但是它也是有额外负担的。
+
+可以想象一下这个过程：每当一个事务被锁的时候，就要看看它所依赖的线程有没有被别人锁住，如此循环，最后判断是否出现了循环等待，也就是死锁。
+
+那如果是上面说到的所有事务都要更新同一行的场景呢？
+
+每个新来的被堵住的线程，都要判断会不会由于自己的加入导致了死锁，这是一个时间复杂度是O(n)的操作。假设有1000个并发线程要同时更新同一行，那么死锁检测操作就是100万这个量级的。虽然最终检测的结果是没有死锁，但是这期间要消耗大量的CPU资源。因此，你就会看到CPU利用率很高，但是每秒却执行不了几个事务。
+
+​	所以应该怎么解决由这种热点行更新导致的性能问题呢？问题的症结在于，死锁检测要耗费大量的CPU资源。
+
+**一种头痛医头的方法，就是如果能确保这个业务一定不会出现死锁，可以临时把死锁检测关掉。**但是这种操作本身带有一定的风险，因为业务设计的时候一般不会把死锁当做一个严重错误，毕竟出现死锁了，就回滚，然后通过业务重试一般就没问题了，这是业务无损的。而关掉死锁检测意味着可能会出现大量的超时，这是业务有损的。
+
+**另一个思路是控制并发度。**根据上面的分析，你会发现如果并发能够控制住，比如同一行同时最多只有10个线程在更新，那么死锁检测的成本很低，就不会出现这个问题。一个直接的想法就是，在客户端做并发控制。但是，你会很快发现这个方法不太可行，因为客户端很多。我见过一个应用，有600个客户端，这样即使每个客户端控制到只有5个并发线程，汇总到数据库服务端以后，峰值并发数也可能要达到3000。
+
+因此，这个并发控制要做在数据库服务端。如果你有中间件，可以考虑在中间件实现；如果你的团队有能修改MySQL源码的人，也可以做在MySQL里面。基本思路就是，对于相同行的更新，在进入引擎之前排队。这样在InnoDB内部就不会有大量的死锁检测工作了。
+
+可能你会问，**如果团队里暂时没有数据库方面的专家，不能实现这样的方案，能不能从设计上优化这个问题呢？**
+
+你可以考虑通过将一行改成逻辑上的多行来减少锁冲突。还是以影院账户为例，**可以考虑放在多条记录上，比如10个记录，影院的账户总额等于这10个记录的值的总和。这样每次要给影院账户加金额的时候，随机选其中一条记录来加。这样每次冲突概率变成原来的1/10，可以减少锁等待个数，也就减少了死锁检测的CPU消耗。**
+
+​	这个方案看上去是无损的，但其实这类方案需要根据业务逻辑做详细设计。如果账户余额可能会减少，比如退票逻辑，那么这时候就需要考虑当一部分行记录变成0的时候，代码要有特殊处理。
 
 ## 总结
 
