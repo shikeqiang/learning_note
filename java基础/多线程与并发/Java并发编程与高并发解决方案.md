@@ -2,9 +2,9 @@
 
 **J.U.C核心由5大块组成：atomic包、locks包、collections包、tools包（AQS）、executor包（线程池）。**
 
-![å¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5aab34060001193d19561164-8152326.jpg)
+![å¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/5aab34060001193d19561164-8152326.jpg)
 
-![å¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5aab34100001a9cd19781256-8152326.jpg)
+![å¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/5aab34100001a9cd19781256-8152326.jpg)
 
 # **1 基本概念**
 
@@ -25,7 +25,7 @@
 
 ## **2.1 CPU 多级缓存**
 
-![image-20190120163526230](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120163526230-8152326.png)
+![image-20190120163526230](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190120163526230-8152326.png)
 
 ​	**因为CPU的频率太快了，快到主存跟不上，所以需要CPU cache。**因此，在处理器时钟周期内，CPU常常需要等待主存，浪费资源。**所以cache的出现，是为了缓解CPU和内存之间速度的不匹配问题(结构:cpu-> cache-> memory ).**
 
@@ -39,7 +39,7 @@
 
 ​	**用于保证多个 CPU cache 之间缓存共享数据的一致**
 
-![image-20190120163957992](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120163957992-8152326.png)
+![image-20190120163957992](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190120163957992-8152326.png)
 
 ​	==MESI其实是这四种状态的缩写。==
 
@@ -70,7 +70,7 @@
 
 # 3.JAVA 内存模型(JMM)
 
-​	一种规范，规范了java虚拟机与计算机内存如何协同工作的。它规定了**一个线程如何和何时可以看到其他线程修改过的共享变量的值，以及在必须时如何同步地访问共享变量**。 ![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-8152326.png)
+​	一种规范，规范了java虚拟机与计算机内存如何协同工作的。它规定了**一个线程如何和何时可以看到其他线程修改过的共享变量的值，以及在必须时如何同步地访问共享变量**。 ![这里写图片描述](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-8152326.png)
 
 ## 堆Heap
 
@@ -81,7 +81,7 @@
 ​	优势存取速度快，速度仅次于计算机的寄存器。**栈的数据是可以共享的**，但是缺点是存在栈中数据的大小与生存期必须是确定的。主要存放基本类型变量，对象据点。要求调用栈和本地变量存放在线程栈上。
 ​	**静态类型变量跟随类的定义存放在堆上。存放在堆上的对象可以被所持有对这个对象引用的线程访问。**
 
-**如果两个线程同时调用了同一个对象的同一个方法，他们都会访问这个对象的成员变量。但是这两个线程都拥有的是该对象的成员变量（局部变量）的私有拷贝**。—[线程封闭中的堆栈封闭]![image-20190120170418373](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120170418373-8152326.png)
+**如果两个线程同时调用了同一个对象的同一个方法，他们都会访问这个对象的成员变量。但是这两个线程都拥有的是该对象的成员变量（局部变量）的私有拷贝**。—[线程封闭中的堆栈封闭]![image-20190120170418373](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190120170418373-8152326.png)
 
 ## CPU Registers(寄存器):
 
@@ -97,7 +97,7 @@
 
 ## Java内存模型抽象结构：
 
-![image-20190120170743534](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120170743534-8152326.png)
+![image-20190120170743534](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190120170743534-8152326.png)
 
 ​	**每个线程都有一个私有的本地内存，**本地内存他是java内存模型的一个抽象的概念。它并不是真实存在的，它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器的优化。本地内存中它存储了该线程以读或写共享变量拷贝的一个副本。
 
@@ -107,7 +107,7 @@
 
 ​	**按顺序执行，但不一定要连续执行，顺序之间可以插入不同的指令。**
 
-![image-20190120171054550](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190120171054550-8152326.png)
+![image-20190120171054550](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190120171054550-8152326.png)
 
 - lock(锁定) ：作用于主内存变量，把一个变量标识为一条线程独占状态
 - unlock(解锁) ： 作用于主内存的变量，把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定
@@ -130,7 +130,7 @@
 - 如果一个变量事先没有被lock锁定，则不允许对它执行unlock操作，也不允许去unlock一个被其他线程锁定的变量
 - 对一个变量执行unlock操作之前，必须先把此变量同步到主内存中（执行store和write操作）
 
-## 并发的优势与风险![10](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/10-8152326.jpg)
+## 并发的优势与风险![10](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/10-8152326.jpg)
 
 ### 风险：
 
@@ -194,7 +194,7 @@ public class AtomicIntegerExample {
 
 ### atomic包相关的类：
 
-![image-20190121210844397](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121210844397-8152326.png)
+![image-20190121210844397](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190121210844397-8152326.png)
 
 ### AtomicInteger
 
@@ -450,9 +450,9 @@ public static void test(int j){
 
 ### Volatile:通过加入内存屏障和禁止重排序优化来实现
 
-- ==对volatile变量**写操作**时，会在写操作后加入一条store屏障指令，将本地内存中的共享变量值刷新到主内存。==![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-8082672-8152326.png)
+- ==对volatile变量**写操作**时，会在写操作后加入一条store屏障指令，将本地内存中的共享变量值刷新到主内存。==![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-8082672-8152326.png)
 
-- ==对volatile变量**读操作**时，会在读操作前加入一条load屏障指令，从主内存中读取共享变量。==![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190121225759365-8152326.png)
+- ==对volatile变量**读操作**时，会在读操作前加入一条load屏障指令，从主内存中读取共享变量。==![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190121225759365-8152326.png)
 
 - volatile的屏障操作都是cpu级别的。
 - 适合状态验证，不适合累加值，volatile关键字不具有原子性 
@@ -682,7 +682,7 @@ public class SingletonExample {
 
 ​	那么上面知识点中的三步指令极有可能被优化为（1）（3）（2）的顺序。当我们有两个线程A与B，A线程遵从132的顺序，经过了两次instance的空值判断后，执行了new操作，**并且cpu在某一瞬间刚结束指令（3），并且还没有执行指令（2）。**而在此时线程B恰巧在进行第一次的instance空值判断，**由于线程A执行完（3）指令，为instance分配了内存，线程B判断instance不为空，直接执行return，返回了instance，这样就出现了错误。** 
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122181758169-8152326.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190122181758169-8152326.png)
 
 可以在**对象声明时使用volatile关键字修饰，阻止CPU的指令重排。**如：
 
@@ -830,7 +830,7 @@ public class SingletonExample {
 
 ​	使用Java的Collection类的unmodifiable相关方法，可以创建不可变对象。unmodifiable相关方法包含：Collection、List、Map、Set…. 
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122232548029.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190122232548029.png)
 
 
 
@@ -853,7 +853,7 @@ private static class UnmodifiableMap<K,V> implements Map<K,V>, Serializable {
 
 ​	使用Guava的Immutable相关类也可以创建不可变对象。同样包含很多类型：Collection、List、Map、Set…. 
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190122233621875.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190122233621875.png)
 
 ### （1）ImmutableList
 
@@ -931,7 +931,7 @@ private final static ImmutableMap<Integer, Integer> map2 = ImmutableMap.<Integer
 ​	数据库连接对应jdbc的Connection对象，Connection对象在实现的时候并没有对线程安全做太多的处理，jdbc的规范里也没有要求Connection对象必须是线程安全的。 
 ​	实际在服务器应用程序中，**线程从连接池获取了一个Connection对象，使用完再把Connection对象返回给连接池，由于大多数请求都是由单线程采用同步的方式来处理的，并且在Connection对象返回之前，连接池不会将它分配给其他线程。**因此这种连接管理模式处理请求时隐含的将Connection对象封闭在线程里面，这样我们使用的connection对象虽然本身不是线程安全的，但是它通过线程封闭也做到了线程安全。
 
-![image-20190127214746197](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190127214746197.png)
+![image-20190127214746197](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190127214746197.png)
 
 ## 2、线程封闭的种类：
 
@@ -946,7 +946,7 @@ Ad-hoc线程封闭是指，维护线程封闭性的职责完全由程序实现�
 
 它是一个特别好的封闭方法，其实ThreadLocal内部维护了一个map,map的key是每个线程的名称，而map的value就是我们要封闭的对象。ThreadLocal提供了get、set、remove方法，每个操作都是基于当前线程的，所以它是线程安全的。 
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190127200849231.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190127200849231.png)
 
 ```java
 //ThreadLocal的get方法源码
@@ -1082,7 +1082,7 @@ public class ConcurrencyApplication extends WebMvcConfigurerAdapter {
 }
 ```
 
-​	![image-20190127214717040](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190127214717040.png)
+​	![image-20190127214717040](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190127214717040.png)
 
 ​	从控制台的打印日志我们可以看出，首先filter过滤器先获取到我们当前的线程ID为40、我们当前的请求路径为/threadLocal/test ，紧接着进入了我们的Interceptor的preHandle方法中，打印了preHandle字样。最后进入了我们的Interceptor的afterCompletion方法，删除了我们之前存入的值，并打印了afterCompletion字样。
 
@@ -1357,7 +1357,7 @@ public synchronized V put(K key, V value) {
 
 ​	==Collections类中提供了一系列的线程安全方法用于处理ArrayList等线程不安全的Collection类:==
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190128185337900.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190128185337900.png)
 
 使用方法：
 
@@ -1543,7 +1543,7 @@ public ConcurrentSkipListSet() {
 
 ​	AQS全名：AbstractQueuedSynchronizer，是并发容器J.U.C（java.lang.concurrent）下locks包内的一个类。它实现了一个**FIFO**(FirstIn、FisrtOut先进先出)的队列。底层实现的数据结构是一个**双向链表**。 	
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190130131322898.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190130131322898.png)
 
 ==Sync queue：同步队列，是一个双向链表。包括head节点和tail节点。head节点主要用作后续的调度。 
 Condition queue：非必须，单向链表。当程序中存在cindition的时候才会存在此列表。==
@@ -1572,7 +1572,7 @@ Condition queue：非必须，单向链表。当程序中存在cindition的时�
 
 ### 4、AQS组件：CountDownLatch
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190130131859602.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190130131859602.png)
 
 ​	**通过一个计数来保证线程是否需要被阻塞。实现一个或多个线程等待其他线程执行的场景。**
 
@@ -1588,7 +1588,7 @@ CountDownLatch的await方法还有重载形式，**可以设置等待的时间�
 
 ### 6、AQS组件：CyclicBarrier
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190130132035321.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190130132035321.png)
 
 从下往上看，当达到设置的值的时候，其他线程就会继续执行。
 
@@ -1804,7 +1804,7 @@ public interface Future<V> {
 
 ### 3.ForkJoin
 
-​	ForkJoin是Java7提供的一个并行执行任务的框架，是**把大任务分割成若干个小任务，待小任务完成后将结果汇总成大任务结果的框架。**主要采用的是==**工作窃取算法**==，工作窃取算法是指某个线程从其他队列里窃取任务来执行。 ![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190209123220985.png)
+​	ForkJoin是Java7提供的一个并行执行任务的框架，是**把大任务分割成若干个小任务，待小任务完成后将结果汇总成大任务结果的框架。**主要采用的是==**工作窃取算法**==，工作窃取算法是指某个线程从其他队列里窃取任务来执行。 ![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190209123220985.png)
 
 ​	在窃取过程中两个线程会**访问同一个队列**，**为了减少窃取任务线程和被窃取任务线程之间的竞争，通常我们会使用双端队列来实现工作窃取算法。**被窃取任务的线程永远从队列的头部拿取任务，窃取任务的线程从队列尾部拿取任务。
 
@@ -1824,7 +1824,7 @@ ForkJoinTask：提供在任务中执行fork和join的机制。
 
 主要应用场景：生产者消费者模型，是**线程安全**的 
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190209123252790.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190209123252790.png)
 
 #### 阻塞情况：
 
@@ -1834,14 +1834,14 @@ ForkJoinTask：提供在任务中执行fork和join的机制。
 #### 四套方法：
 
 BlockingQueue提供了四套方法，分别来进行插入、移除、检查。每套方法在不能立刻执行时都有不同的反应。 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190209123308024.png)
+![这里写图片描述](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190209123308024.png)
 
 - Throws Exceptions ：如果不能立即执行就抛出异常。
 - Special Value：如果不能立即执行就返回一个特殊的值，一般是true/false。
 - Blocks：如果不能立即执行就阻塞
 - Times Out：如果不能立即执行就阻塞一段时间，如果过了设定时间还没有被执行，则返回一个值
 
-![image-20190210161730391](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190210161730391.png)
+![image-20190210161730391](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190210161730391.png)
 
 #### 实现类：
 
@@ -1909,7 +1909,7 @@ SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队�
 
 # 8.线程池 Executor
 
-![çº¿ç¨æ± ](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/346a78f2c213423bcce456102006f4b3.png)
+![çº¿ç¨æ± ](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/346a78f2c213423bcce456102006f4b3.png)
 
 ## 1.线程池的好处
 
@@ -1927,7 +1927,7 @@ SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队�
 
 ## 2.线程池相关类
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210183214452.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210183214452.png)
 
 ​	在线程池的类图中，我们最常使用的是最下边的Executors,用它来创建线程池使用线程。那么在上边的类图中，包含了一个Executor框架，它是一个**根据一组执行策略的调用调度执行和控制异步任务的框架，目的是提供一种将任务提交与任务如何运行分离开的机制。它包含了三个executor接口：**
 
@@ -1937,11 +1937,11 @@ SynchronusQueue：只能插入一个元素，同步队列，无界非缓存队�
 
 ExecutorService接口定义如下:
 
-![image-20190221164822429](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190221164822429.png)
+![image-20190221164822429](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190221164822429.png)
 
 如果使用Executor框架的话，Executors类是常用的，其方法如下:
 
-![image-20190221164904401](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190221164904401.png)
+![image-20190221164904401](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190221164904401.png)
 
 ### 2.1 线程池核心类-ThreadPoolExecutor
 
@@ -1977,7 +1977,7 @@ workQueue：阻塞队列，存储等待执行的任务，很重要，会对线�
   - DiscardOldestPolicy 丢弃队列中最靠前的任务并执行当前任务
   - DiscardPolicy 直接丢弃当前任务
 
-![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210183509364.png)
+![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210183509364.png)
 
 #### corePoolSize、maximumPoolSize、workQueue 三者关系：
 
@@ -1991,14 +1991,14 @@ workQueue：阻塞队列，存储等待执行的任务，很重要，会对线�
 
 ##### 初始化方法：由七个参数组合成四个初始化方法 
 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210203627559.png)
+![这里写图片描述](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210203627559.png)
 
 ##### 其他方法：
 
-![image-20190210203736234](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190210203736234.png)
+![image-20190210203736234](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190210203736234.png)
 
 线程池生命周期： 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210203744638.png)
+![这里写图片描述](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210203744638.png)
 
 - running：能接受新提交的任务，也能处理阻塞队列中的任务
 - shutdown：不能处理新的任务，但是能继续处理阻塞队列中任务
@@ -2092,7 +2092,7 @@ public static void main(String[] args) {
 
 ​	调用 execute 将重用以前构造的线程(如果线程可用)。如果现有线程没有可用的，则创建一个新线程并添加到池中。**终止并从缓存中移除那些已有 60 秒钟未被使用的线程。**因此，长时间保持空闲的线程池不会使用任何资 源。 
 
- ![è¿éåå¾çæè¿°](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210204025898.png)
+ ![è¿éåå¾çæè¿°](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210204025898.png)
 
 #### 2、newFixedThreadPool 
 
@@ -2183,7 +2183,7 @@ public static void main(String[] args) {
 ```
 
 ScheduledExecutorService提供了三种方法可以使用： 
-![这里写图片描述](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20190210204543644.png) 
+![这里写图片描述](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20190210204543644.png) 
 
 ==scheduleAtFixedRate：以指定的速率执行任务== 
 ==scheduleWithFixedDelay：以指定的延迟执行任务== 
@@ -2229,7 +2229,7 @@ Future future = executorService.submit(() ‐> divTask(200, index));
 
 (2)submit()方法用于提交需要返回值的任务。线程池会返回一个future类型的对 象，**通过这个future对象可以判断任务是否执行成功，并且可以通过future的get()方法 来获取返回值**，==get()方法会阻塞当前线程直到任务完成==，而使用get(long timeout， TimeUnit unit)方法则会阻塞当前线程一段时间后立即返回，这时候有可能任务没有 
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5aab33f70001b59229621586.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/5aab33f70001b59229621586.jpg)
 
 参照：https://blog.csdn.net/jesonjoke/column/info/21011
 

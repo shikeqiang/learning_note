@@ -18,5 +18,5 @@
 
 #### 4.ZooKeeper基础
 
-![image-20181213164445969](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181213164445969.png)
+![image-20181213164445969](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181213164445969.png)
 

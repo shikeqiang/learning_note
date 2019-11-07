@@ -1,10 +1,10 @@
-![脑图](/Users/jack/Desktop/md/images/37923f2478edc5709b36562b26c9e008.png)
+![脑图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/37923f2478edc5709b36562b26c9e008.png)
 
 # 一、基础
 
 ## 1.常用命令
 
-![Git å¸¸ç¨å½ä"¤](/Users/jack/Desktop/md/images/3054153c1904dfd5f3b9d3fbc6bf2375.jpeg)
+![Git å¸¸ç¨å½ä"¤](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/3054153c1904dfd5f3b9d3fbc6bf2375.jpeg)
 
 - `git init`：创建 Git 库。
 
@@ -46,7 +46,7 @@
 
   - `git push origin master` ：将本地主分支推到远程主分支。
 
-![整体流程](/Users/jack/Desktop/md/images/033f8d41d6f67a01a7cfefa6b9aa4cf4.png)
+![整体流程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/033f8d41d6f67a01a7cfefa6b9aa4cf4.png)
 
 ​	IDEA Git 插件越来越强大，很多时候，我们日常使用 Git ，更多使用它。具体的教程，可以看看 [《IntelliJ IDEA 下的使用 git》](https://blog.csdn.net/huangfan322/article/details/53220060)
 
@@ -56,7 +56,7 @@ Git 仓库由三个组成部分：
 - 暂存区(Stage)：临时区域。里面存放将要提交文件的快照。
 - 历史记录区(History)：`git commit` 后的记录区。
 
-然后，是这三个区的转换关系以及转换所使用的命令：![三个区的转换关系](/Users/jack/Desktop/md/images/2135c3721109d120d0bde7f2ac0a1faa.png)
+然后，是这三个区的转换关系以及转换所使用的命令：![三个区的转换关系](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2135c3721109d120d0bde7f2ac0a1faa.png)
 
  `git add` 和 `git stage` ：
 
@@ -385,9 +385,9 @@ PR 和 MR 的全称分别是 pull request 和 merge request。
 然后我们需要了解下 fork 和 branch ，因为这是 PR 和 MR 各自所属的协作流程。
 
 - **fork** 是 git 上的一个协作流程。通俗来说就是把别人的仓库备份到自己仓库，修修改改，然后再把修改的东西提交给对方审核，对方同意后，就可以实现帮别人改代码的小目标了。fork 包含了两个流程：
-  - fork 并更新某个仓库 ![img](/Users/jack/Desktop/md/images/6227935e023affd4e0a339ccd197c8a6.png)
-  - 同步 fork ![img](/Users/jack/Desktop/md/images/a87e005d714e9fd3b8da23c3b20c4fff.png)
-- 和 fork 不同，**branch** 并不涉及其他的仓库，操作都在当前仓库完成。![img](/Users/jack/Desktop/md/images/7200ee4a67dad8b11387fab7abef9f76.png)
+  - fork 并更新某个仓库 ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/6227935e023affd4e0a339ccd197c8a6.png)
+  - 同步 fork ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/a87e005d714e9fd3b8da23c3b20c4fff.png)
+- 和 fork 不同，**branch** 并不涉及其他的仓库，操作都在当前仓库完成。![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/7200ee4a67dad8b11387fab7abef9f76.png)
 
 考察关键点：
 

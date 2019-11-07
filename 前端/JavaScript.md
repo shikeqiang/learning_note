@@ -638,7 +638,7 @@ document.getElementById("demo").innerHTML = obj.sites[2].name + " " + obj.sites[
 
 **HTML DOM** 模型被构造为**对象**的树：
 
-![DOM HTML tree](/Users/jack/Desktop/md/images/pic_htmltree.gif)
+![DOM HTML tree](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/pic_htmltree.gif)
 
 通过可编程的对象模型，JavaScript 获得了足够的能力来创建动态的 HTML。
 

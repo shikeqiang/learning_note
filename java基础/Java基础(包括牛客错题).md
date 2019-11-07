@@ -1,4 +1,4 @@
-![image-20190405215634507](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190405215634507.png)
+![image-20190405215634507](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190405215634507.png)
 
 # 	1.继承和实现
 
@@ -20,7 +20,7 @@
 
 **==PS：方法没有继承一说，只有重载和重写==**
 
-![image-20181226080624787](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080624787-5782784-7514330-8895518.png)
+![image-20181226080624787](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226080624787-5782784-7514330-8895518.png)
 
 ​	==编译看左边，运行看右边，编译的时候看等号左边定义的是什么类型，运行的时候动态绑定到哪个对象上==,如：Base b = new Sub();**它为多态的一种表现形式，声明是Base,实现是Sub类，** **理解为** **b** **编译时表现为Base类特性，运行时表现为Sub类特性。**
 
@@ -62,15 +62,15 @@ public final void method1() {
 
 # 3.修饰符
 
-![image-20181226080607563](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080607563-5782767-7514330.png)
+![image-20181226080607563](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226080607563-5782767-7514330.png)
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/9430388_1508736012435_F21604BDD6B5A8912481FAC56612272B.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/9430388_1508736012435_F21604BDD6B5A8912481FAC56612272B.png)
 
 # 4.异常
 
 ##### 	如果try...catch捕捉到异常之后，程序会结束，即finally后的语句不会执行。
 
-![image-20181226080651234](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080651234-5782811-7514330.png)
+![image-20181226080651234](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226080651234-5782811-7514330.png)
 
 **finally一定会在return之前执行，但是如果finally使用了return语句，将会使trycatch中的return或者throw失效。**
 
@@ -82,7 +82,7 @@ public final void method1() {
 > 3. 程序所在的线程死亡。
 > 4. 关闭CPU。 
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/70-20181227100908360-7514330.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/70-20181227100908360-7514330.png)
 
 ##### 	对于运行时异常，java编译器不要求必须进行异常捕获处理或者抛出声明，由程序员自行决定。运行异常，可以通过java虚拟机来自行处理。
 
@@ -90,26 +90,26 @@ public final void method1() {
 
 ### 需要抛出的异常(粉色)：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/214250_1444467985224_6A144C1382BBEF1BE30E9B91BC2973C8.jpeg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/214250_1444467985224_6A144C1382BBEF1BE30E9B91BC2973C8.jpeg)
 
 # 5.线程
 
-![image-20190221163609336](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190221163609336.png)
+![image-20190221163609336](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190221163609336.png)
 
 **在java中线程是有分优先等级的所以优先级不能相同。**
 
-![image-20181226080723036](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080723036-5782843-7514330.png)
+![image-20181226080723036](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226080723036-5782843-7514330.png)
 
-![image-20181226080749306](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226080749306-5782869-7514330.png)
+![image-20181226080749306](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226080749306-5782869-7514330.png)
 
-![image-20181227102908360](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181227102908360-5877748-7514330.png)
+![image-20181227102908360](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181227102908360-5877748-7514330.png)
 易知：每个线程对a 均做了两次读写操作，分别是 “ +1 ” 和 “ -2 ”
 
 而题目问了是最终a 的结果，所以 a 的结果取决于各自线程对 a 的先后读写的顺序
 
 结论：a的可能取值为-1、0、-2
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/995326_1498884304176_23ACE3CCE24ADA857BC64F71F3A561F0-7514330.)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/995326_1498884304176_23ACE3CCE24ADA857BC64F71F3A561F0-7514330.)
 
 ##### 前台线程和后台线程
 
@@ -343,11 +343,11 @@ ANSI通常使用 0x00~0x7f 范围的1 个[字节](https://baike.baidu.com/item/%
 
 子类不可以继承父类的构造方法，只可以调用父类的构造方法。
 
-**静态块：用static申明，JVM加载类时执行，仅执行一次；构造块：类中直接用{}定义，每一次创建对象时执行 **![image-20190101113345126](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190101113345126-6313625-7514330.png)
+**静态块：用static申明，JVM加载类时执行，仅执行一次；构造块：类中直接用{}定义，每一次创建对象时执行 **![image-20190101113345126](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190101113345126-6313625-7514330.png)
 
 ​	实例化子类的时候，如果子类重写了父类的方法，那么在父类的构造方法中调用这个方法的时候，实际上调用的是子类重写之后的方法。如下面这个，：父类构造函数中执行的test（）方法，因子类是重写了test（）方法的，因此父类构造函数中的test（）方法实际执行的是子类的test（）方法，所以
 
-![image-20190101152437670](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190101152437670-6327477-7514330.png)
+![image-20190101152437670](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190101152437670-6327477-7514330.png)
 
 **子类的构造器第一行默认都是super()，默认调用直接父类的无参构造，一旦直接父类没有无参构造，那么子类必须显式的声明要调用父类或者自己的哪一个构造器。**
 
@@ -357,13 +357,13 @@ ANSI通常使用 0x00~0x7f 范围的1 个[字节](https://baike.baidu.com/item/%
 
 # 9.Spring的事务管理
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081100232-5783060-7514330-8860046.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081100232-5783060-7514330-8860046.png)
 
-![image-20181226081118993](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081118993-5783079-7514330.png)
+![image-20181226081118993](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081118993-5783079-7514330.png)
 
 # 10.垃圾回收
 
-![image-20181226081136798](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081136798-5783096-7514330.png)
+![image-20181226081136798](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081136798-5783096-7514330.png)
 
 ## 堆内存设置原理：
 
@@ -419,7 +419,7 @@ ANSI通常使用 0x00~0x7f 范围的1 个[字节](https://baike.baidu.com/item/%
 
 ## 1.SpringMVC和Struts2的区别
 
-![image-20181226081244517](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081244517-5783164-7514330.png)
+![image-20181226081244517](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081244517-5783164-7514330.png)
 
 ### 1.  机制：spring mvc的入口是servlet，而struts2是filter。
 
@@ -508,13 +508,13 @@ public  String delete( @PathVariable  Integer whiteListId) {
     从action线程模式分析: 
 5. Struts1 Action是单例模式并且必须是线程安全的，因为仅有Action的一个实例来处理所有的请求。单例策略限制了Struts1 Action能作的事，并且要在开发时特别小心。Action资源必须是线程安全的或同步的。 
 6. Struts2 Action对象为每一个请求产生一个实例，因此没有线程安全问题。（实际上，servlet容器给每个请求产生许多可丢弃的对象，并且不会导致性能和垃圾回收问题）
-7. ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6740262_1502892230619_8AA0BB8C0EEED931C8EE12011A5E8E1B.png)
+7. ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/6740262_1502892230619_8AA0BB8C0EEED931C8EE12011A5E8E1B.png)
 
 # 13.运算及运算符
 
 ### 1.==当字符型与整型运算时会自动转换成整型==，所以'a' % 3会变成97%3。而’a’ = 1/3是错误的，因为==常量不能被赋值==
 
-![image-20181226081429859](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081429859-5783269-7514330.png)
+![image-20181226081429859](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081429859-5783269-7514330.png)
 
 ### 2.运算符
 
@@ -750,9 +750,9 @@ HTTP是一种无状态协议，每当用户发出请求时，服务器就会做�
 
 命令javac-d参数的用途是：
 
-![image-20181226081617169](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081617169-5783377-7514330.png)
+![image-20181226081617169](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081617169-5783377-7514330.png)
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/4550868_1517736571041_FB5C81ED3A220004B71069645F112867.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/4550868_1517736571041_FB5C81ED3A220004B71069645F112867.png)
 
 # 17.Socket
 
@@ -762,21 +762,21 @@ HTTP是一种无状态协议，每当用户发出请求时，服务器就会做�
 
 ##### socket和servletSocket的交互如下图所示：
 
-![image-20181226081644297](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081644297-5783404-7514330.png)
+![image-20181226081644297](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081644297-5783404-7514330.png)
 
 服务器端：ServerSocket提供的实例 ServerSocket server = new ServerSocket(端口号) ，创建TCP连接对象
 
-客户端：	   Socket提供的实例 Socket client = new Socket(IP地址，端口号)![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/8955099_1521189690989_0BB28C2A1ECCC47EC020E89E8A554BBC-7514330.png)
+客户端：	   Socket提供的实例 Socket client = new Socket(IP地址，端口号)![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/8955099_1521189690989_0BB28C2A1ECCC47EC020E89E8A554BBC-7514330.png)
 
 # 18.Java类加载器
 
-![image-20181226081708829](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081708829-5783428-7514330.png)
+![image-20181226081708829](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081708829-5783428-7514330.png)
 
-# ![image-20181226081729848](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081729848-5783449-7514330.png)
+# ![image-20181226081729848](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081729848-5783449-7514330.png)
 
 # 19.基本类型
 
-![image-20181226081748225](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081748225-5783468-7514330.png)
+![image-20181226081748225](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081748225-5783468-7514330.png)
 
 ##### 	基本类型又被称为原始数据类型。
 
@@ -826,13 +826,13 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 # 21.重写和重载
 
-![image-20181226081818928](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081818928-5783499-7514330.png)
+![image-20181226081818928](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081818928-5783499-7514330.png)
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/16342c734014a933.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/16342c734014a933.png)
 
 # 22.JVM
 
-![image-20181226081840098](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081840098-5783520-7514330.png)
+![image-20181226081840098](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081840098-5783520-7514330.png)
 
 -Xmx：最大堆大小
 
@@ -846,9 +846,9 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 -Xms初始堆大小即最小内存值为10240m
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/5032673_1539139922699_59B2900AA03CB2182A51CDB520B535B6.png)
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6316247_1468250146658_4928035E95900B857798B54E569E5BCC.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/6316247_1468250146658_4928035E95900B857798B54E569E5BCC.png)
 
 ==类的析构函数是一个对象被撤销时自动调用的。析构函数跟构造函数相反。==
 
@@ -937,7 +937,7 @@ ER图的要素：实体型，有向边和属性。
 
 ##### 范式
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/5994168_1491996858898_A01A48B530942A78ACFC847D2B087CC7.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/5994168_1491996858898_A01A48B530942A78ACFC847D2B087CC7.png)
 
 **第一范式（1NF）：属性不可拆分 或 无重复的列**:一个属性不允许再分成多个属性来建立列
 
@@ -1015,7 +1015,7 @@ selecte * from product where match(detail) against('rabbit');
 
 # 24.String字符串
 
-![image-20181226081859339](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081859339-5783539.png)
+![image-20181226081859339](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081859339-5783539.png)
 
 ##### String内部是用char[]数组实现的，不过结尾不用\0。char存储的unicode码，不仅可以存储ascII码，汉字也可以。
 
@@ -1058,7 +1058,7 @@ value 数组被声明为 final，这意味着 value 数组初始化之后就不�
 
 ​	如果一个 String 对象已经被创建过了，那么就会从 String Pool 中取得引用。只有 String 是不可变的，才可能使用 String Pool。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f76067a5-7d5f-4135-9549-8199c77d8f1c.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/f76067a5-7d5f-4135-9549-8199c77d8f1c.jpg)
 
 **3. 安全性**
 
@@ -1080,7 +1080,7 @@ value 数组被声明为 final，这意味着 value 数组初始化之后就不�
 
 # 26.ant和maven
 
-![image-20181226081946241](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081946241-5783586.png)
+![image-20181226081946241](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081946241-5783586.png)
 
 # 27.静态方法
 
@@ -1092,7 +1092,7 @@ value 数组被声明为 final，这意味着 value 数组初始化之后就不�
 
 # 28.jsp
 
-![image-20181226081959871](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181226081959871-5783599.png)
+![image-20181226081959871](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181226081959871-5783599.png)
 
 # 29.构造函数
 
@@ -1392,7 +1392,7 @@ for(i=0;i<n;i++){
 
 # 38.集合
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2193220_1487038875892_072774B6B658B3603E1AA7198722775C.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2193220_1487038875892_072774B6B658B3603E1AA7198722775C.png)
 
 ### list 的遍历方式选择: 
 
@@ -1405,7 +1405,7 @@ for(i=0;i<n;i++){
 
 # 40.字节、位及各类型所占字节数
 
-![image-20190121104754130](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190121104754130.png)
+![image-20190121104754130](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190121104754130.png)
 
 ​	**一个字节(byte)等于8位(bit)，数组要先固定大小，才可以说某个元素占了多少字节，所占的字节数要根据声明的元素类型乘几个元素去算，比如：arr[16],那么arr[0]-arr[7]占32字节，因为一个int占4个字节，总共有8个元素，所以是32。**
 
@@ -1459,7 +1459,7 @@ Map：Map的key最多可以加入一个null，value字段没有限制。
 
 2、**释放内存，让一个非null的引用类型变量指向null。这样这个对象就不再被任何对象应用了。等待JVM垃圾回收机制去回收。**
 
-![image-20190122100211403](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190122100211403.png)
+![image-20190122100211403](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190122100211403.png)
 
 # 42.final
 
@@ -1505,14 +1505,14 @@ for(int i=0;i<list.size();i++){
 ​	第一部分是过滤器在Web应用中的定义，由\<filter>元素表示，包括\<filter-name>和\<filter-class>两个必需的子元素
 ​	第二部分是过滤器映射的定义，由\<filter-mapping>元素表示,可以将一个过滤器映射到一个或者多个Servlet或JSP文件，也可以采用url-pattern将过滤器映射到任意特征的URL。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/6316247_1469628859864_A8BB53E66CC9A072C0448DDDBDF4C3B2.png)
 
 ## 2、servlet是什么
 
 ​	Servlet是JavaEE规范的一种，主要是为了扩展Java作为Web服务的功能，统一接口。由其他内部厂商如tomcat，jetty内部实现web的功能。如一个http请求到来：
 **容器将请求封装为servlet中的HttpServletRequest对象，调用init（），service（）等方法输出response,由容器包装为httpresponse返回给客户端的过程。**
 
-![image-20190201104605382](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190201104605382.png)
+![image-20190201104605382](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190201104605382.png)
 
 ### **Web服务器在与客户端交互时Servlet的工作过程是:**
 
@@ -1603,7 +1603,7 @@ https://www.cnblogs.com/lgk8023/p/6427977.html
 
 　　**线性表的这种机内表示称作线性表的顺序存储。**它的特点是，以数据元素在机内存储地址相邻来表示线性表中数据元素之间的逻辑关机。每一个数据元素的存储地址都和线性表的起始地址相差一个与数据据元素在线性表中的序号成正比的常数。由此，只要确定了线性表的起始地址，线性表中的任何一个数据元素都可以随机存取，因此线性表的顺序存储结构时一种随机的存储结构。
 
-![çº¿æ§è¡¨çé¡ºåºå­å¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/SouthEast.png)
+![çº¿æ§è¡¨çé¡ºåºå­å¨](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/SouthEast.png)
 
 ## 48.1 数组与链表
 
@@ -1763,7 +1763,7 @@ public String(String original) {
 
 ### 1.1 在 hibernate 开发中，关于 POJO 类对象的状态：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2528941_1482221619916_00B61697BB792DF2956E80BAB07B8F54.jpeg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2528941_1482221619916_00B61697BB792DF2956E80BAB07B8F54.jpeg)
 
 自由状态（Transient）：实体在内存中自由存在，与数据库中的记录无关
 持久状态（Persistent）：实体处于由Hibernate框架所管理的状态，对应了数据库中的一条记录，同时与某个session实例发生了关联
@@ -1781,7 +1781,7 @@ public String(String original) {
 
 ## 2、SpringMVC
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/163192_1507646670364_7216367DD4FDC0CC274F999B0D00CFE5.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/163192_1507646670364_7216367DD4FDC0CC274F999B0D00CFE5.png)
 
 # 54.进程
 
@@ -1799,7 +1799,7 @@ Log4j支持按年为间隔生成新的日志文件
 
 # 56.反射
 
-![image-20190415175409800](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190415175409800.png)
+![image-20190415175409800](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190415175409800.png)
 
 ​	Java反射机制主要提供了以下功能：**在运行时构造一个类的对象；判断一个类所具有的成员变量和方法；调用一个对象的方法；生成动态代理。反射最大的应用就是框架**
 
@@ -1901,7 +1901,7 @@ Constructor c=clazz.getDeclaredConstructor(String.class,String.class,int.class);
 
 # 57.Java注解
 
-![image-20190415214010696](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190415214010696.png)
+![image-20190415214010696](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190415214010696.png)
 
 
 

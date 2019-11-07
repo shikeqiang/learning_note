@@ -309,7 +309,7 @@ public interface FlashMapManager {
 
 FROM [《Spring MVC 原理探秘 —— 一个请求的旅行过程》](https://www.tianxiaobo.com/2018/06/29/Spring-MVC-%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A7%98-%E4%B8%80%E4%B8%AA%E8%AF%B7%E6%B1%82%E7%9A%84%E6%97%85%E8%A1%8C%E8%BF%87%E7%A8%8B/)
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/15300766829012.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/15300766829012.jpg)
 
 ## ① **发送请求**
 
@@ -392,7 +392,7 @@ Handler(Controller) 执行完成后，向 DispatcherServlet 返回一个 ModelAn
 >
 > **流程示意图**：
 >
-> ![流程示意图](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01-20190407121237875.png)
+> ![流程示意图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-20190407121237875.png)
 >
 > **代码序列图**：
 >
@@ -404,11 +404,11 @@ Handler(Controller) 执行完成后，向 DispatcherServlet 返回一个 ModelAn
 >
 > **流程示意图**：
 >
-> ![《流程示意图》](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/03-20190407121237909.png)
+> ![《流程示意图》](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/03-20190407121237909.png)
 
 # 三、相关注解
 
-![image-20190417190824494](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190417190824494.png)
+![image-20190417190824494](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190417190824494.png)
 
 ## @Controller 
 

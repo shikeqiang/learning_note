@@ -529,13 +529,13 @@ public interface Cache {
 
 # 五、Mybatis工作原理如下：
 
-![image-20190513182031415](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190513182031415.png)
+![image-20190513182031415](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190513182031415.png)
 
 **Dao 实现类：**
 
-![image-20190515000712587](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190515000712587.png)
+![image-20190515000712587](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190515000712587.png)
 
-![image-20190521235855244](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521235855244.png)
+![image-20190521235855244](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521235855244.png)
 
 # 六、Mapper接口的工作原理
 
@@ -549,7 +549,7 @@ Mapper 接口是没有实现类的，当调用接口方法时，接口全限名 
 
 ​	==总结来说，在 Mybatis 中，每一个 `<select />`、`<insert />`、`<update />`、`<delete />` 标签，都会被解析为一个 MappedStatement 对象。==
 
-​	Mapper 接口的实现类，通过 MyBatis 使用 **JDK Proxy** 自动生成其代理对象 Proxy ，而代理对象 Proxy 会拦截接口方法，从而“调用”对应的 MappedStatement 方法，最终执行 SQL ，返回执行结果。整体流程如下图：![流程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/02-7742725.png)
+​	Mapper 接口的实现类，通过 MyBatis 使用 **JDK Proxy** 自动生成其代理对象 Proxy ，而代理对象 Proxy 会拦截接口方法，从而“调用”对应的 MappedStatement 方法，最终执行 SQL ，返回执行结果。整体流程如下图：![流程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/02-7742725.png)
 
 ​	其中，SqlSession 在调用 Executor 之前，会获得对应的 MappedStatement 方法。例如：`DefaultSqlSession#select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler)` 方法，代码如下：
 
@@ -805,7 +805,7 @@ VALUES
 
 Mybatis的Dao实现类如下：
 
-![image-20190515104350561](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190515104350561.png)
+![image-20190515104350561](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190515104350561.png)
 
 ## A、 输入流的关闭
 
@@ -850,7 +850,7 @@ public SqlSessionFactory build(InputStream inputStream, String environment, Prop
 
 **SqlSessionFactory 接口的实现类为 DefaultSqlSessionFactory。** 
 
-![image-20190515104608315](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190515104608315.png)
+![image-20190515104608315](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190515104608315.png)
 
 ```java
 // SqlSessionFactory.java
@@ -1056,7 +1056,7 @@ public void rollback(boolean required) throws SQLException {
 >
 > lazyLoadingEnabled 的默认值为 false，即直接加载。 
 
-![image-20190521100653128](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521100653128.png)
+![image-20190521100653128](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521100653128.png)
 
 ## 3.深度延迟加载
 
@@ -1070,7 +1070,7 @@ public void rollback(boolean required) throws SQLException {
 
 ## 5.延迟加载策略总结
 
-![image-20190521100913133](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521100913133.png)
+![image-20190521100913133](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521100913133.png)
 
 # 十五、查询缓存
 
@@ -1082,11 +1082,11 @@ public void rollback(boolean required) throws SQLException {
 
 ​	MyBatis 一级查询缓存是基于 org.apache.ibatis.cache.impl.PerpetualCache 类的 HashMap 本地缓存，其作用域是 SqlSession。**在同一个 SqlSession 中两次执行相同的 sql 查询语句，第一次执行完毕后，会将查询结果写入到缓存中，第二次会从缓存中直接获取数据，而不再到 数据库中进行查询，从而提高查询效率。** 
 
-​	当一个 SqlSession 结束后，该 SqlSession 中的一级查询缓存也就不存在了。myBatis 默认 一级查询缓存是开启状态，且不能关闭。 具体执行过程如下图所示：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/6e38df6a.jpg)
+​	当一个 SqlSession 结束后，该 SqlSession 中的一级查询缓存也就不存在了。myBatis 默认 一级查询缓存是开启状态，且不能关闭。 具体执行过程如下图所示：![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/6e38df6a.jpg)
 
 > ​	每个SqlSession中持有了Executor，每个Executor中有一个LocalCache。当用户发起查询时，MyBatis根据当前执行的语句生成`MappedStatement`，在Local Cache进行查询，如果缓存命中的话，直接返回结果给用户，如果缓存没有命中的话，查询数据库，结果写入`Local Cache`，最后返回结果给用户。具体实现类的类关系图如下图所示：
 >
-> ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/d76ec5fe.jpg)
+> ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/d76ec5fe.jpg)
 
 ### 1.1 从缓存读取数据的依据是 Sql 的 id
 
@@ -1116,7 +1116,7 @@ public void rollback(boolean required) throws SQLException {
 
 ​	在上文中提到的一级缓存中，其最大的共享范围就是一个SqlSession内部，如果多个SqlSession之间需要共享缓存，则需要使用到二级缓存。开启二级缓存后，会使用CachingExecutor装饰Executor，进入一级缓存的查询流程前，先在CachingExecutor进行二级缓存的查询，具体的工作流程如下所示。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/28399eba.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/28399eba.png)
 
 > 二级缓存开启后，同一个namespace下的所有操作语句，都影响着同一个Cache，即二级缓存被多个SqlSession共享，是一个全局的变量。
 >
@@ -1136,7 +1136,7 @@ public void rollback(boolean required) throws SQLException {
 
 ​	为\<cache/>标签添加一些相关属性设置，可以对二级缓存的运行性能进行控制。当然， 若不指定设置，则均保持默认值。
 
-![image-20190521105320570](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521105320570.png)
+![image-20190521105320570](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521105320570.png)
 
 - eviction:逐出策略。当二级缓存中的对象达到最大值时，就需要通过逐出策略将缓存 中的对象移出缓存。默认为 LRU。常用的策略有:
   - FIFO:First In First Out，先进先出
@@ -1162,7 +1162,7 @@ public void rollback(boolean required) throws SQLException {
 
 ​	若要使某个增、删或改操作不清空二级缓存，则需要在其\<insert/>或\<delete/>或\<update/> 中添加属性 flushCache=”false”，默认为 true。 
 
-![image-20190521110225514](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521110225514.png)
+![image-20190521110225514](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521110225514.png)
 
 ### 2.4 二级缓存的关闭 
 
@@ -1172,7 +1172,7 @@ public void rollback(boolean required) throws SQLException {
 
 ​	所谓全局关闭是指，整个应用的二级缓存全部关闭，所有查询均不使用二级缓存。**全局开关设置在主配置文件的全局设置\<settings/>中，该属性为 cacheEnabled，设置为 false，则关闭;设置为 true，则开启，默认值为 true。即二级缓存默认是开启的。**
 
-![image-20190521110344401](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521110344401.png)
+![image-20190521110344401](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521110344401.png)
 
 #### (2) 局部关闭 
 
@@ -1180,7 +1180,7 @@ public void rollback(boolean required) throws SQLException {
 
 ​	在该要关闭二级缓存的\<select/>标签中，将其属性 useCache 设置为 false，即可关闭该 查询的二级缓存。该属性默认为 true，即每个\<select/>查询的二级缓存默认是开启的。 
 
-![image-20190521110436347](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521110436347.png)
+![image-20190521110436347](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521110436347.png)
 
 ### 2.5 二级缓存的使用原则
 
@@ -1216,11 +1216,11 @@ public void rollback(boolean required) throws SQLException {
 
 > 当前系统的默认文件临时目录，可以通过 System.property()方法查看:
 >
-> ![image-20190521111227148](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521111227148.png)
+> ![image-20190521111227148](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521111227148.png)
 
 #### (2) \<defaultCache/>标签 
 
-![image-20190521111251912](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521111251912.png)
+![image-20190521111251912](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521111251912.png)
 
 设定缓存的默认属性数据:
 
@@ -1243,13 +1243,13 @@ public void rollback(boolean required) throws SQLException {
 
 ​	在映射文件的 mapper 中的\<cache/>中通过 type 指定缓存机制为 Ehcache 缓存。默认为 MyBatis 内置的二级缓存 org.apache.ibatis.cache.impl.PerpetualCache。 
 
-![image-20190521111457460](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521111457460.png)
+![image-20190521111457460](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521111457460.png)
 
 ### 4 ehcache 在不同 mapper 中的个性化设置
 
 ​	在 ehcache.xml 中设置的属性值，会对该项目中所有使用 ehcache 缓存机制的缓存区域起作用。一个项目中可以有多个 mapper，不同的 mapper 有不同的缓存区域。==对于不同缓存区域也可进行专门针对于当前区域的个性化设置，可通过指定不同 mapper 的\<cache>属性 值来设置。 \<cache>属性值的优先级高于 ehcache.xml 中的属性值。==
 
-![image-20190521111555300](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190521111555300.png)  
+![image-20190521111555300](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190521111555300.png)  
 
 # 十六、一级和二级缓存实现原理
 
@@ -1259,21 +1259,21 @@ public void rollback(boolean required) throws SQLException {
 
 一级缓存执行的时序图，如下图所示：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/bb851700.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bb851700.png)
 
 ### 源码分析
 
 **SqlSession**： 对外提供了用户和数据库之间交互需要的所有方法，隐藏了底层的细节。默认实现类是`DefaultSqlSession`。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/ba96bc7f.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/ba96bc7f.jpg)
 
 **Executor**： `SqlSession`向用户提供操作数据库的方法，但和数据库操作有关的职责都会委托给Executor。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/ef5e0eb3.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/ef5e0eb3.jpg)
 
 ​	如下图所示，Executor有若干个实现类，为Executor赋予了不同的能力。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/83326eb3.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/83326eb3.jpg)
 
 **在一级缓存的源码分析中，主要学习`BaseExecutor`的内部实现。**
 
@@ -1297,11 +1297,11 @@ protected PerpetualCache localCache;
 
 **Cache**： MyBatis中的Cache接口，提供了和缓存相关的最基本的操作，如下图所示：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/793031d0.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/793031d0.jpg)
 
 有若干个实现类，使用装饰器模式互相组装，提供丰富的操控缓存的能力，部分实现类如下图所示：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/cdb21712.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/cdb21712.jpg)
 
 ​	`BaseExecutor`成员变量之一的`PerpetualCache`，是对Cache接口最基本的实现，其实现非常简单，内部持有HashMap，对一级缓存的操作实则是对HashMap的操作。如下代码所示：
 
@@ -1495,7 +1495,7 @@ public int update(MappedStatement ms, Object parameter) throws SQLException {
 
 ​	MyBatis二级缓存的工作流程和前文提到的一级缓存类似，只是在一级缓存处理前，用`CachingExecutor`装饰了`BaseExecutor`的子类，在委托具体职责给`delegate`之前，实现了二级缓存的查询和写入功能，具体类关系图如下图所示：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/090216b1.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/090216b1.jpg)
 
 ### 源码分析
 
@@ -1509,7 +1509,7 @@ Cache cache = ms.getCache();
 
 > SynchronizedCache -> LoggingCache -> SerializedCache -> LruCache -> PerpetualCache。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1f5233b2.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1f5233b2.jpg)
 
 以下是具体这些Cache实现类的介绍，他们的组合为Cache赋予了不同的能力。
 

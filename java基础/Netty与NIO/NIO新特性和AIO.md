@@ -49,7 +49,7 @@ public class MemMap {
 }
 ```
 
-结果为：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/biLgFkf.png)
+结果为：![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/biLgFkf.png)
 
 上面程序中调用FileChannel类的**==map方法==**进行内存映射，map主要有三个参数，第一个参数设置映射模式,现在支持3种模式：
 
@@ -131,7 +131,7 @@ public class MemMapReadWrite {
 }
 ```
 
-结果为：![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/bMsFKdn.png)
+结果为：![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bMsFKdn.png)
 
 ## 二、字符及编码
 

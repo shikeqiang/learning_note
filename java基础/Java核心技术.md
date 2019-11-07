@@ -10,7 +10,7 @@
 
 #### 1.1、整型
 
-​	整型用于表示没有小数部分的数值， 它允许是负数。 Java 提供了 4 种整型，具体内容如表 3-1 所示。![1544750128207](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544750128207.png)
+​	整型用于表示没有小数部分的数值， 它允许是负数。 Java 提供了 4 种整型，具体内容如表 3-1 所示。![1544750128207](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544750128207.png)
 
 **byte 和 short 类型主要用于特定的应用场合， 例如， 底层的文件处理或者需要控制占用存储空间量的大数组。**  	==在 Java 中， 整型的范围与运行 Java 代码的机器无关。== 由于 Java 程序必须保证在所有机器上都能够得到相同的运行结果， 所以**各种数据类型的取值范围必须固定。** 
 
@@ -18,7 +18,7 @@
 
 #### 1.2、浮点类型
 
-​	浮点类型用于表示有小数部分的数值。在 Java 中有两种浮点类型，具体内容如表 3-2 所示。 ![1544750643866](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544750643866.png)
+​	浮点类型用于表示有小数部分的数值。在 Java 中有两种浮点类型，具体内容如表 3-2 所示。 ![1544750643866](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544750643866.png)
 
 ​	double 表示这种类型的数值精度是 float 类型的两倍（有人称之为双精度数值)。绝大部分应用程序都采用 double 类型。实际上，只有很少的情况适合使用 float 类型，例如，需要单精度数据的库， 或者需要存储大量数据。**float 类型的数值有一个后缀 F 或 f (例如， 3.14F)。**没有后缀 F 的浮点数值（如 3.14 ) 默认为 double 类型。当然，也可以在浮点数值后面添加后缀 D 或 d (例如， 3.14D)。 
 
@@ -26,7 +26,7 @@
 
 #### 1.3、char类型
 
-​	char 类型原本用于表示单个字符。char 类型的字面量值要用==**单引号**==括起来。 例如： W 是编码值为 65 所对应的字符常量。它与 "A" 不同，"A" 是包含一个字符 A 的字符串, char 类型的值可以表示为十六进制值，其范围从 \u0000 到 \Uffff 。![1544751354753](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544751354753.png)
+​	char 类型原本用于表示单个字符。char 类型的字面量值要用==**单引号**==括起来。 例如： W 是编码值为 65 所对应的字符常量。它与 "A" 不同，"A" 是包含一个字符 A 的字符串, char 类型的值可以表示为十六进制值，其范围从 \u0000 到 \Uffff 。![1544751354753](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544751354753.png)
 
 #### 1.4、boolean类型
 
@@ -44,7 +44,7 @@
 
 #### 3.1、数值类型之间的转换 
 
-![1544754201229](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544754201229.png)
+![1544754201229](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544754201229.png)
 
 6个实心箭头，表示无信息丢失的转换； 有 3 个虚箭头， 表示可能有精度损失的转换。round 方法返回的结果为 long 类型 。 
 
@@ -119,7 +119,7 @@ String 类的 substring 方法可以从一个较大的字符串提取出一个�
 
 #### 4.5、StringBuilder相关API
 
-![1544757827379](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544757827379.png)
+![1544757827379](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544757827379.png)
 
 ### 5.输入输出
 
@@ -151,7 +151,7 @@ char[] passwd = cons.readPassword("Password: ");
 
 为了安全起见，返回的密码存放在一维字符数组中， 而不是字符串中。在对密码进行处理之后， 应该马上用一个填充值覆盖数组元素。采用 Console 对象处理输入不如采用 Scanner 方便。每次只能读取一行输入， 而没有能够读取一个单词或一个数值的方法。
 
-##### Scanner相关API：![image-20181219162839610](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219162839610-5208119.png)
+##### Scanner相关API：![image-20181219162839610](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219162839610-5208119.png)
 
 #### 5.2 格式化输出
 
@@ -161,7 +161,7 @@ char[] passwd = cons.readPassword("Password: ");
 
 每一个以 % 字符开始的格式说明符都用相应的参数替换。 格式说明符尾部的转换符将指示被格式化的数值类型:f 表示浮点数，s 表示字符串，d 表示十进制整数。
 
-##### 下面是printf所有的转换符：![image-20181219164600421](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219164600421-5209160.png)
+##### 下面是printf所有的转换符：![image-20181219164600421](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219164600421-5209160.png)
 
 另外， 还可以给出控制格式化输出的各种标志。 例如， 逗号 标志增加了分组的分隔符。
 
@@ -171,7 +171,7 @@ char[] passwd = cons.readPassword("Password: ");
 
 ##### printf相关标志：
 
-![image-20181219164816704](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219164816704-5209296.png)
+![image-20181219164816704](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219164816704-5209296.png)
 
 #### 5.3 文件输入与输出
 
@@ -206,7 +206,7 @@ Biglnteger d = c.nultipiy(b.add(Biglnteger.valueOf(2))); // d = c * (b + 2)
 
 ##### BigInter相关方法：
 
-![image-20181219175107299](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219175107299-5213067.png)
+![image-20181219175107299](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219175107299-5213067.png)
 
 ### 7.数组
 
@@ -241,7 +241,7 @@ Biglnteger d = c.nultipiy(b.add(Biglnteger.valueOf(2))); // d = c * (b + 2)
 ​	int[] luckyNumbers = smallPrimes;
 ​	luckyNumbers[5] = 12; // now smallPrimes[5] is also 12	 
 
-![image-20181219194821880](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219194821880-5220101.png)
+![image-20181219194821880](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219194821880-5220101.png)
 
  **如果希望将一个数组的所有值拷贝到一个新的数组中去，就要使用 Arrays 类的 copyOf 方法:**
 
@@ -259,7 +259,7 @@ luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
 
 #### 7.4 数组排序
 
-​	要想对数值型数组进行排序， 可以使用 Arrays 类中的 sort 方法:​		
+​	要想对数值型数组进行排序， 可以使用 Arrays 类中的 sort 方法:		
 
 ```
 int[] a = new int[10000];
@@ -268,9 +268,9 @@ Arrays.sort(a)
 
 **这个方法使用了优化的快速排序算法。快速排序算法对于大多数数据集合来说都是效率比较高的。**
 
-##### 数组相关API：![image-20181219202433472](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219202433472-5222273.png)
+##### 数组相关API：![image-20181219202433472](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219202433472-5222273.png)
 
-![image-20181219202445636](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219202445636-5222285.png)
+![image-20181219202445636](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219202445636-5222285.png)
 
 ## 二、对象和类
 
@@ -286,7 +286,7 @@ Arrays.sort(a)
 
 ​	==2.让这个变量引用一个已存在的对象:== 	Date birthday = new Date();	**deadline = birthday;** 
 
-![image-20181220095316185](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181220095316185-5270796.png)
+![image-20181220095316185](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181220095316185-5270796.png)
 
 ##### 一个对象变量并没有实际包含一个对象，而仅仅引用一个对象。
 
@@ -341,7 +341,7 @@ tripieValue(percent) ;
 
 结果：percent还是10，而x变成30
 
-![image-20181220172045933](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181220172045933-5297646.png)
+![image-20181220172045933](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181220172045933-5297646.png)
 
 执行过程：
 
@@ -365,7 +365,7 @@ tripieSalary(harry) ;
 
  结果：harry变大了200倍
 
-![image-20181220172244660](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181220172244660-5297764.png)
+![image-20181220172244660](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181220172244660-5297764.png)
 
 执行过程：
 
@@ -447,7 +447,7 @@ tripieSalary(harry) ;
 
 ​	Object 类中的 equals 方法用于检测一个对象是否等于另外一个对象。在 Object 类中， 这个方法将判断两个对象是否具有相同的引用。如果两个对象具有相同的引用， 它们一定是相等的。
 
-![image-20181221152813435](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221152813435-5377293.png)
+![image-20181221152813435](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221152813435-5377293.png)
 
 **2.hashCode方法**
 
@@ -466,13 +466,13 @@ StringBuilder tb = new StringBuilder(1);
 System.out.println(t.hashCode() + " " + tb.hashCode());
 ```
 
-结果：![image-20181221155257121](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221155257121-5378777.png)
+结果：![image-20181221155257121](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221155257121-5378777.png)
 
 字符串 s 与 t 拥有相同的散列码， 这是因为字符串的散列码是由内容导出的。 而字符串缓冲 sb 与 tb 却有着不同的散列码， 这是因为在 StringBuffer 类中没有定义hashCode 方法， 它的散列码是由 Object 类的默认 hashCode 方法导出的对象存储地址。
 
 **如果重新定义 equals 方法， 就必须重新定义 hashCode 方法， 以便用户可以将对象插人到散列表中**
 
-hashCode 方法应该返回一个整型数值(也可以是负数)， 并合理地组合实例域的散列码 ,以便能够让各个不同的对象产生的散列码更加均匀。![image-20181221160144364](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221160144364-5379304.png)
+hashCode 方法应该返回一个整型数值(也可以是负数)， 并合理地组合实例域的散列码 ,以便能够让各个不同的对象产生的散列码更加均匀。![image-20181221160144364](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221160144364-5379304.png)
 
 ##### 11.泛型数组列表：
 
@@ -502,11 +502,11 @@ list.toArray(a) ;
 
 ##### 12.Integer相关API：
 
-![image-20181221174132203](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221174132203-5385292.png)
+![image-20181221174132203](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221174132203-5385292.png)
 
-![image-20181221174144197](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221174144197-5385304.png)
+![image-20181221174144197](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221174144197-5385304.png)
 
-##### 13.Enum相关API：![image-20181221174828306](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181221174828306-5385708.png)
+##### 13.Enum相关API：![image-20181221174828306](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181221174828306-5385708.png)
 
 ## 四、反射(https://mp.weixin.qq.com/s/kNwLps_lulIYNhDwz0V1OQ)
 
@@ -533,7 +533,7 @@ list.toArray(a) ;
 
 如图是类的正常加载过程：反射的原理在与class对象。
 
-（熟悉一下加载的时候：Class对象的由来是将class文件读入内存，并为之创建一个Class对象。）![image-20181223154838544](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181223154838544-5551318.png)
+（熟悉一下加载的时候：Class对象的由来是将class文件读入内存，并为之创建一个Class对象。）![image-20181223154838544](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181223154838544-5551318.png)
 
 ### 1.Class类
 
@@ -745,7 +745,7 @@ System.out.println("The time is " + new Date()");
 - **内部类可以对同一个包中的其他类隐藏起来。** 
 - **当想要定义一个回调函数且不想编写大量代码时，使用匿名(anonymous) 内部类比较便捷。** 
 
-##### 内部类的对象总有一个隐式引用， 它指向了创建它的外部类对象。 ![image-20181225093147854](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181225093147854-5701508.png)
+##### 内部类的对象总有一个隐式引用， 它指向了创建它的外部类对象。 ![image-20181225093147854](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181225093147854-5701508.png)
 
 这个引用在内部类的定义中是不可见的。然而， 为了说明这个概念， 我们将外围类对象的引用称为 outer。 注意，outer不是Java关键字。
 

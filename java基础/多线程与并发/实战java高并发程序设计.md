@@ -8,13 +8,13 @@
 
   异步是多个操作传递执行，一般上个操作执行后会立即返回结果，或者下个操作不需要等待上个操作的返回结果也可以继续往下运行。
 
-  ![image-20190704142610963](/Users/jack/Desktop/md/images/image-20190704142610963.png)
+  ![image-20190704142610963](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190704142610963.png)
 
 - 并发和并行
 
   并发偏向于交替执行，多个任务之间可能是串行的，即任务A执行完后马上就执行任务B了；而并行是真正的“同时执行”，即多个任务可以同时执行。
 
-  ![image-20190704143355447](/Users/jack/Desktop/md/images/image-20190704143355447.png)
+  ![image-20190704143355447](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190704143355447.png)
 
   一般单核CPU只有并发不会并行，而实现并行需要多核CPU。
 
@@ -40,11 +40,11 @@
 
 Amdahl定律：加速比 = 优化前系统耗时 / 优化后的系统耗时，当处理器个数趋向与无穷大时，加速比和串行比例成反比。CPU数量越多，串行比列越小，则优化效果越好。
 
-![img](/Users/jack/Desktop/md/images/1242400-20190225195928368-1641348550.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1242400-20190225195928368-1641348550.png)
 
  Gustafson定律：如果可被并行化的代码所占比重够多，则加速比就能和处理器个数成线性增长。
 
-![img](/Users/jack/Desktop/md/images/1242400-20190225203446207-1518288259.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1242400-20190225203446207-1518288259.png)
 
 
 

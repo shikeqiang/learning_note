@@ -1,6 +1,6 @@
 # IO流分类
 
-​	这里要先区分一个概念，输入和输出流：==划分输入/输出流时是从程序运行所在的内存的角度来考虑的==，如图，是输出流。![1544082807835](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544082807835.png)![1544083124658](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544083124658.png)
+​	这里要先区分一个概念，输入和输出流：==划分输入/输出流时是从程序运行所在的内存的角度来考虑的==，如图，是输出流。![1544082807835](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544082807835.png)![1544083124658](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544083124658.png)
 
 ​	数据从服务器通过网络流向客户端，在这种情况下,Server端的内存负责将数据输出到网络里，因此Server端的程序使用输出流；Client端的内存负责从网络中读取数据，因此Client端的程序应该使用输入流。
 
@@ -18,11 +18,11 @@
 
 ### 1.2 InputStream和OutputStream相关方法
 
-![1544078605855](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544078605855.png)
+![1544078605855](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544078605855.png)
 
-![1544078626789](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544078626789.png)
+![1544078626789](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544078626789.png)
 
-![1544078648580](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544078648580.png)
+![1544078648580](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544078648580.png)
 
 ### 1.3 分类说明
 
@@ -137,7 +137,7 @@
 1. 该对象只能操作文件，所以构造函数接收两种类型的参数：**a.字符串文件路径；b.File对象。**
 2. 该对象既可以对文件进行读操作，也能进行写操作，在进行对象实例化时可指定操作模式(r,rw)。
 
-**注意：** IO中的很多内容都可以使用NIO完成，这些知识点大家知道就好，使用的话还是尽量使用NIO/AIO。![1544083896118](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544083896118.png)
+**注意：** IO中的很多内容都可以使用NIO完成，这些知识点大家知道就好，使用的话还是尽量使用NIO/AIO。![1544083896118](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544083896118.png)
 
 **==注：表中粗体字所标出的类代表节点流，必须直接与指定的物理节点关联：斜体字标出的类代表抽象基类，无法直接创建实例。==**
 

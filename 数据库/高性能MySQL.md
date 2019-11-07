@@ -6,7 +6,7 @@
 
 首先来看MySQL服务器的逻辑架构图：
 
-![1546414894457](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1546414894457.png)
+![1546414894457](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1546414894457.png)
 
 ​	如上面那个图，第一层是连接层，并不是MySQL特有的，大多数基于网络的客户端/服务器的工具或者服务器都有类似的架构。比如连接管理、授权认证、安全等。
 
@@ -70,7 +70,7 @@
 
 ##### SERIALIZABLE（可串行化）
 
-​	SERIALIZABLE是最高的隔离级别。**它通过强制事务串行执行，避免了前面说的幻读的问题。**==简单来说，SERIALIZABLE会在读取的每一行数据上都加锁==，所以可能导致大量的超时和锁争用的问题。实际应用中也很少用到这个隔离级别，只有在非常需要确保数据的一致性而且可以接受没有并发的情况下，才考虑采用该级别。![image-20190112113043777](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112113043777-7263843.png)
+​	SERIALIZABLE是最高的隔离级别。**它通过强制事务串行执行，避免了前面说的幻读的问题。**==简单来说，SERIALIZABLE会在读取的每一行数据上都加锁==，所以可能导致大量的超时和锁争用的问题。实际应用中也很少用到这个隔离级别，只有在非常需要确保数据的一致性而且可以接受没有并发的情况下，才考虑采用该级别。![image-20190112113043777](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190112113043777-7263843.png)
 
 ### 3.2 死锁
 
@@ -90,7 +90,7 @@
 
 #### 自动提交（AUTOCOMMIT）
 
-​	==MySQL默认采用自动提交（AUTOCOMMIT）模式。==也就是说，如果不是显式地开始一个事务，则每个查询都被当作一个事务执行提交操作。在当前连接中，可以通过设置AUTOCOMMIT变量来启用或者禁用自动提交模式：![image-20190112163241903](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112163241903-7281961.png)
+​	==MySQL默认采用自动提交（AUTOCOMMIT）模式。==也就是说，如果不是显式地开始一个事务，则每个查询都被当作一个事务执行提交操作。在当前连接中，可以通过设置AUTOCOMMIT变量来启用或者禁用自动提交模式：![image-20190112163241903](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190112163241903-7281961.png)
 
 ​	**1或者ON表示启用，0或者OFF表示禁用。**==当AUTOCOMMIT=0时，所有的查询都是在一个事务中，直到显式地执行COMMIT提交或者ROLLBACK回滚，该事务结束，同时又开始了另一个新事务。==修改AUTOCOMMIT对非事务型的表，比如MyISAM或者内存表，不会有任何影响。对这类表来说，没有COMMIT或者ROLLBACK的概念，也可以说是相当于一直处于AUTOCOMMIT启用的模式。
 
@@ -110,7 +110,7 @@
 
 #### 隐式和显式锁定
 
-​	**InnoDB采用的是两阶段锁定协议（two-phase locking protocol）。**在事务执行过程中，随时都可以执行锁定，==锁只有在执行COMMIT或者ROLLBACK的时候才会释放，并且所有的锁是在同一时刻被释放。==前面描述的锁定都是隐式锁定，InnoDB会根据隔离级别在需要的时候自动加锁。另外，InnoDB也支持通过特定的语句进行显式锁定，这些语句不属于SQL规范：![image-20190112163709920](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112163709920-7282229.png)
+​	**InnoDB采用的是两阶段锁定协议（two-phase locking protocol）。**在事务执行过程中，随时都可以执行锁定，==锁只有在执行COMMIT或者ROLLBACK的时候才会释放，并且所有的锁是在同一时刻被释放。==前面描述的锁定都是隐式锁定，InnoDB会根据隔离级别在需要的时候自动加锁。另外，InnoDB也支持通过特定的语句进行显式锁定，这些语句不属于SQL规范：![image-20190112163709920](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190112163709920-7282229.png)
 
 ​	MySQL也支持LOCK TABLES和UNLOCK TABLES语句，这是在服务器层实现的，和存储引擎无关。它们有自己的用途，但并不能替代事务处理。如果应用需要用到事务，还是应该选择事务型存储引擎。
 
@@ -156,7 +156,7 @@
 
 ## 5 MySQL的存储引擎
 
-​	在文件系统中，MySQL将每个数据库（也可以称之为schema）保存为数据目录下的一个子目录。创建表时，MySQL会在数据库子目录下创建一个和表同名的.frm文件保存表的定义。例如创建一个名为MyTable的表，MySQL会在MyTable.frm文件中保存该表的定义。**因为MySQL使用文件系统的目录和文件来保存数据库和表的定义，大小写敏感性和具体的平台密切相关。**在Windows中，大小写是不敏感的；而在类Unix中则是敏感的。不同的存储引擎保存数据和索引的方式是不同的，但表的定义则是在MySQL服务层统一处理的。可以使用==SHOW TABLE STATUS==命令（在MySQL 5.0以后的版本中，也可以查询INFORMATION_SCHEMA中对应的表）显示表的相关信息。如下面查询tb_user表：![image-20190112171229827](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190112171229827-7284349.png)
+​	在文件系统中，MySQL将每个数据库（也可以称之为schema）保存为数据目录下的一个子目录。创建表时，MySQL会在数据库子目录下创建一个和表同名的.frm文件保存表的定义。例如创建一个名为MyTable的表，MySQL会在MyTable.frm文件中保存该表的定义。**因为MySQL使用文件系统的目录和文件来保存数据库和表的定义，大小写敏感性和具体的平台密切相关。**在Windows中，大小写是不敏感的；而在类Unix中则是敏感的。不同的存储引擎保存数据和索引的方式是不同的，但表的定义则是在MySQL服务层统一处理的。可以使用==SHOW TABLE STATUS==命令（在MySQL 5.0以后的版本中，也可以查询INFORMATION_SCHEMA中对应的表）显示表的相关信息。如下面查询tb_user表：![image-20190112171229827](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190112171229827-7284349.png)
 
 ​	输出的结果表明，这是一个InnoDB表。输出中还有很多其他信息以及统计信息。下面简单介绍一下每一行的含义。
 
@@ -220,7 +220,7 @@ Comment			该列包含了一些其他的额外信息。对于MyISAM表，保存�
 
 #### MyISAM特性
 
-##### ​加锁与并发
+##### 加锁与并发
 
 ​	MyISAM对整张表加锁，而不是针对行。读取时会对需要读到的所有表加共享锁，写入时则对表加排他锁。但是在表有读取查询的同时，也可以往表中插入新的记录（这被称为并发插入，CONCURRENT INSERT）。
 
@@ -324,7 +324,7 @@ Comment			该列包含了一些其他的额外信息。对于MyISAM表，保存�
 
 ### 1.3 字符串类型
 
-#### ​VARCHAR和CHAR类型
+#### VARCHAR和CHAR类型
 
 ​	VARCHAR和CHAR是两种最主要的字符串类型。
 
@@ -358,15 +358,15 @@ Comment			该列包含了一些其他的额外信息。对于MyISAM表，保存�
 
 ​	有时候可以使用枚举列代替常用的字符串类型。**枚举列可以把一些不重复的字符串存储成一个预定义的集合**。MySQL在存储枚举时非常紧凑，会根据列表值的数量压缩到一个或者两个字节中。MySQL在内部会将每个值在列表中的==位置==保存为整数，并且在表的.frm文件中保存“数字-字符串”映射关系的“查找表”。
 
-![image-20190118170033799](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190118170033799.png)
+![image-20190118170033799](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190118170033799.png)
 
 ​	这三行数据实际存储为整数，而不是字符串。可以通过在数字上下文环境检索看到这个双重属性：
 
-![image-20190118170054676](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190118170054676.png)
+![image-20190118170054676](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190118170054676.png)
 
 储存的是这些设定的值对应的位置。如果使用数字作为ENUM枚举常量，这种双重性很容易导致混乱，例如ENUM（'1'，'2','3'）。建议尽量避免这么做。**枚举字段是按照内部存储的整数而不是定义的字符串进行排序的：**
 
-![image-20190118170151022](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190118170151022.png)
+![image-20190118170151022](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190118170151022.png)
 
 枚举最不好的地方是，字符串列表是固定的，添加或删除字符串必须使用ALTER TABLE。
 

@@ -9,19 +9,19 @@ Redis 是存在事务的,Redis的事务是使用 MULTI-EXEC的命令组合，使
 
 ##### redis事务相关命令：
 
-![image-20181216211135228](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216211135228-4965895.png)
+![image-20181216211135228](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216211135228-4965895.png)
 
 ## 1.Redis 的基础事务
 
-​	**在 Redis 中 开启事务是 ==multi== 命令，而执行事务是==exec==命令。 multi 到 exec 命令之间的 Redis 命令将采取进入队列的形式，直至 exec 命令的出现，才会一次性发送队列里的命令去执行 ，而在执行这些命令的时候其他客户端就不能再插入任何命令了，这就是 事务机制。**  执行过程如下图：![image-20181216211654133](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216211654133-4966214.png)
+​	**在 Redis 中 开启事务是 ==multi== 命令，而执行事务是==exec==命令。 multi 到 exec 命令之间的 Redis 命令将采取进入队列的形式，直至 exec 命令的出现，才会一次性发送队列里的命令去执行 ，而在执行这些命令的时候其他客户端就不能再插入任何命令了，这就是 事务机制。**  执行过程如下图：![image-20181216211654133](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216211654133-4966214.png)
 
 ​	**由上图可以看出，先用multi开启事务，然后发现输入set和get后并没有马上执行，而是进入了“QUEUED”，进入了存储队列。接着执行exec命令，发现set和get命令都执行并返回结果了。**
 
-​	如果回滚事务，则可以使用 discard 命令，它就会进入在事务队列中的命令，这样事务中的方法就不会被执行了，使用 discard命令取消事务如图：![image-20181216212816641](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216212816641-4966896.png)
+​	如果回滚事务，则可以使用 discard 命令，它就会进入在事务队列中的命令，这样事务中的方法就不会被执行了，使用 discard命令取消事务如图：![image-20181216212816641](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216212816641-4966896.png)
 
 ​	当我们使用了 discard命令后，再使用 exec命令时就会报错，因为 discard命令已经取消了事务中的命令，而到了 exec命令时，队列里面己经没有命令可以执行了，所以就出现了报错的情况。
 
-在Spring中要使用同一个连接操作Redis命令的场景，这个时候我们借助的是 Spring提供的 **SessionCallback**接口，采用 Spring去实现本节的命令：![image-20181216213832164](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216213832164-4967512.png)
+在Spring中要使用同一个连接操作Redis命令的场景，这个时候我们借助的是 Spring提供的 **SessionCallback**接口，采用 Spring去实现本节的命令：![image-20181216213832164](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216213832164-4967512.png)
 
 ​	**==使用了 SessionCallBack 接口，从而保证所有的命令都是通过同一个Redis 的连接进行操作的。==**在使用 multi命令后， 要特别注意的是，使用 get等返回值的方法一律返回为空，因为在 Redis 中它只是把命令缓存到队列中，而没有去执行 。 使用 exec 后就会执行事务，执行完了事务后，执行 get命令就能正常返回结果了。最后使用 redisTemplate.execute(callBack);就能执行我们在 SessionCallBack 接口定义的Lambda 表达式的业务逻辑，并将获得其返回值。
 
@@ -38,9 +38,9 @@ List list = ops.exec () ; //执行事务
 
 ## 2.探索Redis事务回滚
 
-Redis的事务回滚分为两种情况：一种是命令格式正确而数据类型不符合，一种是命令格式不正确。![image-20181216215644601](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216215644601-4968604.png)
+Redis的事务回滚分为两种情况：一种是命令格式正确而数据类型不符合，一种是命令格式不正确。![image-20181216215644601](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216215644601-4968604.png)
 
-​	如上图，就是数据类型不符合，**使用命令 incr对其自增，但是命令只会进入事务队列，而没有被执行，所以它不会有任何的错误发生，而是等待 exec命令的执行。**当 exec命令执行后，之前进入队列的命令就依次执行，当遇到 incr时发生命令操作的数据类型错误，所以显示出了错误，而其之前和之后的命令都会被正常执行。注意，这里命令格式是正确的，问题在于数据类型，对于命令格式是错误的却是另外一种情形，如图： ![image-20181216215758077](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216215758077-4968678.png)
+​	如上图，就是数据类型不符合，**使用命令 incr对其自增，但是命令只会进入事务队列，而没有被执行，所以它不会有任何的错误发生，而是等待 exec命令的执行。**当 exec命令执行后，之前进入队列的命令就依次执行，当遇到 incr时发生命令操作的数据类型错误，所以显示出了错误，而其之前和之后的命令都会被正常执行。注意，这里命令格式是正确的，问题在于数据类型，对于命令格式是错误的却是另外一种情形，如图： ![image-20181216215758077](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216215758077-4968678.png)
 
 ​	使用的 incr命令格式是错误的，这个时候 Redis会立即检测出来并产生错误，而在此之前我们设置了 keyl， 在此之后我们设置了 key2a 当事务执行的时候，我们发现 keyl 和 key2 的值都为空 ，说明被 Redis 事务回滚了。
 
@@ -48,7 +48,7 @@ Redis的事务回滚分为两种情况：一种是命令格式正确而数据类
 
 ## 3.使用 watch 命令监控事务
 
-​	**==在Redis中使用watch命令可以决定事务是执行还是回滚。==** **一般而言，可以在multi命令之前使用 watch 命令监控某些键值对，然后使用 multi 命令开启事务，执行各类对数据结构进行操作的命令，这个时候这些命令就会进入队列。当 Redis使用 exec命令执行事务的时候，它首先会去比对被 watch 命令所监控的键值对，如果没有发生变化，那么它会执行事务队列中的命令，提交事务;如果发生变化，那么它不会执行任何事务中的命令，而去事务回滚。无论事务是否回滚 ， Redis 都会去取消执行事务前的 watch 命令，**这个过程如图：![image-20181216220717589](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181216220717589-4969237.png)
+​	**==在Redis中使用watch命令可以决定事务是执行还是回滚。==** **一般而言，可以在multi命令之前使用 watch 命令监控某些键值对，然后使用 multi 命令开启事务，执行各类对数据结构进行操作的命令，这个时候这些命令就会进入队列。当 Redis使用 exec命令执行事务的时候，它首先会去比对被 watch 命令所监控的键值对，如果没有发生变化，那么它会执行事务队列中的命令，提交事务;如果发生变化，那么它不会执行任何事务中的命令，而去事务回滚。无论事务是否回滚 ， Redis 都会去取消执行事务前的 watch 命令，**这个过程如图：![image-20181216220717589](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181216220717589-4969237.png)
 
 ​	**==Redis参考了多线程中使用的 CAS (比较与交换， Compare And Swap) 去执行的。==**其实就是有点像乐观锁那样子的，通过跟原来的值比较，然后判断是否一致。首先，在线程开始读取这些多线程共享的数据，并将其保存到当前进程的副本中，称为旧值，watch命令就是实现这个功能。然后，开启线程业务逻辑，有multi命令提供这个功能。在执行更新前，比较当前线程副本保存的旧值和当前线程共享的值是否一致，如果不一致，表明该数据已经被其他线程操作过，此次更新失败。为了保持一致，线程就不去更新任何值，而将事务回滚；否则就认为它没有被其他线程操作过，执行对应的业务逻辑，exec命令就是执行“类似”这样的一个功能。
 
@@ -56,15 +56,15 @@ Redis的事务回滚分为两种情况：一种是命令格式正确而数据类
 
 ​	Redis在执行事务的过程中， 并不会阻塞其他连接的并发，而只是通过比较watch监控的键值对去保证数据的一致性， 所以Redis多个事务完全可以在非阻塞的多线程环境中井发执行，而且Redis的机制是不会产生ABA问题的， 这样就有利于在保证数据一致的基础上 ， 提高高并发系统的数据读/写性能。
 
-##### 例子：![image-20181217100846579](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217100846579-5012526.png)
+##### 例子：![image-20181217100846579](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217100846579-5012526.png)
 
-##### ![image-20181217100909914](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217100909914-5012549.png)
+##### ![image-20181217100909914](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217100909914-5012549.png)
 
 ## 4.流水线( pipelined )
 
 ​	在事务中 Redis 提供了队列， 这是一个可以批量执行任务的队列，这样性能就比较高，但是使用 multi...exec事务命令是有系统开销的，因为它会检测对应的锁和序列化命令。有时候我们希望在没有任何附加条件的场景下去使用队列批量执行一系列的命令，从而提高系统性能，这就是 Redis 的流水线(pipelined)技术。
 
- 	Redis 执行读/写速度十分快，而系统的瓶颈往往是在网络通信中的延时，即当命令1在T1时刻发送到Redis之后，Redis很快地处理完命令1，命令 2 在 T2 时刻却没有通过网络送达 Redis 服务器，这样就变成了 Redis 服务器在等待命令 2 的到来，当命令2送达，被执行后，而命令 3 又没有送达 Redis, Redis 又要继续等待，依此类推，这样 Redis 的等待时间就会很长，很多时候在空闲的状态，而问题出在网络的延迟中，造成了系统瓶颈。如图：![image-20181217101629999](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217101629999-5012990.png)
+ 	Redis 执行读/写速度十分快，而系统的瓶颈往往是在网络通信中的延时，即当命令1在T1时刻发送到Redis之后，Redis很快地处理完命令1，命令 2 在 T2 时刻却没有通过网络送达 Redis 服务器，这样就变成了 Redis 服务器在等待命令 2 的到来，当命令2送达，被执行后，而命令 3 又没有送达 Redis, Redis 又要继续等待，依此类推，这样 Redis 的等待时间就会很长，很多时候在空闲的状态，而问题出在网络的延迟中，造成了系统瓶颈。如图：![image-20181217101629999](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217101629999-5012990.png)
 
 ​	为了解决这个问题，可以使用Redis的流水线， **Redis的流水线是一种通信协议，**下面通过Java API代码来演示：
 
@@ -88,13 +88,13 @@ Redis的事务回滚分为两种情况：一种是命令格式正确而数据类
 
 **​	结果显示耗时在 550 毫秒到 700 毫秒之间 ，即不到 1 秒的时间就完成多达 10 万次读/写。**
 
-##### spring操作流水线：![image-20181217102819540](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217102819540-5013699.png)
+##### spring操作流水线：![image-20181217102819540](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217102819540-5013699.png)
 
 ## 5.发布订阅
 
 ​	发布订阅模式首先需要消息源，也就是要有消息发布出来，订阅者就可以收到这个消息进行处理了，观察者模式就是这个模式的典型应用了 。Redis支持这一模式。如下图：
 
-![image-20181217103434506](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217103434506-5014074.png)
+![image-20181217103434506](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217103434506-5014074.png)
 
 首先来注册一个订阅的客户端， 这个时候使用 **==SUBSCRIBE==** 命令。
 比如监听一个叫作 chat的渠道， 这个时候我们需要先打开一个客户端，这里记为客户端 1，然后输入命令 : 
@@ -111,9 +111,9 @@ publish chat ”let’s go!!”
 
 这个时候客户端 2 就向渠道 chat 发送消息 :	”let’s go!!”   如下图：
 
-![image-20181217103808286](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217103808286-5014288.png)
+![image-20181217103808286](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217103808286-5014288.png)
 
-​	Spring 的工作环境中展示如何配置发布订阅模式。首先提供接收消息的类， 它将实现 **org.springframework.data.redis.connection.MessageListener** 接口， 并实现接口定义的方法 **public void onMessage(Message message, byte[] pattern)**, Redis 发布订阅监听类如代码：![image-20181217103949059](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217103949059-5014389.png)
+​	Spring 的工作环境中展示如何配置发布订阅模式。首先提供接收消息的类， 它将实现 **org.springframework.data.redis.connection.MessageListener** 接口， 并实现接口定义的方法 **public void onMessage(Message message, byte[] pattern)**, Redis 发布订阅监听类如代码：![image-20181217103949059](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217103949059-5014389.png)
 
 需要配置RedisMessageListener，这样就在 Spring 上下文中定义了监昕类。：
 
@@ -157,11 +157,11 @@ class = ”org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler ”
 
 测试Redis发布订阅：
 
-![image-20181217104434300](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217104434300-5014674.png)
+![image-20181217104434300](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217104434300-5014674.png)
 
 ​	convertAndSend 方法就是向渠道 chat 发送消息的， 当发送后对应的监听者就能监听到消息了。运行它，后台就会打出对应的消息:	
 
-![image-20181217104502527](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217104502527-5014702.png)
+![image-20181217104502527](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217104502527-5014702.png)
 
 ​	其实跟消息队列的发布订阅模式是差不多的，都是通过发布消息，接收消息，需要有订阅容器和监听容器。
 
@@ -171,9 +171,9 @@ class = ”org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler ”
 
 ​	一般而言，和 Java虚拟机一样，当内存不足时 Redis会触发自动垃圾回收的机制，而程序员可以通过 System.gc()去建议 Java虚拟机回收内存垃圾，它将“可能”(注意， System.gc()并不一定会触发 NM 去执行回收，它仅仅是建议JVM做回收)触发一次 Java虚拟机的回收机制，但是如果这样做可能导致 Java虚拟机在回收大量的内存空间的同时，引发性能低下的情况。
 
-**键值对超时命令：**![image-20181217105254892](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217105254892-5015174.png)	
+**键值对超时命令：**![image-20181217105254892](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217105254892-5015174.png)	
 
-![image-20181217105717422](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217105717422-5015437.png)
+![image-20181217105717422](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217105717422-5015437.png)
 
 ##### spring操作Redis超市命令：
 
@@ -227,7 +227,7 @@ eval lua-script key-num [keyl key2 key3 ... ] [valuel value2 value3 ... ]
 - **[key1key2key3...]是key作为参数传递给Lua语言，也可以不填它是key的参数， 但 是需要和 key-num 的个数对应起来。** 
 - **[valuel value2 value3 ...]这些参数传递给 Lua 语言，它们是可填可不填的。** 
 
-##### 例子：![image-20181217113026018](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217113026018-5017426.png)
+##### 例子：![image-20181217113026018](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217113026018-5017426.png)
 
 ```
 EVAL "return 'hello'" 0
@@ -257,11 +257,11 @@ evalsha shastring keynum [keyl key2 key3 . .. ] [paraml param2 param3. .. ]
 
 例子如下图，对脚本签名后就可以使用 SHA-1 签名标识运行脚本了。：
 
-![image-20181217113434054](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217113434054-5017674.png)
+![image-20181217113434054](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217113434054-5017674.png)
 
-##### spring操作lua脚本：![image-20181217113833851](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217113833851-5017913.png)
+##### spring操作lua脚本：![image-20181217113833851](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217113833851-5017913.png)
 
-​	如果要存储对象，可以使用Spring提供的 RedisScript接口，它还是提供了一个实现类DefaultRedisScript。![image-20181217114716851](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217114716851-5018436.png)
+​	如果要存储对象，可以使用Spring提供的 RedisScript接口，它还是提供了一个实现类DefaultRedisScript。![image-20181217114716851](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217114716851-5018436.png)
 
 ### 7.2 执行Lua文件
 

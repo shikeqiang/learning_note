@@ -4,19 +4,19 @@
 
 ​	Redis和数据库需要保持数据的一致性，两者有可能出现数据不同步的状况，如下图：
 
-![image-20181217174812562](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217174812562-5040092.png)
+![image-20181217174812562](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217174812562-5040092.png)
 
 ​	Tl 时刻以键 keyl 保存数据到 Redis, T2 时刻刷新进入数据库，但是 T3时刻发生了其他业务**需要改变数据库同一条记录的数据，但是采用了 key2 保存到 Redis 中，然后又写入了更新数据到数据库中，此时在 Redis 中 keyl 的数据是脏数据，和数据库的数据并不一致。**
 
 ### 1.1 Redis 和数据库读操作
 
-​	**数据缓存往往会在Redis上设置超时时间，当设置Redis的数据超时后， Redis就没法读出数据了，这个时候就会触发程序读取数据库， 然后将读取的数据库数据写入 Redis (此时会给 Redis重设超时时间 )，这样程序在读取的过程中就能按一定的时间间隔刷新数据了，**读取数据的流程如图：![image-20181217175355238](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217175355238-5040435.png)
+​	**数据缓存往往会在Redis上设置超时时间，当设置Redis的数据超时后， Redis就没法读出数据了，这个时候就会触发程序读取数据库， 然后将读取的数据库数据写入 Redis (此时会给 Redis重设超时时间 )，这样程序在读取的过程中就能按一定的时间间隔刷新数据了，**读取数据的流程如图：![image-20181217175355238](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217175355238-5040435.png)
 
 ​	**设置过期时间，这样每当读取 Redis数据超过过期时间， Redis就不能读到超时数据了，只能重新从 Redis 中读取，保证了一定的实时性，也避免了多次访问数据库造成的系统性能低下的情况。**
 
 ### 1.2 Redis 和数据库写操作
 
-​	**写操作要考虑数据一致 的问题，尤其是那些重要的业务数据，所以首先应该考虑从数据库中读取最新的数据，然后对数据进行操作，最后把数据写入 Redis 缓存中，如图：**![image-20181217175754247](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181217175754247-5040674.png)
+​	**写操作要考虑数据一致 的问题，尤其是那些重要的业务数据，所以首先应该考虑从数据库中读取最新的数据，然后对数据进行操作，最后把数据写入 Redis 缓存中，如图：**![image-20181217175754247](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181217175754247-5040674.png)
 
 ​	**==写入业务数据，先从数据库中读取最新数据，然后进行业务操作，更新业务数据到数据库后，再将数据刷新到 Redis 缓存中，这样就完成了一次写操作。==这样的操作就能避免将脏数据写入数据库中，这类问题在操作时要注意。**	
 
@@ -165,11 +165,11 @@ public class RedisConfig {
 
 ​	字符串定义了 key (包括 hash 数据结构)，而值则使用了序列化，这样就能够保存 Java 对象了。**缓存管理器 RedisCacheManager 定义了默认的超时时间为 10 分钟，这样就可以在一定的时间间隔后重新从数据库中读取数据了，而名称则定义为 redisCacheManager，** 名称 是为了方便后面注解 引用的 。
 
-​	下面是使用xml文件的方式来配置缓存管理器：![image-20181218095039117](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218095039117-5097839.png)
+​	下面是使用xml文件的方式来配置缓存管理器：![image-20181218095039117](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218095039117-5097839.png)
 
 ### 3.缓存注解简介
 
-##### 	缓存相关注解：![image-20181218100352912](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218100352912-5098632.png) 
+##### 	缓存相关注解：![image-20181218100352912](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218100352912-5098632.png) 
 
 ​	**注解@Cacheable 和 @CachePut 都可以保存缓存键值对**，只是它们的方式略有不同，请注意二者的区别 ，它们只能运用于有返回值的方法中，而**删除缓存 key 的@CacheEvict可以用在 void 的方法上 ，因为它 并不需要去保存任何值 。**
 
@@ -179,13 +179,13 @@ public class RedisConfig {
 
 ##### 	@Cacheable 和@ CachePut相关属性
 
-![image-20181218101459661](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218101459661-5099299.png)
+![image-20181218101459661](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218101459661-5099299.png)
 
 ​	由上表可见，value 是 一个数组，可以引用多个缓存管理器，而对于 key则是缓存中的键，它支持 Spring表达式，通过 Spring表达式就可以自定义缓存的 key。
 
 ##### 	Spring表达式值的引用：
 
-![image-20181218102237450](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218102237450-5099757.png)![image-20181218102251830](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218102251830-5099771.png)
+![image-20181218102237450](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218102237450-5099757.png)![image-20181218102251830](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218102251830-5099771.png)
 
 RoleService 接口的实现类--RoleServicelmpl：
 
@@ -246,7 +246,7 @@ publiC Role updateRole(Role role) {
 
 ### 5.注解@ CacheEvict
 
-##### 	注解@CacheEvict 主要是为了移除缓存对应的键值对，主要对于那些删除的操作，相关属性：![image-20181218112126226](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181218112126226-5103286.png)
+##### 	注解@CacheEvict 主要是为了移除缓存对应的键值对，主要对于那些删除的操作，相关属性：![image-20181218112126226](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181218112126226-5103286.png)
 
 ​	value 和 key 与之前的@Cacheable 和@CachePut 是一致的。**==属性 allEntries 要求删除缓存服务器中所有的缓存，这个时候指定的 key 将不会生效，所以这个属性要慎用 。==** beforeInvocation 属性指定缓存在方法前或者方法后移除。beforelnvocation的名字暴露了 Spring的实现方式一一反射方法， 它是通过AOP去实现的，数据库事务 的方式也是如此 。和@Transactional 一样， beforelnvocation 提供注解和配置项，进一步简化了开发 。使用@CacheEvict移除缓存，如下面的代码：
 

@@ -129,13 +129,13 @@ SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
 
 ​	格式：\[秒] \[分] \[小时] [日] \[月] \[周] [年]
 
-![img_0903](/Users/jack/Desktop/md/images/img_0903.png)
+![img_0903](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/img_0903.png)
 
-![img_0904](/Users/jack/Desktop/md/images/img_0904.png)
+![img_0904](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/img_0904.png)
 
 > \#  表示第几的意思, 逗号 表示或 ，/ 表示每隔多久触发
 
-![img_0905](/Users/jack/Desktop/md/images/img_0905.png)
+![img_0905](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/img_0905.png)
 
 - 'L'和'W'可以一起组合使用
 - 周字段英文字母不区分大小写，即MON与mon相同
@@ -145,9 +145,9 @@ SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger()
 
 ​	所有Scheduler实例都是由SchedulerFactory来创建。
 
-![img_0906](/Users/jack/Desktop/md/images/img_0906.png)
+![img_0906](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/img_0906.png)
 
-![img_0907](/Users/jack/Desktop/md/images/img_0907.png)
+![img_0907](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/img_0907.png)
 
 
 

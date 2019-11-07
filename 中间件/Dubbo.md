@@ -66,7 +66,7 @@
 
 ## 配置之间的关系
 
-![dubbo-config](/Users/jack/Desktop/md/images/dubbo-config.jpg)
+![dubbo-config](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/dubbo-config.jpg)
 
  Dubbo 内置配置类：
 
@@ -96,7 +96,7 @@
 
 其中，服务提供方配置，通过 URL 经由注册中心传递给消费方。
 
-![dubbo-config-override](/Users/jack/Desktop/md/images/dubbo-config-override.jpg)
+![dubbo-config-override](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/dubbo-config-override.jpg)
 
 （==建议由服务提供方设置超时，因为一个方法需要执行多长时间，服务提供方更清楚，如果一个消费方同时引用多个服务，就不需要关心每个服务的超时设置==）。
 
@@ -106,7 +106,7 @@
 
 # 二、Dubbo 框架的分层设计
 
-![æ´ä½è®¾è®¡](/Users/jack/Desktop/md/images/01-1967965.png)
+![æ´ä½è®¾è®¡](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-1967965.png)
 
 ## **图例说明**
 
@@ -182,7 +182,7 @@
 
 ​	==默认情况下，Dubbo调用是**同步**的方式。==
 
-![简化调用图](/Users/jack/Desktop/md/images/01-20190701174924500.png)
+![简化调用图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-20190701174924500.png)
 
 - Provider
   - 第 0 步，start 启动服务。
@@ -198,7 +198,7 @@
 
 更立体的展示 Dubbo 的调用流程：
 
-![详细调用图](/Users/jack/Desktop/md/images/01-20190701174924731.png)
+![详细调用图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-20190701174924731.png)
 
 - 注意，图中的【代理】指的是 **proxy 代理服务层**，和 Consumer 或 Provider 在同一进程中。
 - 注意，图中的【负载均衡】指的是 **cluster 路由层**，和 Consumer 或 Provider 在同一进程中。
@@ -237,7 +237,7 @@ Dubbo的异常处理类是com.alibaba.dubbo.rpc.filter.ExceptionFilter 类,对�
 
 最终选择的方案：
 
-![img](/Users/jack/Desktop/md/images/Center.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/Center.png)
 
 ​	在异常处理这里,加上自定义异常处理的代码，或者直接将112行的RuntimeException替换成自己的自定义异常!
 
@@ -576,7 +576,7 @@ Dubbo 目前提供三种实现：
 
 ## 源码分析
 
-![ç±"å¾](/Users/jack/Desktop/md/images/01-20190702175511709.png)
+![ç±"å¾](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-20190702175511709.png)
 
 ### 1.CacheFilter过滤器
 
@@ -947,7 +947,7 @@ public class JCacheFactory extends AbstractCacheFactory {
 
 ​	[Zookeeper](http://zookeeper.apache.org/) 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支持变更推送，适合作为 Dubbo 服务的注册中心，工业强度较高，可用于生产环境，并推荐使用 [1](https://dubbo.gitbooks.io/dubbo-user-book/references/registry/zookeeper.html#fn_1)。
 
-![/user-guide/images/zookeeper.jpg](/Users/jack/Desktop/md/images/zookeeper.jpg)
+![/user-guide/images/zookeeper.jpg](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/zookeeper.jpg)
 
 > - 在图中，我们可以看到 Zookeeper 的节点层级，自上而下是：
 >   - **Root** 层：根目录，**可通过 `<dubbo:registry group="dubbo" />` 的 `"group"` 设置 Zookeeper 的根节点，缺省使用 `"dubbo"` 。**
@@ -1133,7 +1133,7 @@ ProtocolConfig.destroyAll();
 
 ​	Consumer 可以强制直连 Provider 。在**开发及测试环境**下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要点对点直连，点对点直连方式，将以服务接口为单位，忽略注册中心的提供者列表，A 接口配置点对点，不影响 B 接口从注册中心获取列表。
 
-![/user-guide/images/dubbo-directly.jpg](/Users/jack/Desktop/md/images/dubbo-directly-20190703112226503.jpg)
+![/user-guide/images/dubbo-directly.jpg](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/dubbo-directly-20190703112226503.jpg)
 
 ### 通过 XML 配置
 
@@ -1177,7 +1177,7 @@ com.alibaba.xxx.XxxService=dubbo://localhost:20890
 
 可以让服务提供者开发方，只订阅服务(开发的服务可能依赖其它服务)，而不注册正在开发的服务，通过直连测试正在开发的服务。
 
-![/user-guide/images/subscribe-only.jpg](/Users/jack/Desktop/md/images/subscribe-only.jpg)
+![/user-guide/images/subscribe-only.jpg](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/subscribe-only.jpg)
 
 禁用注册配置
 
@@ -1205,7 +1205,7 @@ Dubbo 目前支持如下 9 种通信协议：
 
   反之，Dubbo 缺省协议不适合传送大数据量的服务，比如传文件，传视频等，除非请求量很低。
 
-  ![dubbo-protocol.jpg](/Users/jack/Desktop/md/images/dubbo-protocol.jpg)
+  ![dubbo-protocol.jpg](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/dubbo-protocol.jpg)
 
   > ## 配置
   >
@@ -1583,7 +1583,7 @@ Dubbo 目前支付如下 7 种序列化方式：
 
 ​	在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 failover 重试。
 
-![cluster](/Users/jack/Desktop/md/images/cluster.jpg)
+![cluster](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/cluster.jpg)
 
 各节点关系：
 
@@ -1713,7 +1713,7 @@ Dubbo提供了6种集群容错策略：
 
 ​	通过SPI扩展的包或者插件，在其jar包目录下都会有个resources/META-INF/services这样子的文件，比如下面的数据库驱动包。
 
-![image-20190704152931432](/Users/jack/Desktop/md/images/image-20190704152931432.png)
+![image-20190704152931432](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190704152931432.png)
 
 1. 在mysql-connector-java-xxx.jar中发现了META-INF\services\java.sql.Driver文件，里面只有两行记录：
 
@@ -1792,7 +1792,7 @@ registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=co
 >
 > Sentinel 的主要特性：
 >
-> ![Sentinel-features-overview](/Users/jack/Desktop/md/images/50505538-2c484880-0aaf-11e9-9ffc-cbaaef20be2b.png)
+> ![Sentinel-features-overview](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/50505538-2c484880-0aaf-11e9-9ffc-cbaaef20be2b.png)
 >
 > Sentinel 分为两个部分:
 >
@@ -1847,7 +1847,7 @@ registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=co
 
 ​	通过令牌验证在注册中心控制权限，以决定要不要下发令牌给消费者，可以防止消费者绕过注册中心访问提供者，另外通过注册中心可灵活改变授权方式，而不需修改或升级提供者
 
-![/user-guide/images/dubbo-token.jpg](/Users/jack/Desktop/md/images/dubbo-token.jpg)
+![/user-guide/images/dubbo-token.jpg](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/dubbo-token.jpg)
 
 可以全局设置开启令牌验证：
 

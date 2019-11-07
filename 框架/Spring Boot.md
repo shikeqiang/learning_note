@@ -14,7 +14,7 @@
 
   Spring 提供了一系列的 starter pom 来简化 Maven 的依赖加载。例如，当你使用了 `spring-boot-starter-web` ，会自动加入如下依赖：
 
-![`spring-boot-starter-web` ç pom æä"¶](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01-6804336-8711964.png)
+![`spring-boot-starter-web` ç pom æä"¶](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-6804336-8711964.png)
 
 - 4、[自动配置 Spring Bean](https://www.jianshu.com/p/ddb6e32e3faf)
 
@@ -403,7 +403,7 @@ public class UserDAO {
 >
 > ​	==SpringFactoriesLoader会查询包含 META-INF/spring.factories 文件的JAR。== 当找到spring.factories文件后，SpringFactoriesLoader将查询配置文件命名的属性。EnableAutoConfiguration的 key 值为org.springframework.boot.autoconfigure.EnableAutoConfiguration。根据此 key 对应的值进行 spring 配置。在 spring-boot-autoconfigure.jar文件中，包含一个 spring.factories 文件，部分内容如下：
 >
-> ![image-20190524093545944](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190524093545944.png)
+> ![image-20190524093545944](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190524093545944.png)
 >
 > ```factories
 > # Initializers
@@ -417,7 +417,7 @@ public class UserDAO {
 > ...
 > ```
 >
-> ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1650e0e47481e59a.png)
+> ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1650e0e47481e59a.png)
 
 ## @ComponentScan
 
@@ -514,7 +514,7 @@ public static List<String> loadFactoryNames(Class<?> factoryClass, @Nullable Cla
 >    1）ImportSelector 该接口的方法的返回值都会被纳入到spring容器管理中
 >    2）SpringFactoriesLoader 该类可以从classpath中搜索所有META-INF/spring.factories配置文件，并读取配置
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1650e64b3fe3fa0a.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1650e64b3fe3fa0a.png)
 
 总结：
 

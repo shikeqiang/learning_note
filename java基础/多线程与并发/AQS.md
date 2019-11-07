@@ -2,13 +2,13 @@
 
 底层通过CAS和volatile实现
 
-![1544061621591.png](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544061621591.png?raw=true)
+![1544061621591.png](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544061621591.png?raw=true)
 
 ### 1 AQS 简单介绍
 
 AQS的全称为（AbstractQueuedSynchronizer），这个类在java.util.concurrent.locks包下面。
 
-![1544061743209.png](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544061743209.png?raw=true)
+![1544061743209.png](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544061743209.png?raw=true)
 
 ​	AQS是一个用来构建锁和同步器的框架，使用AQS能简单且高效地构造出应用广泛的大量的同步器，比如我们提到的ReentrantLock，Semaphore，其他的诸如ReentrantReadWriteLock，SynchronousQueue，FutureTask等等皆是基于AQS的。当然，我们自己也能利用AQS非常轻松容易地构造出符合我们自己需求的同步器。
 
@@ -22,7 +22,7 @@ AQS的全称为（AbstractQueuedSynchronizer），这个类在java.util.concurre
 
 看个AQS(AbstractQueuedSynchronizer)原理图：
 
-![1544061850720.png](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1544061850720.png?raw=true)
+![1544061850720.png](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1544061850720.png?raw=true)
 
 **AQS使用一个int成员变量来表示同步状态**，通过内置的FIFO队列来完成获取资源线程的排队工作。AQS使用CAS对该同步状态进行原子操作实现对其值的修改。
 
@@ -430,7 +430,7 @@ threadnum:7is finish
 
 CountDownLatch是计数器，线程完成一个记录一个，只不过计数不是递增而是递减，而CyclicBarrier更像是一个阀门，需要所有线程都到达，阀门才能打开，然后继续执行。
 
-![image-20190411102812189](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190411102812189.png)
+![image-20190411102812189](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190411102812189.png)
 
 CyclicBarrier和CountDownLatch的区别这部分内容参考了如下两篇文章：
 
@@ -592,7 +592,7 @@ static final class Node {
 
 - CLH 同步队列，结构图如下：
 
-  ![CLH 同步队列](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120810001.png)
+  ![CLH 同步队列](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120810001.png)
 
   - `prev` 和 `next` 字段，是 **AbstractQueuedSynchronizer** 的字段，分别指向同步队列的头和尾。
   - `head` 和 `tail` 字段，分别指向 Node 节点的**前一个**和**后一个** Node 节点，从而实现**链式双向队列**。再配合上 `prev` 和 `next` 字段，快速定位到同步队列的头尾。
@@ -627,7 +627,7 @@ static final class Node {
 
 过程图如下：
 
-![入列 流程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120810002.png)
+![入列 流程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120810002.png)
 
 但是，实际上，入队逻辑实现的 `addWaiter(Node)` 方法，需要考虑**并发**的情况。它通过 **CAS** 的方式，来保证正确的添加 Node 。这个方法作用就是：==**请求失败后，将当前线程链入队尾并挂起，之后等待被唤醒**==。
 
@@ -770,7 +770,7 @@ static final class Node {
 
 过程图如下：
 
-![过程图](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120810003.png)
+![过程图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120810003.png)
 
 `setHead(Node node)` 方法，实现上述的**出列**逻辑。代码如下：
 
@@ -841,7 +841,7 @@ public final void acquire(int arg) {
 
 流程图如下：
 
-![流程图](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120811001.png)
+![流程图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120811001.png)
 
 代码如下：
 
@@ -962,7 +962,7 @@ public final void acquire(int arg) {
   - ==另外，等待状态不会为 `Node.CONDITION` ，因为它用在 ConditonObject 中==。
 - 第 10 至 18 行：==等待状态为NODE.CANCELLED时，则表明该线程的前一个节点已经等待超时或者被中断了，则需要从 CLH 队列中将该前一个节点删除掉，循环回溯，直到前一个节点状态<= 0。==
   - 对于本次执行，【第 27 行】返回 false ，需要下一次再重新执行 `shouldParkAfterFailedAcquire(Node pred, Node node)` 方法，看看满足哪个条件。
-  - 整个过程如下图：![过程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/shouldParkAfterFailedAcquire-02.png)
+  - 整个过程如下图：![过程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/shouldParkAfterFailedAcquire-02.png)
 
 ##### 1.1.3 cancelAcquire
 
@@ -1140,7 +1140,7 @@ private void doAcquireInterruptibly(int arg) throws InterruptedException {
 
 **流程图**如下：
 
-![流程图](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120811002.png)
+![流程图](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120811002.png)
 
 **代码**如下：
 
@@ -1645,7 +1645,7 @@ public final boolean release(int arg) {
 
 LockSupport 定义了一系列以 `park` 开头的方法来阻塞当前线程，`unpark(Thread thread)` 方法来唤醒一个被阻塞的线程。如下图所示：
 
-![方法](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2018120812001.png)
+![方法](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2018120812001.png)
 
 - `park(Object blocker)` 方法的blocker参数，主要是用来标识当前线程在等待的对象，该对象主要用于**问题排查和系统监控**。
 - park 方法和 `unpark(Thread thread)` 方法，都是**成对出现**的。同时 `unpark(Thread thread)` 方法，必须要在 park 方法执行之后执行。当然，并不是说没有调用 `unpark(Thread thread)` 方法的线程就会一直阻塞，park 有一个方法，它是带了时间戳的 `#parkNanos(long nanos)` 方法：为了线程调度禁用当前线程，最多等待指定的等待时间，除非许可可用。

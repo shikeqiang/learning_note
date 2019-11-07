@@ -6,13 +6,13 @@
 
 ​	Spring HTTP invoker 是 spring 框架中的一个远程调用模型，**执行基于 HTTP 的远程调用（意味着可以通过防火墙）**，并使用 java 的序列化机制在网络间传递对象。**这需要在远端和本地都使用Spring才行**。客户端可以很轻松的像调用本地对象一样调用远程服务器上的对象，这有点类似于 ‍webservice ‍，但又不同于 ‍webservice ‍，区别如下：‍
 
-![image-20190709154853453](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190709154853453.png)
+![image-20190709154853453](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190709154853453.png)
 
 ## 服务器端实现
 
 服务端主入口由`HttpInvokerServiceExporter`实现，它的工作大致流程如下 ：
 
-![æå¡ç"¯å¤çæµç¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/SouthEast-2662920.png)
+![æå¡ç"¯å¤çæµç¨](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/SouthEast-2662920.png)
 
 ​	HttpInvokerServiceExporter实现了HttpRequestHandler，这使得其拥有处理HTTP请求的能力，按照Spring MVC的架构，它将被注册到HandlerMapping的BeanNameMapping中，这设计到Spring MVC如何处理请求，可以关注我的相关文章。 
 
@@ -22,7 +22,7 @@
 
 ​	客户端的实现也很好理解，主入口为HttpInvokerProxyFactoryBean, 和Spring用到的众多设计相同，该类的结构使用了模板设计方法，该类提供实现了几个模板方法，整体逻辑由父类HttpInvokerClientInterceptor的实现，主要流程如下：
 
-![å®¢æ·ç"¯å¤çæµç¨](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/SouthEast-20190709170613981.png)
+![å®¢æ·ç"¯å¤çæµç¨](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/SouthEast-20190709170613981.png)
 
 ​	我们最关心的是当我们调用接口的方法时，HttpInvoker是如何做到调用到远方系统的方法的，其实HttpInvokerProxyFactoryBean最后返回的是一个代理类（Cglib Proxy或者Jdk Proxy），我们调用接口的任何方法时，都会先执行HttpInvokerClientInterceptor的invoke()方法。
 

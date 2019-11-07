@@ -45,7 +45,7 @@ MySQL 提供了多种的存储引擎：
 1. 选择密集型的表。**MyISAM存储引擎在筛选大量数据时非常迅速**，这是它最突出的优点。
 2. 插入密集型的表。**MyISAM的并发插入特性允许同时选择和插入数据。**例如：MyISAM存储引擎很适合管理邮件或Web服务器日志数据。
 
-![image-20190327211524719](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190327211524719.png)
+![image-20190327211524719](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190327211524719.png)
 
 ## MRG_MYISAM
 
@@ -487,7 +487,7 @@ mysql> show variables like 'innodb_page_size';
 5. ki(i=1,…n)为关键字，且关键字升序排序。 
 6. Pi(i=1,…n)为指向子树根节点的指针。P(i-1)指向的子树的所有节点关键字均小于ki，但都大于k(i-1)
 
-B-Tree中的每个节点根据实际情况可以包含大量的关键字信息和分支，如下图所示为一个3阶的B-Tree： ![ç´¢å¼](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20160202204827368.png)
+B-Tree中的每个节点根据实际情况可以包含大量的关键字信息和分支，如下图所示为一个3阶的B-Tree： ![ç´¢å¼](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/20160202204827368.png)
 
 
 ​	每个节点占用一个盘块的磁盘空间，一个节点上有两个升序排序的关键字key和三个指向子树根节点的指针，**指针存储的是子节点所在磁盘块的地址。两个关键词划分成的三个范围域对应三个指针指向的子树的数据的范围域**。以根节点为例，关键字为17和35，P1指针指向的子树的数据范围为小于17，P2指针指向的子树的数据范围为17~35，P3指针指向的子树的数据范围为大于35。
@@ -519,7 +519,7 @@ B-Tree中的每个节点根据实际情况可以包含大量的关键字信息�
 
 ​	将上面的B-Tree优化，由于B+Tree的非叶子节点只存储键值信息，假设每个磁盘块能存储4个键值及指针信息，则变成B+Tree后其结构如下图所示： 
 
-![ç´¢å¼](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20160202205105560.png)
+![ç´¢å¼](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/20160202205105560.png)
 
 
 ​	==通常在B+Tree上有两个头指针，一个指向根节点，另一个指向关键字最小的叶子节点，而且所有叶子节点（即数据节点）之间是一种链式环结构。因此可以对B+Tree进行两种查找运算：一种是对于主键的范围查找和分页查找，另一种是从根节点开始，进行随机查找。==
@@ -588,7 +588,7 @@ B-Tree中的每个节点根据实际情况可以包含大量的关键字信息�
 
 下图可以形象的说明聚簇索引和非聚簇索引的区别：
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/20180411154851675.jpeg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/20180411154851675.jpeg)
 
 ## 4、索引的使用策略
 
@@ -673,7 +673,7 @@ SELECT * FROM tablename MATCH(index_colum) ANGAINST(‘word’);
 
 指的是 **ACID** ，如下图所示：
 
-![事务的特性](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/06.png)
+![事务的特性](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/06.png)
 
 1. **原子性** Atomicity ：一个事务（transaction）中的所有操作，或者全部完成，或者全部不完成，不会结束在中间某个环节。**事务在执行过程中发生错误，会被恢复（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。即，事务不可分割、不可约简。**
 2. **一致性** Consistency ：在事务开始之前和事务结束以后，数据库的完整性没有被破坏。**这表示写入的资料必须完全符合所有的预设[约束](https://zh.wikipedia.org/wiki/%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7)、[触发器](https://zh.wikipedia.org/wiki/%E8%A7%A6%E5%8F%91%E5%99%A8_(%E6%95%B0%E6%8D%AE%E5%BA%93))、[级联回滚](https://zh.wikipedia.org/w/index.php?title=%E7%BA%A7%E8%81%94%E5%9B%9E%E6%BB%9A&action=edit&redlink=1)等。**
@@ -712,7 +712,7 @@ SELECT * FROM tablename MATCH(index_colum) ANGAINST(‘word’);
   > **一个事务读取到另外一个事务已经提交的数据，也就是说一个事务可以看到其他事务所做的修改**
   >
   > - 把**释放锁的位置调整到事务提交之后**，此时在事务提交前，其他进程是无法对该行数据进行读取的，包括任何操作。
-  > - **语句级别**的快照！**每次读取的都是当前最新的版本**！![image-20190329092524607](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190329092524607.png)
+  > - **语句级别**的快照！**每次读取的都是当前最新的版本**！![image-20190329092524607](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190329092524607.png)
 
 - ==REPEATABLE READ（可重复读）：一个事务按相同的查询条件读取以前检索过的数据，其他事务插入了满足其查询条件的新数据，产生幻行。==
 
@@ -826,7 +826,7 @@ for update表示加上了排它锁
 
   InnoDB的锁机制兼容情况如下： 
 
-  ![InnoDBçéæºå¶å¼å®¹æåµ](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/163da3105cb54186.png)
+  ![InnoDBçéæºå¶å¼å®¹æåµ](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/163da3105cb54186.png)
 
 当一个事务请求的锁模式与当前的锁兼容，InnoDB就将请求的锁授予该事务；反之如果请求不兼容，则该事物就等待锁释放。
 
@@ -1049,7 +1049,7 @@ InnoDB使用间隙锁的目的有两个：
 - 6字节的DB_ROW_ID，当由Innodb自动产生聚集索引时，聚集索引包括这个DB_ROW_ID的值，否则聚集索引中不包括这个值.，这个用于索引当中
 - DELETE BIT位用于标识该记录是否被删除，这里的不是真正的删除数据，而是标志出来的删除。真正意义的删除是在commit的时候
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/268981-20151221230743968-739828690.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/268981-20151221230743968-739828690.png)
 
 ### 具体的执行过程
 

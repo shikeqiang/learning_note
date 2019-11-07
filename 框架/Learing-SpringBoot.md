@@ -73,7 +73,7 @@ public @interface Service {
 
 例子：
 
-![image-20190913181944751](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190913181944751.png)
+![image-20190913181944751](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190913181944751.png)
 
 ## 2.@Enable 模块装配(多个功能)
 
@@ -472,7 +472,7 @@ SpringApplicationRunListener 监听多个运行状态方法:
 
 #### EventPublishingRunListener 监听方法与 Spring Boot 事件对应关系
 
-![image-20190915181433740](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20190915181433740.png)
+![image-20190915181433740](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190915181433740.png)
 
 ### 创建 Spring 应用上下文
 

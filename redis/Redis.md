@@ -2,7 +2,7 @@
 
 # 1.获取一个RedisTemplate对象
 
-​	一般都是通过连接池连接Redis的，要在spring中使用Redis，首先，我们需要配置JedisPoolConfig对象，如下图：![image-20181215173333350](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215173333350.png)
+​	一般都是通过连接池连接Redis的，要在spring中使用Redis，首先，我们需要配置JedisPoolConfig对象，如下图：![image-20181215173333350](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215173333350.png)
 
 在使用 Spring提供的 RedisTemplate之前需要配置 Spring所提供的连接工厂，在 Spring  Data Redis 方案中它提供了 4 种工厂模型：
 
@@ -11,11 +11,11 @@
 ​	**• LettuceConnectionFactory。**
 ​	• **SrpConnectionFactory**。
 
-![image-20181215173511658](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215173511658.png)
+![image-20181215173511658](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215173511658.png)
 
 如果想换成其他的连接工厂，修改bean标签里面的class属性为对应的工厂模型类即可。
 
-​	普通的连接使用没有办法把 Java对象直接存入 Redis，而需要我们自己提供方案，这时往往就是将对象序列化，然后使用 Redis 进行存储，而取回序列化的内容后，在通过转换转变为 Java 对象， Spring 模板中提供了封装的方案，在它内部提供了 **RedisSerializer 接口**(org.spring企amework.data.redis.serializer.RedisSerializer)和一些实现类，如下图：![image-20181215173836896](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215173836896.png)
+​	普通的连接使用没有办法把 Java对象直接存入 Redis，而需要我们自己提供方案，这时往往就是将对象序列化，然后使用 Redis 进行存储，而取回序列化的内容后，在通过转换转变为 Java 对象， Spring 模板中提供了封装的方案，在它内部提供了 **RedisSerializer 接口**(org.spring企amework.data.redis.serializer.RedisSerializer)和一些实现类，如下图：![image-20181215173836896](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215173836896.png)
 
 下面几种方法实现了RedisSerializer接口：
 
@@ -34,15 +34,15 @@
   使用它们就能够帮助我们把对象通过序列化存储到 Redis 中，也可以把 Redis存储的内容转换为 Java对象，为此 Spring提供的 RedisTemplate还有两个属性。
 
   **• keySerializer  	一键序列器 。**
-  **• valueSerializer   一值序列器。**![image-20181215202244784](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215202244784.png)**这样就配置了 一个 RedisTemplate 的对象，并且 spring data redis 知道会用对应 的序列化器去转换 Redis 的键值。**
+  **• valueSerializer   一值序列器。**![image-20181215202244784](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215202244784.png)**这样就配置了 一个 RedisTemplate 的对象，并且 spring data redis 知道会用对应 的序列化器去转换 Redis 的键值。**
 
 ## 2.Spring 对 Redis API 的基本封装
 
-Java有多种 Redis 的 API，如：Jedis Jredis、Lettuce 等。为了融合这些不同的 APL Spring 给出 一个对底层操作的接口 RedisConnection,通过这个接口就消除了各种连接 API的差异，提供统一的接口规范来简化操作，如图：![image-20181215202657201](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215202657201.png)
+Java有多种 Redis 的 API，如：Jedis Jredis、Lettuce 等。为了融合这些不同的 APL Spring 给出 一个对底层操作的接口 RedisConnection,通过这个接口就消除了各种连接 API的差异，提供统一的接口规范来简化操作，如图：![image-20181215202657201](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215202657201.png)
 
 Spring 对 Java 多种 Redis 连接 API 进行封装，而各个连接的实现类都继承抽象类**==AbstractRedisConnection==**，而这个抽象类实现了 **==RedisConnection==** 接口。所以对于使用者而言，只需要知道 RedisConnection 接口的 API 就可以消除各个 API 的差异了。
 
-Spring 会提供创建这个接口对象的工厂----RedisConnectionFactory。其实就是上面第一点的创建工厂连接，如图：![image-20181215202914829](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215202914829.png)
+Spring 会提供创建这个接口对象的工厂----RedisConnectionFactory。其实就是上面第一点的创建工厂连接，如图：![image-20181215202914829](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215202914829.png)
 
 ## 3.Spring 对 Redis 命令的封装
 
@@ -55,7 +55,7 @@ Spring 会提供创建这个接口对象的工厂----RedisConnectionFactory。�
 ​	**• ZSetOperations一一有序集合操作接口。**
 ​	**• HyperLogLogOperations一一基数操作接口 。**	
 
-Spring也会为它们提供默认的实现类， 在大部分情况下只要使用Spring提供的实现类即可，这些实现类是: **DefaultValueOperations、DefaultHashOperations、DefaultListOperations、 DefaultSetOperations、 DefaultZSetOperations和 DefaultHyperLogLogOperations。** 通过名字即可知道这些实现类对应的操作命令是什么。![image-20181215204244164](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215204244164.png)
+Spring也会为它们提供默认的实现类， 在大部分情况下只要使用Spring提供的实现类即可，这些实现类是: **DefaultValueOperations、DefaultHashOperations、DefaultListOperations、 DefaultSetOperations、 DefaultZSetOperations和 DefaultHyperLogLogOperations。** 通过名字即可知道这些实现类对应的操作命令是什么。![image-20181215204244164](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215204244164.png)
 
 如上图，只是列举了键值对和哈希这两种数据类型的命令。 
 
@@ -175,7 +175,7 @@ public interface BoundKeyOperations<K> {
 - **BoundZSetOperations一一对于有序集合( ZSet)数据的操作。** 
 - **HyperLogLogOperations一一基数统计统计操作。**
 
-这样 Spring通过操作就可以把各个数据类型的命令封装到各个操作里面，提供统一的操作接口给调用者使用。 Spring 也对它们提供对应的默认实现类。这里只探讨BoundValueOperations接口的实现类**DefaultBoundValueOperations**来了解 Spring 对 Redis 操作的封装了。  ![image-20181215210723278](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181215210723278.png)
+这样 Spring通过操作就可以把各个数据类型的命令封装到各个操作里面，提供统一的操作接口给调用者使用。 Spring 也对它们提供对应的默认实现类。这里只探讨BoundValueOperations接口的实现类**DefaultBoundValueOperations**来了解 Spring 对 Redis 操作的封装了。  ![image-20181215210723278](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181215210723278.png)
 
 **DefaultBoundValueOperations的构造方法如下：**
 

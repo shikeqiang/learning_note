@@ -15,7 +15,7 @@
 
 来看客户端与 Redis 的一次通信过程：
 
-![Redis-single-thread-model](/Users/jack/Desktop/md/images/01-0249933.png)
+![Redis-single-thread-model](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-0249933.png)
 
 - 客户端 socket01 向 Redis 的 server socket 请求建立连接，此时 server socket 会产生一个 `AE_READABLE` 事件，**IO 多路复用程序监听到 server socket 产生的事件后，将该事件压入队列中。文件事件分派器从队列中获取该事件，交给`连接应答处理器`。**==连接应答处理器会创建一个能与客户端通信的 socket01，并将该 socket01 的 `AE_READABLE` 事件与命令请求处理器关联。==
 - 假设此时客户端发送了一个 `set key value` 请求，此时 Redis 中的 **socket01** 会产生 `AE_READABLE` 事件，IO 多路复用程序将事件压入队列，此时事件分派器从队列中获取到该事件，由于前面 socket01 的 `AE_READABLE` 事件已经与命令请求处理器关联，因此**事件分派器将事件交给命令请求处理器来处理**。命令请求处理器读取 socket01 的 `key value` 并在自己内存中完成 `key value` 的设置。操作完成后，它会将 socket01 的 `AE_WRITABLE` 事件与令回复处理器关联。
@@ -1057,7 +1057,7 @@ Redis 主从同步，是很多 Redis 集群方案的基础，例如 Redis Sentin
 
 ​	如果这是 slave node 初次连接到 master node，那么会触发一次 `full resynchronization` 全量复制。==此时 master 会启动一个后台线程，开始生成一份 `RDB` 快照文件，同时还会将从客户端 client 新收到的所有写命令缓存在内存中。`RDB` 文件生成完毕后， master 会将这个 `RDB` 发送给 slave，slave 会先**写入本地磁盘，然后再从本地磁盘加载到内存**中，接着 master 会将内存中缓存的写命令发送到 slave，slave 也会同步这些数据。slave node 如果跟 master node 有网络故障，断开了连接，会自动重连，连接之后 master node 仅会复制给 slave 部分缺少的数据。==
 
-[![redis-master-slave-replication](/Users/jack/Desktop/md/images/redis-master-slave-replication.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication.png)
+[![redis-master-slave-replication](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/redis-master-slave-replication.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication.png)
 
 ### 主从复制的断点续传
 
@@ -1087,7 +1087,7 @@ repl-diskless-sync-delay 5
 
 ​	slave node 内部有个定时任务，每秒检查是否有新的 master node 要连接和复制，如果发现，就跟 master node 建立 socket 网络连接。然后 slave node 发送 `ping` 命令给 master node。如果 master 设置了 requirepass，那么 slave node 必须发送 masterauth 的口令过去进行认证。master node **第一次执行全量复制**，将所有数据发给 slave node。而在后续，master node 持续将写命令，异步复制给 slave node。
 
-[![redis-master-slave-replication-detail](/Users/jack/Desktop/md/images/redis-master-slave-replication-detail.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication-detail.png)
+[![redis-master-slave-replication-detail](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/redis-master-slave-replication-detail.png)](https://github.com/doocs/advanced-java/blob/master/images/redis-master-slave-replication-detail.png)
 
 ### 全量复制
 

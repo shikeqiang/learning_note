@@ -12,7 +12,7 @@
 
 相关组件：
 
-![Spring Cloudç ç"ä"¶](/Users/jack/Desktop/md/images/4935fcc0a209fd1d4b70cade94986f59.jpeg)
+![Spring Cloudç ç"ä"¶](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/4935fcc0a209fd1d4b70cade94986f59.jpeg)
 
 其他等同的组件：
 

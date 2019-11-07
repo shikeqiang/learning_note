@@ -62,7 +62,7 @@
 
 # 四、运行流程
 
-OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç¨](/Users/jack/Desktop/md/images/bg2014051203.png)
+OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç¨](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2014051203.png)
 
 > （A）用户打开客户端以后，客户端要求用户给予授权。
 >
@@ -103,7 +103,7 @@ OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç
 
 上面 URL 中，`response_type`参数表示要求返回授权码（`code`），`client_id`参数让 B 知道是谁在请求，`redirect_uri`参数是 B 接受或拒绝请求后的跳转网址，`scope`参数表示要求的授权范围（这里是只读）。
 
-![img](/Users/jack/Desktop/md/images/bg2019040902.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2019040902.jpg)
 
 - 第二步，用户跳转后，B 网站会要求用户登录，然后询问是否同意给予 A 网站授权。用户表示同意，这时 B 网站就会跳回`redirect_uri`参数指定的网址。跳转时，会传回一个授权码，就像下面这样。
 
@@ -113,7 +113,7 @@ OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç
 
 上面 URL 中，`code`参数就是授权码。
 
-![img](/Users/jack/Desktop/md/images/bg2019040907.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2019040907.jpg)
 
 - 第三步，A 网站拿到授权码以后，就可以在后端，向 B 网站请求令牌。
 
@@ -128,7 +128,7 @@ OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç
 
 ​	上面 URL 中，`client_id`参数和`client_secret`参数用来让 B 确认 A 的身份（`client_secret`参数是保密的，因此只能在后端发请求），`grant_type`参数的值是`AUTHORIZATION_CODE`，表示采用的授权方式是授权码，`code`参数是上一步拿到的授权码，`redirect_uri`参数是令牌颁发后的回调网址。
 
-![img](/Users/jack/Desktop/md/images/bg2019040904.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2019040904.jpg)
 
 - 第四步，B 网站收到请求以后，就会颁发令牌。具体做法是向`redirect_uri`指定的网址，发送一段 JSON 数据。
 
@@ -152,13 +152,13 @@ OAuth 2.0的运行流程如下图，摘自RFC 6749：![OAuthè¿è¡æµç
 
 上面 JSON 数据中，`access_token`字段就是令牌，A 网站在后端拿到了。
 
-![img](/Users/jack/Desktop/md/images/bg2019040905.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2019040905.jpg)
 
 ## 2.简化模式
 
 ​	简化模式（implicit grant type）不通过第三方应用程序的服务器，直接在浏览器中向认证服务器申请令牌，跳过了"授权码"这个步骤，因此得名。所有步骤在浏览器中完成，令牌对访问者是可见的，且客户端不需要认证。
 
-![简化模式](/Users/jack/Desktop/md/images/bg2014051205.png)
+![简化模式](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2014051205.png)
 
 它的步骤如下：
 
@@ -220,7 +220,7 @@ C步骤中，认证服务器回应客户端的URI，包含以下参数：
 
 ​	在这种模式中，==用户必须把自己的密码给客户端，但是客户端不得储存密码。==这通常用在用户对客户端高度信任的情况下，比如客户端是操作系统的一部分，或者由一个著名公司出品。而认证服务器只有在其他授权模式无法执行的情况下，才能考虑使用这种模式。
 
-![密码模式](/Users/jack/Desktop/md/images/bg2014051206.png)
+![密码模式](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2014051206.png)
 
 它的步骤如下：
 
@@ -269,7 +269,7 @@ C步骤中，认证服务器向客户端发送访问令牌，下面是一个例�
 
 ​	客户端模式（Client Credentials Grant）指客户端以自己的名义，而不是以用户的名义，向"服务提供商"进行认证。严格地说，客户端模式并不属于OAuth框架所要解决的问题。在这种模式中，用户直接向客户端注册，客户端以自己的名义要求"服务提供商"提供服务，其实不存在授权问题。
 
-![客户端模式](/Users/jack/Desktop/md/images/bg2014051207.png)
+![客户端模式](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2014051207.png)
 
 它的步骤如下：
 
@@ -359,7 +359,7 @@ B步骤中，认证服务器向客户端发送访问令牌，下面是一个例�
 
 ​	一个应用要求 OAuth 授权，必须先到对方网站登记，让对方知道是谁在请求。所以，要先去 GitHub 登记一下。访问这个[网址](https://github.com/settings/applications/new)，填写登记表。
 
-![img](/Users/jack/Desktop/md/images/bg2019042102.jpg)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/bg2019042102.jpg)
 
 ​	应用的名称随便填，主页 URL 填写`http://localhost:8080`，跳转网址填写 `http://localhost:8080/oauth/redirect`。
 

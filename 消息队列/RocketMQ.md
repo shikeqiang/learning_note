@@ -20,7 +20,7 @@
 
 ## 2.相关角色
 
-![RocketMQ 角色](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/01-0976636.png)
+![RocketMQ 角色](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/01-0976636.png)
 
 - 生产者（Producer）：负责产生消息，生产者向消息服务器发送由业务应用程序系统生成的消息，生产者本身既可以产生消息，如读取文本信息等。也可以对外提供接口，由外部应用来调用接口，再由生产者将收到的消息发送到MQ。
 
@@ -124,7 +124,7 @@
   >
   >  Broker 是 RocketMQ 中最复杂的角色，主要包括如下五个模块：
   >
-  > ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/006tKfTcgy1fo4vbpoxtej30r30dsdgs.jpg)
+  > ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/006tKfTcgy1fo4vbpoxtej30r30dsdgs.jpg)
   >
   > - 远程处理模块：是 Broker 的入口，处理来自客户的请求。
   > - Client Manager ：管理客户端（生产者/消费者），并维护消费者的主题订阅。
@@ -159,7 +159,7 @@
 
 ## 3.RocketMQ 的整体流程
 
-![整体流程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/02-0976659.png)
+![整体流程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/02-0976659.png)
 
 - 1、启动 **Namesrv**，Namesrv起 来后监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心。
 - 2、**Broker** 启动，跟所有的 Namesrv 保持长连接，定时发送心跳包。

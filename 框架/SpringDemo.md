@@ -36,9 +36,9 @@
 
 ## 常用注解
 
-![image-20190812232647436](/Users/jack/Desktop/md/images/image-20190812232647436.png)
+![image-20190812232647436](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190812232647436.png)
 
-![image-20190812232811499](/Users/jack/Desktop/md/images/image-20190812232811499.png)
+![image-20190812232811499](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190812232811499.png)
 
 例子：
 
@@ -91,17 +91,17 @@ public class CoffeeOrder implements Serializable {
 }
 ```
 
-![image-20190813222442457](/Users/jack/Desktop/md/images/image-20190813222442457.png)
+![image-20190813222442457](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190813222442457.png)
 
-![image-20190813230236586](/Users/jack/Desktop/md/images/image-20190813230236586.png)
+![image-20190813230236586](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190813230236586.png)
 
-![image-20190813230400409](/Users/jack/Desktop/md/images/image-20190813230400409.png)
+![image-20190813230400409](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190813230400409.png)
 
-![image-20190813231810303](/Users/jack/Desktop/md/images/image-20190813231810303.png)
+![image-20190813231810303](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190813231810303.png)
 
 ==接口中的方法是如何被解释的：==
 
-![image-20190813232020848](/Users/jack/Desktop/md/images/image-20190813232020848.png)
+![image-20190813232020848](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190813232020848.png)
 
 Part类中解析。
 
@@ -124,11 +124,11 @@ Part类中解析。
 
 ## Spring 的应⽤程序上下⽂
 
-![image-20190825224643010](/Users/jack/Desktop/md/images/image-20190825224643010.png)
+![image-20190825224643010](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190825224643010.png)
 
-![image-20190825224931325](/Users/jack/Desktop/md/images/image-20190825224931325.png)
+![image-20190825224931325](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190825224931325.png)
 
-![image-20190825225625882](/Users/jack/Desktop/md/images/image-20190825225625882.png)
+![image-20190825225625882](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190825225625882.png)
 
 ```java
 @Controller
@@ -161,7 +161,7 @@ public class CoffeeController {
 
 ## 定义类型转换和Multipart 上传
 
-![image-20190826225051677](/Users/jack/Desktop/md/images/image-20190826225051677.png)
+![image-20190826225051677](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190826225051677.png)
 
 ## 定义校验
 
@@ -184,11 +184,11 @@ public class CoffeeController {
 
 ### 视图解析的实现基础
 
-![image-20190826231127242](/Users/jack/Desktop/md/images/image-20190826231127242.png)
+![image-20190826231127242](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190826231127242.png)
 
 ### DispatcherServlet 中的视图解析逻辑
 
-![image-20190826231147271](/Users/jack/Desktop/md/images/image-20190826231147271.png)
+![image-20190826231147271](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190826231147271.png)
 
 使⽤用 **@**ResponseBody 的情况 
 
@@ -202,11 +202,11 @@ public class CoffeeController {
 - Spring Boot ⾃自动查找 HttpMessageConverters 进⾏行行注册 
 - 通过 WebMvcConfigurer 的 configureMessageConverters() 
 
-![image-20190826232141403](/Users/jack/Desktop/md/images/image-20190826232141403.png)
+![image-20190826232141403](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190826232141403.png)
 
 ### 使用 Thymeleaf
 
-![image-20190826231635292](/Users/jack/Desktop/md/images/image-20190826231635292.png)
+![image-20190826231635292](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190826231635292.png)
 
 ## 异常处理
 
@@ -437,7 +437,7 @@ public WebClient webClient(WebClient.Builder builder) {
 
 ## HTTP状态码
 
-![image-20190831123846685](/Users/jack/Desktop/md/images/image-20190831123846685.png)
+![image-20190831123846685](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190831123846685.png)
 
 ## 分布式会话
 
@@ -474,7 +474,7 @@ public WebClient webClient(WebClient.Builder builder) {
 
 Spring Boot 对 Spring Session 的⽀持:
 
-![image-20190901000225979](/Users/jack/Desktop/md/images/image-20190901000225979.png)
+![image-20190901000225979](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901000225979.png)
 
 ## WebFlux
 
@@ -487,11 +487,11 @@ Spring Boot 对 Spring Session 的⽀持:
 - 请求的耗时并不会有很大的改善
 - 仅需少量固定数量的线程和较少的内存即可实现扩展
 
-![image-20190901000748194](/Users/jack/Desktop/md/images/image-20190901000748194.png)
+![image-20190901000748194](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901000748194.png)
 
 两种编程模型：基于注解的控制器、函数式 Endpoints
 
-![image-20190901001014615](/Users/jack/Desktop/md/images/image-20190901001014615.png)
+![image-20190901001014615](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901001014615.png)
 
 ## 自动装配
 
@@ -537,11 +537,11 @@ starter 模块，包含指向自动配置模块的依赖及其他相关依赖
 
 ### 外化配置加载顺序
 
-![image-20190901110553151](/Users/jack/Desktop/md/images/image-20190901110553151.png)
+![image-20190901110553151](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901110553151.png)
 
-![image-20190901110627071](/Users/jack/Desktop/md/images/image-20190901110627071.png)
+![image-20190901110627071](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901110627071.png)
 
-![image-20190901110722969](/Users/jack/Desktop/md/images/image-20190901110722969.png)
+![image-20190901110722969](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901110722969.png)
 
 @Configuration 类上的 @PropertySource
 
@@ -565,7 +565,7 @@ SpringApplication.setDefaultProperties() 设置的默认属性
 
 ### 定制 PropertySource
 
-![image-20190901114019518](/Users/jack/Desktop/md/images/image-20190901114019518.png)
+![image-20190901114019518](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901114019518.png)
 
 ```java
 //加载到environment
@@ -595,9 +595,9 @@ public class YapfEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
 > Endpoint主要是用来监控应用服务的运行状况，并集成在Mvc中提供查看接口。
 
-![image-20190901185343292](/Users/jack/Desktop/md/images/image-20190901185343292.png)
+![image-20190901185343292](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901185343292.png)
 
-![image-20190901185500141](/Users/jack/Desktop/md/images/image-20190901185500141.png)
+![image-20190901185500141](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901185500141.png)
 
 ### 访问及配置
 
@@ -646,7 +646,7 @@ public class YapfEnvironmentPostProcessor implements EnvironmentPostProcessor {
 - management.health.\<id>.enabled=true
 - management.endpoint.health.show-details=never|when-authorized|always
 
-![image-20190901201313867](/Users/jack/Desktop/md/images/image-20190901201313867.png)
+![image-20190901201313867](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190901201313867.png)
 
 ### 自定义 Health Indicator
 
@@ -783,7 +783,7 @@ public class CoffeeOrderService implements MeterBinder {
 
 ## Spring Boot Admin
 
-​	为 Spring Boot 应⽤程序提供⼀套管理界面，集中展示应用程序 Actuator 相关的内容，变更了通知。![image-20190902210526969](/Users/jack/Desktop/md/images/image-20190902210526969.png)
+​	为 Spring Boot 应⽤程序提供⼀套管理界面，集中展示应用程序 Actuator 相关的内容，变更了通知。![image-20190902210526969](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190902210526969.png)
 
 ### 安全控制
 
@@ -930,7 +930,7 @@ public class FooCommandLineRunner implements CommandLineRunner {
 
 ## DockerFile
 
-![image-20190902220344124](/Users/jack/Desktop/md/images/image-20190902220344124.png)
+![image-20190902220344124](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190902220344124.png)
 
 ```dockerfile
 FROM java:8
@@ -968,7 +968,7 @@ ENTRYPOINT ["java", "-jar","/waiter-service.jar"]
 </plugin>
 ```
 
-![image-20190902220404149](/Users/jack/Desktop/md/images/image-20190902220404149.png)
+![image-20190902220404149](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20190902220404149.png)
 
 ```
 <plugin>

@@ -2,7 +2,7 @@
 
 ## 一、springMVC整体流程
 
-先来看看springMVC的工作流程图：![image-20181219160754756](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20181219160754756-5206874.png)
+先来看看springMVC的工作流程图：![image-20181219160754756](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20181219160754756-5206874.png)
 
 下面来看看每一步都是在做什么：
 

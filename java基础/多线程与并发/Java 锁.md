@@ -1,8 +1,8 @@
 - `synchronized`
-  - ![synchronized-1](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/b9bc9653929e5da43d8edad6e6a0d293-20190306111143172.jpeg)
+  - ![synchronized-1](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/b9bc9653929e5da43d8edad6e6a0d293-20190306111143172.jpeg)
   - ![synchronized-2导图](http://static.iocoder.cn/a79be5f48c26abb905348e43a1732d55)
 - `volatile`
-  - ![volatile](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/506052a856416414e18c7ed79d43cc5c.jpeg)
+  - ![volatile](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/506052a856416414e18c7ed79d43cc5c.jpeg)
 
 # 一、synchronized的原理
 
@@ -39,19 +39,19 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 
 下图是 Java 对象头的存储结构（32位虚拟机）：
 
-![存储结构](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/201812081002.png)
+![存储结构](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/201812081002.png)
 
 对象头信息是与对象自身定义的数据无关的额外存储成本，但是考虑到虚拟机的空间效率，Mark Word 被设计成一个**非固定**的数据结构以便在极小的空间内存存储尽量多的数据，它会根据对象的状态复用自己的存储空间，也就是说，Mark Word 会随着程序的运行发生变化，变化状态如下：
 
 - 32 位虚拟机：
 
-  ![32 位虚拟机](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/201812081003.png)
+  ![32 位虚拟机](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/201812081003.png)
 
   - 每一行，是一种情况。
 
 - 64 位虚拟机：
 
-  ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1.jpeg)
+  ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1.jpeg)
 
   - 对于 32 位无锁状态，有 25 bits 没有使用。
 
@@ -69,7 +69,7 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 > Monitor Record 是线程**私有**的数据结构，每一个线程都有一个可用 Monitor Record 列表，同时还有一个全局的可用列表。
 > 每一个被锁住的对象都会和一个 Monitor Record 关联（对象头的 MarkWord 中的 LockWord 指向 Monitor 的起始地址），Monitor Record 中有一个 Owner 字段，存放拥有该锁的线程的唯一标识，表示该锁被这个线程占用。其结构如下：
 
-> ![Monitor Record](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/201812081004.png)
+> ![Monitor Record](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/201812081004.png)
 
 > - **Owner**：1）初始时为 NULL 表示当前没有任何线程拥有该 Monitor Record；2）当线程成功拥有该锁后保存线程唯一标识；3）当锁被释放时又设置为 NULL 。
 > - **EntryQ**：关联一个系统互斥锁（ semaphore ），阻塞所有试图锁住 Monitor Record失败的线程 。
@@ -183,7 +183,7 @@ public void vectorTest(){
 
 下图是争夺锁导致的**锁膨胀**的流程图：
 
-![争夺锁导致的锁膨胀](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/201812081005.png)
+![争夺锁导致的锁膨胀](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/201812081005.png)
 
 - 其中，绿框的 `0` 指的是无偏向锁，`01` 指的是无锁状态。
 
@@ -231,7 +231,7 @@ public void vectorTest(){
 
 下图是偏向锁的获取和释放流程：
 
-![偏向锁的获取和释放流程](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/201812081006.png)
+![偏向锁的获取和释放流程](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/201812081006.png)
 
 **关闭偏向锁**
 
@@ -249,15 +249,15 @@ public void vectorTest(){
 
 如下是引用自 [《Java并发编程的艺术》](http://www.iocoder.cn/JUC/sike/synchronized/?vip#) 的**对比图**：
 
-![偏向锁 vs 轻量级锁 vs 重量级锁](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/1-20190307115420667.jpeg)
+![偏向锁 vs 轻量级锁 vs 重量级锁](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/1-20190307115420667.jpeg)
 
 如下是三种锁之间的**转换图**：
 
-![偏向锁 => 轻量级锁 => 重量级锁](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/9EB59781-D801-4922-90CA-C6D34944BB0C.png)
+![偏向锁 => 轻量级锁 => 重量级锁](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/9EB59781-D801-4922-90CA-C6D34944BB0C.png)
 
 如果觉得解释不够清晰的胖友，推荐阅读**占小狼**的 [《JVM 源码分析之 synchronized 实现》](https://www.jianshu.com/p/c5058b6fe8e5) 。
 
-![èå¾](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/synchroized-01.png)
+![èå¾](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/synchroized-01.png)
 
 # 二、volatile 实现原理
 
