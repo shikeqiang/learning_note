@@ -2,7 +2,7 @@
 
 ​																														   						**一条查询语句的执行过程**
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/0d2070e8f84c4801adbfa03bda1f98d9.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/0d2070e8f84c4801adbfa03bda1f98d9.png)
 
 大体来说，MySQL可以分为Server层和存储引擎层两部分。
 
@@ -26,7 +26,7 @@
 
 连接完成后，如果你没有后续的动作，这个连接就处于空闲状态，你可以在**show processlist**命令中看到它。文本中这个图是show processlist的结果，其中的Command列显示为“Sleep”的这一行，就表示现在系统里面有一个空闲连接。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/f2da4aa3a672d48ec05df97b9f992fed.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/f2da4aa3a672d48ec05df97b9f992fed.png)
 
 客户端如果太长时间没动静，连接器就会自动将它断开。这个时间是由参数**wait_timeout控制的，默认值是8小时。**如果在连接被断开之后，客户端再次发送请求的话，就会收到一个错误提醒： Lost connection to MySQL server during query。这时候如果你要继续，就需要重连，然后再执行请求了。
 
@@ -139,7 +139,7 @@ ERROR 1142 (42000): SELECT command denied to user 'b'@'localhost' for table 'T'
 
 ​	InnoDB的redo log是固定大小的，比如可以配置为一组4个文件，每个文件的大小是1GB，那么这个redo log总共就可以记录4GB的操作。**从头开始写，写到末尾就又回到开头==循环==写**，如下面这个图所示。
 
-![image-20191019112146043](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191019112146043.png)
+![image-20191019112146043](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20191019112146043.png)
 
 ​	write pos是当前记录的位置，一边写一边后移，写到第3号文件末尾后就回到0号文件开头。checkpoint是当前要擦除的位置，也是往后推移并且循环的，擦除记录前要把记录更新到数据文件。
 
@@ -169,7 +169,7 @@ ERROR 1142 (42000): SELECT command denied to user 'b'@'localhost' for table 'T'
 
 如下图所示，图中浅色框表示是在InnoDB内部执行的，深色框表示是在执行器中执行的。
 
-![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png)
+![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png)
 
 ==将redo log的写入拆成了两个步骤：prepare和commit，这就是"两阶段提交"。==
 
@@ -290,7 +290,7 @@ mysql> show variables like 'transaction_isolation';
 
 > 假设一个值从1被按顺序改成了2、3、4，在回滚日志里面就会有类似下面的记录。
 >
-> ![image-20191021222342011](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191021222342011.png)
+> ![image-20191021222342011](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20191021222342011.png)
 >
 > ​	当前值是4，但是在查询这条记录的时候，**不同时刻启动的事务会有不同的read-view。**如图中看到的，在视图A、B、C里面，这一个记录的值分别是1、2、4，同一条记录在系统中可以存在多个版本，就是数据库的多版本并发控制（MVCC）。对于read-view A，要得到1，就必须将当前值依次执行图中所有的回滚操作得到，即使现在有另外一个事务正在将4改成5，这个事务跟read-view A、B、C对应的事务是不会冲突的。
 
@@ -344,7 +344,7 @@ mysql> show variables like 'transaction_isolation';
 
 - 二叉搜索树的特点是：每个节点的左儿子小于父节点，父节点又小于右儿子。这样如果你要查ID_card_n2的话，按照图中的搜索顺序就是按照UserA -> UserC -> UserF -> User2这个路径得到。这个时间复杂度是O(log(N))。
 
-  ![img](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/04fb9d24065635a6a637c25ba9ddde68.png)
+  ![img](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/04fb9d24065635a6a637c25ba9ddde68.png)
 
   为了维持O(log(N))的查询复杂度，需要保持这棵树是平衡二叉树。为了做这个保证，更新的时间复杂度也是O(log(N))。
 
@@ -368,7 +368,7 @@ index (k))engine=InnoDB;
 
 表中R1~R5的(ID,k)值分别为(100,1)、(200,2)、(300,3)、(500,5)和(600,6)，两棵树的示例示意图如下。
 
-![image-20191021225633331](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191021225633331.png)
+![image-20191021225633331](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20191021225633331.png)
 
 从图中不难看出，根据叶子节点的内容，索引类型分为主键索引和非主键索引。
 
@@ -500,7 +500,7 @@ insert into T values(100,1, 'aa'),(200,2,'bb'),(300,3,'cc'),(500,5,'ee'),(600,6,
 
 > 备注：这里的实验环境是MySQL 5.6。
 
-![image-20191027214829320](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191027214829320.png)
+![image-20191027214829320](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20191027214829320.png)
 
 ​	**可以看到session A先启动，这时候会对表t加一个MDL读锁。由于session B需要的也是MDL读锁，因此可以正常执行。之后session C会被blocked，是因为session A的MDL读锁还没有释放，而session C需要MDL写锁，因此只能被阻塞。**如果只有session C自己被阻塞还没什么关系，但是之后所有要在表t上新申请MDL读锁的请求也会被session C阻塞。前面我们说了，所有对表的增删改查操作都需要先申请MDL读锁，就都被锁住，等于这个表现在完全不可读写了。
 
@@ -533,7 +533,7 @@ ALTER TABLE tbl_name WAIT N add column ...
 
 ​	**当并发系统中不同线程出现循环资源依赖，涉及的线程都在等待别的线程释放资源时，就会导致这几个线程都进入无限等待的状态，称为死锁。**看下面数据库中的行锁这个例子。
 
-![image-20191029225101488](https://raw.githubusercontent.com/JDawnF/learning_note/master/images/image-20191029225101488.png)
+![image-20191029225101488](https://learningpics.oss-cn-shenzhen.aliyuncs.com/images/image-20191029225101488.png)
 
 ​	这时候，事务A在等待事务B释放id=2的行锁，而事务B在等待事务A释放id=1的行锁。 事务A和事务B在互相等待对方的资源释放，就是进入了死锁状态。当出现死锁以后，有两种策略：
 
